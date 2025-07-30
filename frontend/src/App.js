@@ -478,8 +478,8 @@ const MathChallenge = ({ onClose, onComplete }) => {
       setGrade(selectedGrade);
       setAnswers({});
     } catch (error) {
-      console.error('Error creating math challenge:', error);
-      alert('Error creating math challenge. Please try again.');
+      console.error('Fehler beim Erstellen der Mathe-Herausforderung:', error);
+      alert('Fehler beim Erstellen der Mathe-Herausforderung. Bitte versuche es erneut.');
     }
     setLoading(false);
   };
@@ -493,8 +493,8 @@ const MathChallenge = ({ onClose, onComplete }) => {
       setResult(response.data);
       setShowResults(true);
     } catch (error) {
-      console.error('Error submitting answers:', error);
-      alert('Error submitting answers. Please try again.');
+      console.error('Fehler beim Einreichen der Antworten:', error);
+      alert('Fehler beim Einreichen der Antworten. Bitte versuche es erneut.');
     }
     setLoading(false);
   };
@@ -509,18 +509,18 @@ const MathChallenge = ({ onClose, onComplete }) => {
         <div className="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
           <div className="text-center mb-6">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-purple-800 mb-4">Great Job!</h2>
+            <h2 className="text-2xl font-bold text-purple-800 mb-4">Großartige Arbeit!</h2>
             <div className="space-y-2 mb-6">
-              <p>Correct Answers: {result.correct_answers}/{result.total_problems}</p>
+              <p>Richtige Antworten: {result.correct_answers}/{result.total_problems}</p>
               <p>Score: {result.percentage.toFixed(1)}%</p>
               <p className="text-lg font-semibold text-yellow-600">
-                Stars Earned: {result.stars_earned} ⭐
+                Verdiente Sterne: {result.stars_earned} ⭐
               </p>
             </div>
           </div>
 
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-purple-800 mb-4">Review Your Answers:</h3>
+            <h3 className="text-lg font-semibold text-purple-800 mb-4">Überprüfe deine Antworten:</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {result.challenge.problems.map((problem, index) => (
                 <div key={index} className={`p-4 rounded-lg border-2 ${
@@ -532,14 +532,14 @@ const MathChallenge = ({ onClose, onComplete }) => {
                     <span className="text-lg mr-2">
                       {problem.is_correct ? '✅' : '❌'}
                     </span>
-                    <span className="font-medium">Problem {index + 1}</span>
+                    <span className="font-medium">Aufgabe {index + 1}</span>
                   </div>
                   <p className="mb-2 font-medium">{problem.question}</p>
                   <div className="space-y-1 text-sm">
-                    <p><span className="font-medium">Your answer:</span> {problem.user_answer}</p>
+                    <p><span className="font-medium">Deine Antwort:</span> {problem.user_answer}</p>
                     {!problem.is_correct && (
                       <p className="text-green-600">
-                        <span className="font-medium">Correct answer:</span> {problem.correct_answer}
+                        <span className="font-medium">Richtige Antwort:</span> {problem.correct_answer}
                       </p>
                     )}
                   </div>
@@ -556,7 +556,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
               }}
               className="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-600 transition-colors text-lg"
             >
-              Awesome! Continue
+              Super! Weiter
             </button>
           </div>
         </div>
@@ -571,12 +571,12 @@ const MathChallenge = ({ onClose, onComplete }) => {
         <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
           <div className="text-center">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-purple-800 mb-4">Great Job!</h2>
+            <h2 className="text-2xl font-bold text-purple-800 mb-4">Großartige Arbeit!</h2>
             <div className="space-y-2 mb-6">
-              <p>Correct Answers: {result.correct_answers}/{result.total_problems}</p>
+              <p>Richtige Antworten: {result.correct_answers}/{result.total_problems}</p>
               <p>Score: {result.percentage.toFixed(1)}%</p>
               <p className="text-lg font-semibold text-yellow-600">
-                Stars Earned: {result.stars_earned} ⭐
+                Verdiente Sterne: {result.stars_earned} ⭐
               </p>
             </div>
             <div className="flex space-x-4">
@@ -584,7 +584,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
                 onClick={() => setShowResults(true)}
                 className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                Review Answers
+                Antworten Überprüfen
               </button>
               <button 
                 onClick={() => {
@@ -593,7 +593,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
                 }}
                 className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors"
               >
-                Continue
+                Weiter
               </button>
             </div>
           </div>
@@ -607,12 +607,12 @@ const MathChallenge = ({ onClose, onComplete }) => {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
         <div className="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-purple-800">Math Grade {grade} Challenge</h2>
+            <h2 className="text-xl font-bold text-purple-800">Mathe Klasse {grade} Herausforderung</h2>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
           </div>
           
           <div className="mb-4 text-sm text-gray-600">
-            Fill in ALL answers to enable submission. Answers completed: {Object.keys(answers).length}/{challenge.problems.length}
+            Fülle ALLE Antworten aus, um die Einreichung zu aktivieren. Antworten ausgefüllt: {Object.keys(answers).length}/{challenge.problems.length}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -628,7 +628,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
                   min="0"
                   max="100"
                   className="w-full p-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500"
-                  placeholder="Your answer (0-100)"
+                  placeholder="Deine Antwort (0-100)"
                   value={answers[index] || ''}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -672,14 +672,14 @@ const MathChallenge = ({ onClose, onComplete }) => {
               onClick={onClose}
               className="px-6 py-2 border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
             >
-              Cancel
+              Abbrechen
             </button>
             <button 
               onClick={submitAnswers}
               disabled={loading || !allAnswersProvided}
               className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Submitting...' : `Submit All Answers (${Object.keys(answers).length}/${challenge.problems.length})`}
+              {loading ? 'Einreichen...' : `Alle Antworten Einreichen (${Object.keys(answers).length}/${challenge.problems.length})`}
             </button>
           </div>
         </div>
@@ -691,29 +691,29 @@ const MathChallenge = ({ onClose, onComplete }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-purple-800 mb-6">Earn Extra Stars!</h2>
-          <p className="text-gray-600 mb-6">Choose your math grade level:</p>
+          <h2 className="text-2xl font-bold text-purple-800 mb-6">Verdiene Extra-Sterne!</h2>
+          <p className="text-gray-600 mb-6">Wähle deine Mathe-Klassenstufe:</p>
           <div className="space-y-4">
             <button 
               onClick={() => startChallenge(2)}
               disabled={loading}
               className="w-full p-4 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-xl hover:from-purple-500 hover:to-pink-500 transition-all disabled:opacity-50"
             >
-              📚 Math Grade 2
+              📚 Mathe Klasse 2
             </button>
             <button 
               onClick={() => startChallenge(3)}
               disabled={loading}
               className="w-full p-4 bg-gradient-to-r from-indigo-400 to-purple-400 text-white rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all disabled:opacity-50"
             >
-              🎓 Math Grade 3
+              🎓 Mathe Klasse 3
             </button>
           </div>
           <button 
             onClick={onClose}
             className="mt-4 text-purple-600 hover:text-purple-800 transition-colors"
           >
-            Maybe Later
+            Vielleicht Später
           </button>
         </div>
       </div>
