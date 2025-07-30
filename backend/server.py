@@ -103,15 +103,17 @@ async def generate_math_problems(grade: int, count: int = 30) -> List[MathProble
     
     system_message = f"""You are a math problem generator for kids. Generate exactly {count} math problems suitable for Grade {grade}.
 
-For Grade 2: Addition and subtraction with numbers up to {settings.max_number}, multiplication tables up to x{settings.max_multiplication}
-For Grade 3: Addition and subtraction with numbers up to {settings.max_number}, multiplication tables up to x{settings.max_multiplication}, some word problems
-
-Include "sister problems" (related problems like 5+3 and 3+5).
+IMPORTANT CONSTRAINTS:
+- ALL ANSWERS must be between 1 and 100 (never exceed 100)
+- For Grade 2: Addition and subtraction with numbers up to {settings.max_number}, multiplication tables up to x{settings.max_multiplication}
+- For Grade 3: Addition and subtraction with numbers up to {settings.max_number}, multiplication tables up to x{settings.max_multiplication}
+- Include "sister problems" (related problems like 5+3 and 3+5)
+- Make sure no answer exceeds 100
 
 Return ONLY a JSON array of objects with this exact format:
 [{{"question": "What is 5 + 3?", "answer": 8}}, {{"question": "What is 3 + 5?", "answer": 8}}]
 
-Make the problems diverse but appropriate for the grade level. Focus on numbers only, avoid complex word problems."""
+Make the problems diverse but appropriate for the grade level. Focus on numbers only, avoid complex word problems. Double-check that ALL answers are 100 or less."""
 
     try:
         chat = LlmChat(
