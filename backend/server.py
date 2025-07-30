@@ -80,6 +80,18 @@ class MathSettings(BaseModel):
     max_multiplication: int = Field(default=10)
     star_tiers: Dict[str, int] = Field(default={"90": 3, "80": 2, "70": 1})
 
+class MathStatistics(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    total_attempts: int = Field(default=0)
+    grade_2_attempts: int = Field(default=0)
+    grade_3_attempts: int = Field(default=0)
+    total_correct: int = Field(default=0)
+    total_wrong: int = Field(default=0)
+    average_score: float = Field(default=0.0)
+    best_score: float = Field(default=0.0)
+    total_stars_earned: int = Field(default=0)
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+
 # Helper functions
 def get_current_week_start():
     today = datetime.now()
