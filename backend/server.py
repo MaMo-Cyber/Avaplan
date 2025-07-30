@@ -62,8 +62,11 @@ class RewardCreate(BaseModel):
 class MathProblem(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     question: str
-    correct_answer: int
-    user_answer: Optional[int] = None
+    question_type: str = Field(default="text")  # "text", "clock", "currency"
+    clock_data: Optional[Dict] = None  # For clock problems: {"hours": 3, "minutes": 30}
+    currency_data: Optional[Dict] = None  # For currency problems: {"amounts": [1.50, 2.30], "operation": "add"}
+    correct_answer: str  # Changed to str to handle different answer types
+    user_answer: Optional[str] = None
     is_correct: Optional[bool] = None
 
 class MathChallenge(BaseModel):
@@ -80,6 +83,24 @@ class MathSettings(BaseModel):
     max_number: int = Field(default=100)
     max_multiplication: int = Field(default=10)
     star_tiers: Dict[str, int] = Field(default={"90": 3, "80": 2, "70": 1})
+    problem_types: Dict[str, bool] = Field(default={
+        "addition": True,
+        "subtraction": True, 
+        "multiplication": True,
+        "clock_reading": False,
+        "currency_math": False,
+        "word_problems": False
+    })
+    currency_settings: Dict[str, Any] = Field(default={
+        "currency_symbol": "€",
+        "max_amount": 20.00,
+        "decimal_places": 2
+    })
+    clock_settings: Dict[str, Any] = Field(default={
+        "include_half_hours": True,
+        "include_quarter_hours": True,
+        "include_five_minute_intervals": False
+    })
 
 class MathStatistics(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
