@@ -82,6 +82,7 @@ class MathSettings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     max_number: int = Field(default=100)
     max_multiplication: int = Field(default=10)
+    problem_count: int = Field(default=30)  # Configurable number of problems
     star_tiers: Dict[str, int] = Field(default={"90": 3, "80": 2, "70": 1})
     problem_types: Dict[str, bool] = Field(default={
         "addition": True,
