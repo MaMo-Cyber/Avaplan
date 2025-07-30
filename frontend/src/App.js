@@ -151,14 +151,14 @@ const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
       <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
         <div className="text-center">
           <div className="text-6xl mb-4">💰</div>
-          <h2 className="text-2xl font-bold text-purple-800 mb-4">Star Safe</h2>
+          <h2 className="text-2xl font-bold text-purple-800 mb-4">Sternen-Tresor</h2>
           <div className="text-4xl font-bold text-yellow-600 mb-6">
             {starsInSafe} ⭐
           </div>
           
           {starsInSafe > 0 && (
             <div className="mb-6">
-              <p className="text-purple-600 mb-3">How many stars would you like to take out?</p>
+              <p className="text-purple-600 mb-3">Wie viele Sterne möchtest du herausnehmen?</p>
               <div className="flex space-x-2">
                 <input
                   type="number"
@@ -174,7 +174,7 @@ const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
                   disabled={!withdrawAmount || parseInt(withdrawAmount) > starsInSafe}
                   className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
                 >
-                  Take Out
+                  Herausnehmen
                 </button>
               </div>
             </div>
@@ -184,7 +184,7 @@ const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
             onClick={onClose}
             className="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-600 transition-colors"
           >
-            Close Safe
+            Tresor Schließen
           </button>
         </div>
       </div>
