@@ -923,6 +923,18 @@ function App() {
     }
   };
 
+  const resetWeek = async () => {
+    if (confirm('Bist du sicher, dass du die Woche zurücksetzen möchtest? Dies löscht alle Sterne der aktuellen Woche, aber nicht die im Tresor.')) {
+      try {
+        await axios.post(`${API}/progress/reset`);
+        loadData();
+      } catch (error) {
+        console.error('Fehler beim Zurücksetzen der Woche:', error);
+        alert('Fehler beim Zurücksetzen der Woche!');
+      }
+    }
+  };
+
   const resetAllStars = async () => {
     const confirmMessage = 'Bist du sicher, dass du ALLE Sterne zurücksetzen möchtest?\n\n' +
                           'Das wird löschen:\n' +
