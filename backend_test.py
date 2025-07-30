@@ -448,6 +448,353 @@ class BackendTester:
             self.log_test("Get Math Settings", False, f"Exception: {str(e)}")
         
         return success_count == 2
+
+    def test_german_word_problems(self):
+        """Test German word problems (Textaufgaben) functionality as per German review request"""
+        success_count = 0
+        
+        print("\n🇩🇪 Testing German Word Problems (Textaufgaben) - German Review Request")
+        
+        # 1. Update Math Settings: Set only "word_problems": true (all others false)
+        try:
+            word_problems_settings = {
+                "max_number": 100,
+                "max_multiplication": 10,
+                "problem_count": 30,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": False,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": False,
+                    "currency_math": False,
+                    "word_problems": True
+                },
+                "currency_settings": {"currency_symbol": "€", "max_amount": 20.00, "decimal_places": 2},
+                "clock_settings": {"include_half_hours": True, "include_quarter_hours": True, "include_five_minute_intervals": False}
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=word_problems_settings)
+            if response.status_code == 200:
+                settings = response.json()
+                if settings["problem_types"]["word_problems"] == True and settings["problem_types"]["addition"] == False:
+                    self.log_test("Configure Word Problems Only", True, "Math settings updated to word_problems only")
+                    success_count += 1
+                else:
+                    self.log_test("Configure Word Problems Only", False, "Settings not properly configured", settings["problem_types"])
+            else:
+                self.log_test("Configure Word Problems Only", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Configure Word Problems Only", False, f"Exception: {str(e)}")
+        
+        # 2. Test Grade 2 German word problems
+        try:
+            response = self.session.post(f"{BASE_URL}/math/challenge/2")
+            if response.status_code == 200:
+                challenge = response.json()
+                problems = challenge.get("problems", [])
+                
+                if len(problems) > 0:
+                    # Check for German word problem templates
+                    german_keywords = ["Anna", "Äpfel", "Tom", "Sticker", "Lisa", "Bonbons", "Max", "Spielzeugautos", "Blumen"]
+                    german_found = False
+                    english_found = False
+                    
+                    for problem in problems[:10]:  # Check first 10 problems
+                        question = problem.get("question", "")
+                        if any(keyword in question for keyword in german_keywords):
+                            german_found = True
+                        if "What is" in question:
+                            english_found = True
+                    
+                    if german_found and not english_found:
+                        self.log_test("Grade 2 German Word Problems", True, f"Found German word problems with proper templates")
+                        success_count += 1
+                    elif english_found:
+                        self.log_test("Grade 2 German Word Problems", False, f"Found English fallback problems instead of German word problems")
+                    else:
+                        self.log_test("Grade 2 German Word Problems", False, f"No recognizable German word problem templates found")
+                        
+                    # Verify all answers ≤ 100
+                    all_answers_valid = True
+                    for problem in problems:
+                        try:
+                            answer = int(problem.get("correct_answer", "0"))
+                            if answer > 100:
+                                all_answers_valid = False
+                                break
+                        except:
+                            pass  # Non-numeric answers are ok
+                    
+                    if all_answers_valid:
+                        self.log_test("Grade 2 Answer Range Validation", True, "All answers ≤ 100")
+                        success_count += 1
+                    else:
+                        self.log_test("Grade 2 Answer Range Validation", False, "Some answers > 100")
+                        
+                else:
+                    self.log_test("Grade 2 German Word Problems", False, "No problems generated")
+            else:
+                self.log_test("Grade 2 German Word Problems", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Grade 2 German Word Problems", False, f"Exception: {str(e)}")
+        
+        # 3. Test Grade 3 German word problems
+        try:
+            response = self.session.post(f"{BASE_URL}/math/challenge/3")
+            if response.status_code == 200:
+                challenge = response.json()
+                problems = challenge.get("problems", [])
+                
+                if len(problems) > 0:
+                    # Check for Grade 3 German word problem templates
+                    grade3_keywords = ["Sarah", "Euro", "Taschengeld", "Paket", "Keksen", "Packung", "Stifte", "Tim", "Minuten", "Klasse", "Schüler"]
+                    german_found = False
+                    english_found = False
+                    
+                    for problem in problems[:10]:  # Check first 10 problems
+                        question = problem.get("question", "")
+                        if any(keyword in question for keyword in grade3_keywords):
+                            german_found = True
+                        if "What is" in question:
+                            english_found = True
+                    
+                    if german_found and not english_found:
+                        self.log_test("Grade 3 German Word Problems", True, f"Found Grade 3 German word problems with proper templates")
+                        success_count += 1
+                    elif english_found:
+                        self.log_test("Grade 3 German Word Problems", False, f"Found English fallback problems instead of German word problems")
+                    else:
+                        self.log_test("Grade 3 German Word Problems", False, f"No recognizable Grade 3 German word problem templates found")
+                        
+                else:
+                    self.log_test("Grade 3 German Word Problems", False, "No problems generated")
+            else:
+                self.log_test("Grade 3 German Word Problems", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Grade 3 German Word Problems", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_configurable_problem_count(self):
+        """Test configurable number of problems as per German review request"""
+        success_count = 0
+        
+        print("\n🔢 Testing Configurable Problem Count - German Review Request")
+        
+        # Test different problem counts: 15, 10, 20, 40
+        test_counts = [15, 10, 20, 40]
+        
+        for count in test_counts:
+            try:
+                # Update settings with new problem count
+                settings = {
+                    "max_number": 100,
+                    "max_multiplication": 10,
+                    "problem_count": count,
+                    "star_tiers": {"90": 3, "80": 2, "70": 1},
+                    "problem_types": {
+                        "addition": True,
+                        "subtraction": True,
+                        "multiplication": True,
+                        "clock_reading": False,
+                        "currency_math": False,
+                        "word_problems": False
+                    }
+                }
+                
+                response = self.session.put(f"{BASE_URL}/math/settings", json=settings)
+                if response.status_code == 200:
+                    # Create math challenge and verify problem count
+                    response = self.session.post(f"{BASE_URL}/math/challenge/2")
+                    if response.status_code == 200:
+                        challenge = response.json()
+                        actual_count = len(challenge.get("problems", []))
+                        
+                        if actual_count == count:
+                            self.log_test(f"Problem Count {count}", True, f"Generated exactly {actual_count} problems")
+                            success_count += 1
+                        else:
+                            self.log_test(f"Problem Count {count}", False, f"Expected {count} problems, got {actual_count}")
+                    else:
+                        self.log_test(f"Problem Count {count}", False, f"Challenge creation failed: {response.status_code}")
+                else:
+                    self.log_test(f"Problem Count {count}", False, f"Settings update failed: {response.status_code}")
+            except Exception as e:
+                self.log_test(f"Problem Count {count}", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_mixed_problem_types(self):
+        """Test mixed problem types distribution as per German review request"""
+        success_count = 0
+        
+        print("\n🎯 Testing Mixed Problem Types Distribution - German Review Request")
+        
+        try:
+            # Configure mixed problem types: word_problems=true, addition=true, clock_reading=true
+            # Set problem_count: 12 (should be about 4 per type)
+            mixed_settings = {
+                "max_number": 100,
+                "max_multiplication": 10,
+                "problem_count": 12,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": True,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": True,
+                    "currency_math": False,
+                    "word_problems": True
+                },
+                "currency_settings": {"currency_symbol": "€", "max_amount": 20.00, "decimal_places": 2},
+                "clock_settings": {"include_half_hours": True, "include_quarter_hours": True, "include_five_minute_intervals": False}
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=mixed_settings)
+            if response.status_code == 200:
+                self.log_test("Configure Mixed Problem Types", True, "Settings configured for mixed problem types")
+                success_count += 1
+                
+                # Create challenge and analyze problem type distribution
+                response = self.session.post(f"{BASE_URL}/math/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    problems = challenge.get("problems", [])
+                    
+                    if len(problems) == 12:
+                        # Count problem types
+                        type_counts = {"text": 0, "clock": 0, "word_problem": 0}
+                        
+                        for problem in problems:
+                            question = problem.get("question", "")
+                            question_type = problem.get("question_type", "text")
+                            
+                            if question_type == "clock":
+                                type_counts["clock"] += 1
+                            elif any(keyword in question for keyword in ["Anna", "Tom", "Lisa", "Max", "Sarah"]):
+                                type_counts["word_problem"] += 1
+                            else:
+                                type_counts["text"] += 1
+                        
+                        # Check if distribution is reasonable (each type should have 2-6 problems out of 12)
+                        distribution_ok = all(2 <= count <= 6 for count in type_counts.values())
+                        
+                        if distribution_ok:
+                            self.log_test("Mixed Problem Distribution", True, f"Distribution: {type_counts}")
+                            success_count += 1
+                        else:
+                            self.log_test("Mixed Problem Distribution", False, f"Uneven distribution: {type_counts}")
+                            
+                        self.log_test("Mixed Problem Count", True, f"Generated exactly 12 problems as configured")
+                        success_count += 1
+                    else:
+                        self.log_test("Mixed Problem Count", False, f"Expected 12 problems, got {len(problems)}")
+                else:
+                    self.log_test("Mixed Problem Types Challenge", False, f"Challenge creation failed: {response.status_code}")
+            else:
+                self.log_test("Configure Mixed Problem Types", False, f"Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Mixed Problem Types", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_word_problem_error_handling(self):
+        """Test error handling and fallback mechanisms for word problems"""
+        success_count = 0
+        
+        print("\n🛡️ Testing Word Problem Error Handling - German Review Request")
+        
+        try:
+            # Test with extreme settings that might cause issues
+            extreme_settings = {
+                "max_number": 1,  # Very low number
+                "max_multiplication": 1,
+                "problem_count": 5,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": False,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": False,
+                    "currency_math": False,
+                    "word_problems": True
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=extreme_settings)
+            if response.status_code == 200:
+                # Try to create challenge with extreme settings
+                response = self.session.post(f"{BASE_URL}/math/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    problems = challenge.get("problems", [])
+                    
+                    if len(problems) > 0:
+                        # Check if problems were generated despite extreme settings
+                        self.log_test("Word Problem Fallback", True, f"Generated {len(problems)} problems with extreme settings")
+                        success_count += 1
+                        
+                        # Check if answers are still valid
+                        valid_answers = True
+                        for problem in problems:
+                            try:
+                                answer = int(problem.get("correct_answer", "0"))
+                                if answer < 0 or answer > 100:
+                                    valid_answers = False
+                                    break
+                            except:
+                                pass  # Non-numeric answers are acceptable
+                        
+                        if valid_answers:
+                            self.log_test("Word Problem Answer Validation", True, "All answers within valid range")
+                            success_count += 1
+                        else:
+                            self.log_test("Word Problem Answer Validation", False, "Some answers outside valid range")
+                    else:
+                        self.log_test("Word Problem Fallback", False, "No problems generated with extreme settings")
+                else:
+                    self.log_test("Word Problem Fallback", False, f"Challenge creation failed: {response.status_code}")
+            else:
+                self.log_test("Extreme Settings Configuration", False, f"Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Word Problem Error Handling", False, f"Exception: {str(e)}")
+        
+        # Test with no enabled problem types (should fallback)
+        try:
+            no_types_settings = {
+                "max_number": 100,
+                "max_multiplication": 10,
+                "problem_count": 5,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": False,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": False,
+                    "currency_math": False,
+                    "word_problems": False
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=no_types_settings)
+            if response.status_code == 200:
+                response = self.session.post(f"{BASE_URL}/math/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    problems = challenge.get("problems", [])
+                    
+                    if len(problems) > 0:
+                        self.log_test("No Problem Types Fallback", True, f"Generated {len(problems)} fallback problems")
+                        success_count += 1
+                    else:
+                        self.log_test("No Problem Types Fallback", False, "No fallback problems generated")
+                else:
+                    self.log_test("No Problem Types Fallback", False, f"Challenge creation failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("No Problem Types Fallback", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
     
     def cleanup_resources(self):
         """Clean up created test resources"""
