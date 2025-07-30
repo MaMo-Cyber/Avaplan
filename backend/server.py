@@ -305,15 +305,15 @@ async def generate_simple_math_problems(grade: int, count: int, settings: MathSe
         if i % 3 == 0:  # Addition
             a = random.randint(1, min(50, settings.max_number // 2))
             b = random.randint(1, min(50, 100 - a))  # Ensure sum doesn't exceed 100
-            problems.append(MathProblem(question=f"What is {a} + {b}?", correct_answer=a + b))
+            problems.append(MathProblem(question=f"What is {a} + {b}?", correct_answer=str(a + b)))
         elif i % 3 == 1:  # Subtraction
             a = random.randint(10, min(100, settings.max_number))
             b = random.randint(1, a)
-            problems.append(MathProblem(question=f"What is {a} - {b}?", correct_answer=a - b))
+            problems.append(MathProblem(question=f"What is {a} - {b}?", correct_answer=str(a - b)))
         else:  # Multiplication
             a = random.randint(1, min(10, settings.max_multiplication))
             b = random.randint(1, min(10, 100 // a))  # Ensure product doesn't exceed 100
-            problems.append(MathProblem(question=f"What is {a} × {b}?", correct_answer=a * b))
+            problems.append(MathProblem(question=f"What is {a} × {b}?", correct_answer=str(a * b)))
     return problems
 
 # Task Management Endpoints
