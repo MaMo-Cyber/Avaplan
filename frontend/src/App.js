@@ -850,11 +850,11 @@ function App() {
     const reward = rewards.find(r => r.id === rewardId);
     if (!reward) return;
 
-    if (progress.stars_in_safe < reward.required_stars) {
+    if (progress.available_stars < reward.required_stars) {
       setRewardClaimError({
         rewardName: reward.name,
         requiredStars: reward.required_stars,
-        availableStars: progress.stars_in_safe
+        availableStars: progress.available_stars
       });
       return;
     }
@@ -867,8 +867,30 @@ function App() {
       setRewardClaimError({
         rewardName: reward.name,
         requiredStars: reward.required_stars,
-        availableStars: progress.stars_in_safe
+        availableStars: progress.available_stars
       });
+    }
+  };
+
+  const addTaskStarsToAvailable = async () => {
+    if (progress.total_stars === 0) {
+      alert('Keine Aufgaben-Sterne verfügbar!');
+      return;
+    }
+
+    const starsToAdd = prompt(`Wie viele Aufgaben-Sterne zu verfügbaren Sternen hinzufügen? (Verfügbar: ${progress.total_stars})`);
+    if (!starsToAdd || parseInt(starsToAdd) <= 0) return;
+    
+    const amount = Math.min(parseInt(starsToAdd), progress.total_stars);
+    
+    try {
+      // Move stars from total_stars to available_stars by adding to safe first, then withdrawing
+      await axios.post(`${API}/progress/add-to-safe?stars=${amount}`);
+      await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
+      loadData();
+    } catch (error) {
+      console.error('Fehler beim Verschieben der Sterne:', error);
+      alert('Fehler beim Verschieben der Sterne!');
     }
   };
 
