@@ -250,12 +250,38 @@ const MathChallenge = ({ onClose, onComplete }) => {
                   min="0"
                   max="100"
                   className="w-full p-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500"
-                  placeholder="Your answer"
+                  placeholder="Your answer (0-100)"
                   value={answers[index] || ''}
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 100)) {
-                      setAnswers({...answers, [index]: value === '' ? '' : parseInt(value)});
+                    // Allow empty string for clearing
+                    if (value === '') {
+                      setAnswers({...answers, [index]: ''});
+                      return;
+                    }
+                    
+                    // Parse the number
+                    const numValue = parseInt(value);
+                    
+                    // Only allow valid numbers between 0 and 100
+                    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                      setAnswers({...answers, [index]: numValue});
+                    }
+                    // If invalid, don't update the state (keeps previous valid value)
+                  }}
+                  onKeyDown={(e) => {
+                    // Prevent negative sign and other invalid characters
+                    if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    // Prevent pasting invalid values
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData('text');
+                    const numValue = parseInt(pastedText);
+                    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                      setAnswers({...answers, [index]: numValue});
                     }
                   }}
                 />
