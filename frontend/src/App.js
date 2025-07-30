@@ -83,7 +83,335 @@ const ProgressBar = ({ current, total, starsInSafe }) => {
   );
 };
 
-// Math Challenge Component
+// Safe Modal Component
+const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+
+  const handleWithdraw = async () => {
+    const amount = parseInt(withdrawAmount);
+    if (amount > 0 && amount <= starsInSafe) {
+      await onWithdraw(amount);
+      setWithdrawAmount('');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+        <div className="text-center">
+          <div className="text-6xl mb-4">💰</div>
+          <h2 className="text-2xl font-bold text-purple-800 mb-4">Star Safe</h2>
+          <div className="text-4xl font-bold text-yellow-600 mb-6">
+            {starsInSafe} ⭐
+          </div>
+          
+          {starsInSafe > 0 && (
+            <div className="mb-6">
+              <p className="text-purple-600 mb-3">How many stars would you like to take out?</p>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  min="1"
+                  max={starsInSafe}
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  className="flex-1 p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
+                  placeholder={`1-${starsInSafe}`}
+                />
+                <button 
+                  onClick={handleWithdraw}
+                  disabled={!withdrawAmount || parseInt(withdrawAmount) > starsInSafe}
+                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+                >
+                  Take Out
+                </button>
+              </div>
+            </div>
+          )}
+          
+          <button 
+            onClick={onClose}
+            className="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            Close Safe
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Math Settings Modal Component
+const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
+  const [settings, setSettings] = useState(null);
+  const [statistics, setStatistics] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('settings');
+
+  useEffect(() => {
+    if (isOpen) {
+      loadData();
+    }
+  }, [isOpen]);
+
+  const loadData = async () => {
+    try {
+      const [settingsRes, statsRes] = await Promise.all([
+        axios.get(`${API}/math/settings`),
+        axios.get(`${API}/math/statistics`)
+      ]);
+      setSettings(settingsRes.data);
+      setStatistics(statsRes.data);
+    } catch (error) {
+      console.error('Error loading math data:', error);
+    }
+  };
+
+  const updateSettings = async () => {
+    setLoading(true);
+    try {
+      await axios.put(`${API}/math/settings`, settings);
+      onComplete();
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error updating settings:', error);
+    }
+    setLoading(false);
+  };
+
+  const resetStatistics = async () => {
+    if (confirm('Are you sure you want to reset all math statistics?')) {
+      try {
+        await axios.post(`${API}/math/statistics/reset`);
+        loadData();
+        alert('Statistics reset successfully!');
+      } catch (error) {
+        console.error('Error resetting statistics:', error);
+      }
+    }
+  };
+
+  const updateStarTier = (percentage, stars) => {
+    const newTiers = { ...settings.star_tiers };
+    newTiers[percentage] = stars;
+    setSettings({ ...settings, star_tiers: newTiers });
+  };
+
+  const removeStarTier = (percentage) => {
+    const newTiers = { ...settings.star_tiers };
+    delete newTiers[percentage];
+    setSettings({ ...settings, star_tiers: newTiers });
+  };
+
+  const addStarTier = () => {
+    const percentage = prompt('Enter percentage threshold (e.g., 85):');
+    const stars = prompt('Enter stars to award:');
+    if (percentage && stars) {
+      updateStarTier(percentage, parseInt(stars));
+    }
+  };
+
+  if (!isOpen || !settings || !statistics) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-purple-800">Math Challenge Settings</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex mb-6 border-b border-purple-200">
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`py-2 px-4 font-medium transition-colors ${
+              activeTab === 'settings'
+                ? 'text-purple-600 border-b-2 border-purple-600'
+                : 'text-gray-600 hover:text-purple-600'
+            }`}
+          >
+            ⚙️ Settings
+          </button>
+          <button
+            onClick={() => setActiveTab('statistics')}
+            className={`py-2 px-4 font-medium transition-colors ${
+              activeTab === 'statistics'
+                ? 'text-purple-600 border-b-2 border-purple-600'
+                : 'text-gray-600 hover:text-purple-600'
+            }`}
+          >
+            📊 Statistics
+          </button>
+        </div>
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            {/* Basic Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-purple-800 mb-2">
+                  Maximum Number (Addition/Subtraction)
+                </label>
+                <input
+                  type="number"
+                  value={settings.max_number}
+                  onChange={(e) => setSettings({...settings, max_number: parseInt(e.target.value)})}
+                  className="w-full p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-purple-800 mb-2">
+                  Maximum Multiplication Table
+                </label>
+                <input
+                  type="number"
+                  value={settings.max_multiplication}
+                  onChange={(e) => setSettings({...settings, max_multiplication: parseInt(e.target.value)})}
+                  className="w-full p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
+            </div>
+
+            {/* Star Rewards */}
+            <div>
+              <h3 className="text-lg font-semibold text-purple-800 mb-3">⭐ Star Reward Tiers</h3>
+              <p className="text-sm text-gray-600 mb-4">Set how many stars to award based on percentage score</p>
+              
+              <div className="space-y-3">
+                {Object.entries(settings.star_tiers).map(([percentage, stars]) => (
+                  <div key={percentage} className="flex items-center space-x-3 bg-purple-50 p-3 rounded-lg">
+                    <span className="font-medium">{percentage}% or higher:</span>
+                    <input
+                      type="number"
+                      value={stars}
+                      onChange={(e) => updateStarTier(percentage, parseInt(e.target.value))}
+                      className="w-20 p-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500"
+                    />
+                    <span>⭐ stars</span>
+                    <button
+                      onClick={() => removeStarTier(percentage)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              <button
+                onClick={addStarTier}
+                className="mt-3 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+              >
+                + Add Tier
+              </button>
+            </div>
+
+            <div className="flex justify-end space-x-4">
+              <button 
+                onClick={onClose}
+                className="px-6 py-2 border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={updateSettings}
+                disabled={loading}
+                className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Saving...' : 'Save Settings'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Statistics Tab */}
+        {activeTab === 'statistics' && (
+          <div className="space-y-6">
+            {/* Overview Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="stats-card stats-card-total">
+                <h3 className="font-semibold mb-2">Total Attempts</h3>
+                <p className="text-3xl font-bold">{statistics.total_attempts}</p>
+              </div>
+              <div className="stats-card stats-card-completed">
+                <h3 className="font-semibold mb-2">Average Score</h3>
+                <p className="text-3xl font-bold">{statistics.average_score.toFixed(1)}%</p>
+              </div>
+              <div className="stats-card stats-card-pending">
+                <h3 className="font-semibold mb-2">Best Score</h3>
+                <p className="text-3xl font-bold">{statistics.best_score.toFixed(1)}%</p>
+              </div>
+              <div className="stats-card">
+                <h3 className="font-semibold mb-2">Stars Earned</h3>
+                <p className="text-3xl font-bold">{statistics.total_stars_earned} ⭐</p>
+              </div>
+            </div>
+
+            {/* Detailed Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="card">
+                <h3 className="text-lg font-semibold text-purple-800 mb-4">📚 Grade Breakdown</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span>Grade 2 Attempts:</span>
+                    <span className="font-semibold">{statistics.grade_2_attempts}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Grade 3 Attempts:</span>
+                    <span className="font-semibold">{statistics.grade_3_attempts}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card">
+                <h3 className="text-lg font-semibold text-purple-800 mb-4">🎯 Answer Breakdown</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-green-600">✅ Correct Answers:</span>
+                    <span className="font-semibold text-green-600">{statistics.total_correct}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-red-600">❌ Wrong Answers:</span>
+                    <span className="font-semibold text-red-600">{statistics.total_wrong}</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="flex justify-between items-center">
+                      <span>Accuracy Rate:</span>
+                      <span className="font-semibold">
+                        {statistics.total_correct + statistics.total_wrong > 0 
+                          ? ((statistics.total_correct / (statistics.total_correct + statistics.total_wrong)) * 100).toFixed(1)
+                          : 0}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={resetStatistics}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Reset Statistics
+              </button>
+              <button 
+                onClick={onClose}
+                className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 const MathChallenge = ({ onClose, onComplete }) => {
   const [grade, setGrade] = useState(null);
   const [challenge, setChallenge] = useState(null);
