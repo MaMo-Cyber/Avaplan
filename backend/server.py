@@ -457,6 +457,22 @@ async def update_math_settings(settings: MathSettings):
     await db.math_settings.replace_one({}, settings.dict(), upsert=True)
     return settings
 
+@api_router.get("/math/statistics")
+async def get_math_statistics():
+    stats = await db.math_statistics.find_one()
+    if not stats:
+        stats = MathStatistics()
+        await db.math_statistics.insert_one(stats.dict())
+        return stats
+    return MathStatistics(**stats)
+
+@api_router.post("/math/statistics/reset")
+async def reset_math_statistics():
+    """Reset math statistics"""
+    stats = MathStatistics()
+    await db.math_statistics.replace_one({}, stats.dict(), upsert=True)
+    return {"message": "Math statistics reset successfully"}
+
 # Basic status endpoints
 @api_router.get("/")
 async def root():
