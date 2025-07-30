@@ -50,7 +50,48 @@ const TaskRow = ({ task, weekStars, onStarClick }) => {
   );
 };
 
-// Progress Bar Component
+// Stars Summary Component
+const StarsSummary = ({ taskStars, availableStars, onAddTaskStarsToAvailable }) => {
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
+      <h3 className="text-xl font-semibold text-purple-800 mb-4 text-center">⭐ Sterne-Übersicht ⭐</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Available Stars for Rewards */}
+        <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border-2 border-yellow-300">
+          <h4 className="text-lg font-semibold text-purple-800 mb-2">Verfügbare Sterne</h4>
+          <div className="text-4xl font-bold text-yellow-600 mb-2">{availableStars} ⭐</div>
+          <p className="text-sm text-gray-600">Für Belohnungen</p>
+        </div>
+
+        {/* Task Stars */}
+        <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-300">
+          <h4 className="text-lg font-semibold text-purple-800 mb-2">Aufgaben-Sterne</h4>
+          <div className="text-4xl font-bold text-purple-600 mb-2">{taskStars} ⭐</div>
+          {taskStars > 0 && (
+            <button 
+              onClick={onAddTaskStarsToAvailable}
+              className="text-xs bg-purple-500 text-white px-3 py-1 rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              ➡️ Zu Verfügbar
+            </button>
+          )}
+        </div>
+
+        {/* Total Earned */}
+        <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-300">
+          <h4 className="text-lg font-semibold text-purple-800 mb-2">Gesamt Verdient</h4>
+          <div className="text-4xl font-bold text-green-600 mb-2">{taskStars + availableStars} ⭐</div>
+          <p className="text-sm text-gray-600">Diese Woche</p>
+        </div>
+      </div>
+      
+      <div className="mt-4 text-center text-sm text-gray-500">
+        💡 Tipp: Nimm Sterne aus dem Tresor heraus, um sie für Belohnungen zu verwenden!
+      </div>
+    </div>
+  );
+};
 const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onResetWeek }) => {
   const percentage = total > 0 ? (current / total) * 100 : 0;
   
