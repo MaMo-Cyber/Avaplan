@@ -733,6 +733,7 @@ function App() {
   const [showMathChallenge, setShowMathChallenge] = useState(false);
   const [showSafe, setShowSafe] = useState(false);
   const [showMathSettings, setShowMathSettings] = useState(false);
+  const [rewardClaimError, setRewardClaimError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -753,7 +754,7 @@ function App() {
       setProgress(progressRes.data);
       setRewards(rewardsRes.data);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('Fehler beim Laden der Daten:', error);
     }
     setLoading(false);
   };
@@ -766,7 +767,7 @@ function App() {
       setNewTaskName('');
       loadData();
     } catch (error) {
-      console.error('Error adding task:', error);
+      console.error('Fehler beim Hinzufügen der Aufgabe:', error);
     }
   };
 
@@ -775,7 +776,7 @@ function App() {
       await axios.delete(`${API}/tasks/${taskId}`);
       loadData();
     } catch (error) {
-      console.error('Error deleting task:', error);
+      console.error('Fehler beim Löschen der Aufgabe:', error);
     }
   };
 
@@ -784,7 +785,7 @@ function App() {
       await axios.post(`${API}/stars/${taskId}/${day}?stars=${stars}`);
       loadData();
     } catch (error) {
-      console.error('Error updating stars:', error);
+      console.error('Fehler beim Aktualisieren der Sterne:', error);
     }
   };
 
@@ -800,35 +801,51 @@ function App() {
       setNewRewardStars('');
       loadData();
     } catch (error) {
-      console.error('Error adding reward:', error);
+      console.error('Fehler beim Hinzufügen der Belohnung:', error);
     }
   };
 
   const claimReward = async (rewardId) => {
+    const reward = rewards.find(r => r.id === rewardId);
+    if (!reward) return;
+
+    if (progress.stars_in_safe < reward.required_stars) {
+      setRewardClaimError({
+        rewardName: reward.name,
+        requiredStars: reward.required_stars,
+        availableStars: progress.stars_in_safe
+      });
+      return;
+    }
+
     try {
       await axios.post(`${API}/rewards/${rewardId}/claim`);
       loadData();
     } catch (error) {
-      console.error('Error claiming reward:', error);
-      alert('Not enough stars in safe!');
+      console.error('Fehler beim Einlösen der Belohnung:', error);
+      setRewardClaimError({
+        rewardName: reward.name,
+        requiredStars: reward.required_stars,
+        availableStars: progress.stars_in_safe
+      });
     }
   };
 
   const addStarsToSafe = async () => {
     if (progress.total_stars === 0) {
-      alert('No stars available to add to safe!');
+      alert('Keine Sterne verfügbar, um sie in den Tresor zu legen!');
       return;
     }
     
-    const starsToAdd = prompt(`How many stars to add to safe? (Available: ${progress.total_stars})`);
+    const starsToAdd = prompt(`Wie viele Sterne in den Tresor legen? (Verfügbar: ${progress.total_stars})`);
     if (!starsToAdd) return;
     
     try {
       await axios.post(`${API}/progress/add-to-safe?stars=${parseInt(starsToAdd)}`);
       loadData();
     } catch (error) {
-      console.error('Error adding stars to safe:', error);
-      alert('Not enough stars available!');
+      console.error('Fehler beim Hinzufügen von Sternen zum Tresor:', error);
+      alert('Nicht genügend Sterne verfügbar!');
     }
   };
 
@@ -838,20 +855,32 @@ function App() {
       loadData();
       setShowSafe(false);
     } catch (error) {
-      console.error('Error withdrawing from safe:', error);
-      alert('Error withdrawing stars!');
+      console.error('Fehler beim Abheben aus dem Tresor:', error);
+      alert('Fehler beim Abheben der Sterne!');
+    }
+  };
+
+  const resetWeek = async () => {
+    if (confirm('Bist du sicher, dass du die Woche zurücksetzen möchtest? Dies löscht alle Sterne der aktuellen Woche, aber nicht die im Tresor.')) {
+      try {
+        await axios.post(`${API}/progress/reset`);
+        loadData();
+      } catch (error) {
+        console.error('Fehler beim Zurücksetzen der Woche:', error);
+        alert('Fehler beim Zurücksetzen der Woche!');
+      }
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-2xl text-purple-600">Loading your Star Tracker...</div>
+        <div className="text-2xl text-purple-600">Lade deinen Stern-Tracker...</div>
       </div>
     );
   }
 
-  const days = ['Task', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const days = ['Aufgabe', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
@@ -859,8 +888,8 @@ function App() {
         
         {/* Header */}
         <div className="text-center py-8">
-          <h1 className="text-4xl font-bold text-purple-800 mb-2">⭐ Weekly Star Tracker ⭐</h1>
-          <p className="text-purple-600">Complete your tasks and earn stars for amazing rewards!</p>
+          <h1 className="text-4xl font-bold text-purple-800 mb-2">⭐ Wöchentlicher Stern-Tracker ⭐</h1>
+          <p className="text-purple-600">Erfülle deine Aufgaben und sammle Sterne für tolle Belohnungen!</p>
         </div>
 
         {/* Progress Section */}
@@ -870,24 +899,25 @@ function App() {
           starsInSafe={progress.stars_in_safe}
           onOpenSafe={() => setShowSafe(true)}
           onAddToSafe={addStarsToSafe}
+          onResetWeek={resetWeek}
         />
 
         {/* Task Management */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-purple-800">My Tasks</h2>
+            <h2 className="text-xl font-semibold text-purple-800">Meine Aufgaben</h2>
             <div className="flex space-x-2">
               <button 
                 onClick={() => setShowMathSettings(true)}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                ⚙️ Math Settings
+                ⚙️ Mathe-Einstellungen
               </button>
               <button 
                 onClick={() => setShowMathChallenge(true)}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
               >
-                🧮 Math Challenge
+                🧮 Mathe-Herausforderung
               </button>
             </div>
           </div>
@@ -919,7 +949,7 @@ function App() {
           <div className="flex space-x-2 mt-4">
             <input
               type="text"
-              placeholder="Add new task..."
+              placeholder="Neue Aufgabe hinzufügen..."
               value={newTaskName}
               onChange={(e) => setNewTaskName(e.target.value)}
               className="flex-1 p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
@@ -929,14 +959,14 @@ function App() {
               onClick={addTask}
               className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors"
             >
-              Add Task
+              Aufgabe Hinzufügen
             </button>
           </div>
         </div>
 
         {/* Rewards Section */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
-          <h2 className="text-xl font-semibold text-purple-800 mb-4">🎁 Rewards</h2>
+          <h2 className="text-xl font-semibold text-purple-800 mb-4">🎁 Belohnungen</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {rewards.map(reward => (
@@ -955,11 +985,11 @@ function App() {
                       onClick={() => claimReward(reward.id)}
                       className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors text-sm"
                     >
-                      Claim!
+                      Einlösen!
                     </button>
                   )}
                   {reward.is_claimed && (
-                    <div className="text-green-600 font-semibold">✓ Claimed</div>
+                    <div className="text-green-600 font-semibold">✓ Eingelöst</div>
                   )}
                 </div>
               </div>
@@ -969,14 +999,14 @@ function App() {
           <div className="flex space-x-2">
             <input
               type="text"
-              placeholder="Reward name..."
+              placeholder="Belohnungsname..."
               value={newRewardName}
               onChange={(e) => setNewRewardName(e.target.value)}
               className="flex-1 p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
             />
             <input
               type="number"
-              placeholder="Stars required"
+              placeholder="Benötigte Sterne"
               value={newRewardStars}
               onChange={(e) => setNewRewardStars(e.target.value)}
               className="w-32 p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
@@ -985,7 +1015,7 @@ function App() {
               onClick={addReward}
               className="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 transition-colors"
             >
-              Add Reward
+              Belohnung Hinzufügen
             </button>
           </div>
         </div>
@@ -1012,6 +1042,16 @@ function App() {
             isOpen={showMathSettings}
             onClose={() => setShowMathSettings(false)}
             onComplete={loadData}
+          />
+        )}
+
+        {rewardClaimError && (
+          <RewardClaimErrorModal
+            isOpen={true}
+            onClose={() => setRewardClaimError(null)}
+            rewardName={rewardClaimError.rewardName}
+            requiredStars={rewardClaimError.requiredStars}
+            availableStars={rewardClaimError.availableStars}
           />
         )}
       </div>
