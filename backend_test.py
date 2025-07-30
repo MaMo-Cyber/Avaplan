@@ -831,6 +831,10 @@ class BackendTester:
             ("Math Challenge Generation", self.test_math_challenge),
             ("Math Answer Submission", self.test_math_answer_submission),
             ("Math Settings", self.test_math_settings),
+            ("German Word Problems (Textaufgaben)", self.test_german_word_problems),
+            ("Configurable Problem Count", self.test_configurable_problem_count),
+            ("Mixed Problem Types Distribution", self.test_mixed_problem_types),
+            ("Word Problem Error Handling", self.test_word_problem_error_handling),
         ]
         
         passed_tests = 0
