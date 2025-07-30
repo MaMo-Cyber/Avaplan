@@ -122,11 +122,8 @@ def get_current_week_start():
     week_start = today - timedelta(days=days_since_monday)
     return week_start.replace(hour=0, minute=0, second=0, microsecond=0)
 
-async def generate_math_problems(grade: int, count: int = 30) -> List[MathProblem]:
+async def generate_math_problems(grade: int, count: int = None) -> List[MathProblem]:
     """Generate AI-powered math problems using OpenAI with extended problem types"""
-    openai_key = os.environ.get('OPENAI_API_KEY')
-    if not openai_key:
-        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
     
     # Get math settings
     settings_doc = await db.math_settings.find_one()
@@ -135,6 +132,10 @@ async def generate_math_problems(grade: int, count: int = 30) -> List[MathProble
         await db.math_settings.insert_one(settings.dict())
     else:
         settings = MathSettings(**settings_doc)
+    
+    # Use configured problem count if not specified
+    if count is None:
+        count = settings.problem_count
     
     # Generate mix of problems based on enabled types
     problems = []
@@ -154,14 +155,146 @@ async def generate_math_problems(grade: int, count: int = 30) -> List[MathProble
             problems.extend(generate_clock_problems(type_count, settings))
         elif problem_type == "currency_math":
             problems.extend(generate_currency_problems(type_count, settings))
+        elif problem_type == "word_problems":
+            problems.extend(generate_german_word_problems(type_count, grade, settings))
         else:
-            # Generate traditional math problems via AI
-            ai_problems = await generate_ai_math_problems(problem_type, grade, type_count, settings)
-            problems.extend(ai_problems)
+            # Generate traditional math problems via AI (with fallback)
+            try:
+                openai_key = os.environ.get('OPENAI_API_KEY')
+                if openai_key:
+                    ai_problems = await generate_ai_math_problems(problem_type, grade, type_count, settings)
+                    problems.extend(ai_problems)
+                else:
+                    problems.extend(await generate_simple_math_problems(grade, type_count, settings))
+            except Exception as e:
+                logging.error(f"AI generation failed for {problem_type}: {e}")
+                problems.extend(await generate_simple_math_problems(grade, type_count, settings))
     
     # Shuffle the problems
     random.shuffle(problems)
     return problems[:count]
+
+def generate_german_word_problems(count: int, grade: int, settings: MathSettings) -> List[MathProblem]:
+    """Generate German word problems using templates"""
+    problems = []
+    
+    # Grade 2 templates
+    grade2_templates = [
+        {
+            "template": "Anna hat {a} Äpfel. Sie gibt {b} Äpfel an ihre Freundin. Wie viele Äpfel hat Anna noch?",
+            "operation": "subtract",
+            "max_a": min(20, settings.max_number),
+            "min_a": 5
+        },
+        {
+            "template": "Tom sammelt {a} Sticker am Montag und {b} Sticker am Dienstag. Wie viele Sticker hat er insgesamt?",
+            "operation": "add",
+            "max_a": min(15, settings.max_number // 2),
+            "min_a": 1
+        },
+        {
+            "template": "Lisa hat {a} Bonbons. Sie bekommt noch {b} Bonbons geschenkt. Wie viele Bonbons hat sie jetzt?",
+            "operation": "add",
+            "max_a": min(15, settings.max_number // 2),
+            "min_a": 1
+        },
+        {
+            "template": "Max hat {a} Spielzeugautos. Er verliert {b} Autos im Sandkasten. Wie viele Autos hat er noch?",
+            "operation": "subtract",
+            "max_a": min(20, settings.max_number),
+            "min_a": 5
+        },
+        {
+            "template": "Im Garten wachsen {a} rote und {b} gelbe Blumen. Wie viele Blumen sind das zusammen?",
+            "operation": "add",
+            "max_a": min(15, settings.max_number // 2),
+            "min_a": 1
+        }
+    ]
+    
+    # Grade 3 templates (more complex)
+    grade3_templates = [
+        {
+            "template": "Sarah hat {a} Euro Taschengeld. Sie kauft ein Buch für {b} Euro. Wie viel Geld hat sie noch?",
+            "operation": "subtract",
+            "max_a": min(50, settings.max_number),
+            "min_a": 10
+        },
+        {
+            "template": "Ein Paket mit {a} Keksen wird gleichmäßig auf {b} Kinder verteilt. Wie viele Kekse bekommt jedes Kind?",
+            "operation": "divide",
+            "max_a": min(30, settings.max_number),
+            "divisors": [2, 3, 4, 5, 6]
+        },
+        {
+            "template": "Jede Packung enthält {a} Stifte. Wie viele Stifte sind in {b} Packungen?",
+            "operation": "multiply",
+            "max_a": min(12, settings.max_multiplication),
+            "max_b": min(8, 100 // 12)
+        },
+        {
+            "template": "Tim läuft jeden Tag {a} Minuten. Wie lange läuft er in {b} Tagen insgesamt?",
+            "operation": "multiply",
+            "max_a": min(20, settings.max_number // 5),
+            "max_b": min(5, 100 // 20)
+        },
+        {
+            "template": "Eine Klasse hat {a} Schüler. Sie werden in {b} gleich große Gruppen eingeteilt. Wie viele Schüler sind in jeder Gruppe?",
+            "operation": "divide",
+            "max_a": min(30, settings.max_number),
+            "divisors": [2, 3, 4, 5, 6]
+        }
+    ]
+    
+    templates = grade2_templates if grade == 2 else grade3_templates
+    
+    for i in range(count):
+        template_data = random.choice(templates)
+        
+        try:
+            if template_data["operation"] == "add":
+                max_a = template_data["max_a"]
+                min_a = template_data["min_a"]
+                a = random.randint(min_a, max_a)
+                b = random.randint(1, min(max_a, 100 - a))  # Ensure sum ≤ 100
+                answer = a + b
+                
+            elif template_data["operation"] == "subtract":
+                max_a = template_data["max_a"] 
+                min_a = template_data["min_a"]
+                a = random.randint(min_a, max_a)
+                b = random.randint(1, a - 1)  # Ensure positive result
+                answer = a - b
+                
+            elif template_data["operation"] == "multiply":
+                max_a = template_data["max_a"]
+                max_b = template_data.get("max_b", min(10, 100 // max_a))
+                a = random.randint(2, max_a)
+                b = random.randint(2, max_b)
+                answer = a * b
+                if answer > 100:  # Skip if result too large
+                    continue
+                    
+            elif template_data["operation"] == "divide":
+                divisors = template_data["divisors"]
+                b = random.choice(divisors)
+                answer = random.randint(2, min(20, 100 // b))  # Quotient
+                a = answer * b  # Ensure exact division
+                
+            # Create the problem
+            question = template_data["template"].format(a=a, b=b)
+            problem = MathProblem(
+                question=question,
+                question_type="text",
+                correct_answer=str(answer)
+            )
+            problems.append(problem)
+            
+        except Exception as e:
+            logging.warning(f"Error generating word problem: {e}")
+            continue
+    
+    return problems
 
 def generate_clock_problems(count: int, settings: MathSettings) -> List[MathProblem]:
     """Generate clock reading problems with SVG data"""
