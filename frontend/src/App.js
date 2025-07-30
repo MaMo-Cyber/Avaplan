@@ -693,6 +693,8 @@ function App() {
   const [newRewardName, setNewRewardName] = useState('');
   const [newRewardStars, setNewRewardStars] = useState('');
   const [showMathChallenge, setShowMathChallenge] = useState(false);
+  const [showSafe, setShowSafe] = useState(false);
+  const [showMathSettings, setShowMathSettings] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -775,7 +777,12 @@ function App() {
   };
 
   const addStarsToSafe = async () => {
-    const starsToAdd = prompt('How many stars to add to safe?');
+    if (progress.total_stars === 0) {
+      alert('No stars available to add to safe!');
+      return;
+    }
+    
+    const starsToAdd = prompt(`How many stars to add to safe? (Available: ${progress.total_stars})`);
     if (!starsToAdd) return;
     
     try {
@@ -784,6 +791,17 @@ function App() {
     } catch (error) {
       console.error('Error adding stars to safe:', error);
       alert('Not enough stars available!');
+    }
+  };
+
+  const withdrawFromSafe = async (amount) => {
+    try {
+      await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
+      loadData();
+      setShowSafe(false);
+    } catch (error) {
+      console.error('Error withdrawing from safe:', error);
+      alert('Error withdrawing stars!');
     }
   };
 
@@ -812,6 +830,8 @@ function App() {
           current={progress.total_stars} 
           total={progress.total_stars + progress.stars_in_safe}
           starsInSafe={progress.stars_in_safe}
+          onOpenSafe={() => setShowSafe(true)}
+          onAddToSafe={addStarsToSafe}
         />
 
         {/* Task Management */}
@@ -820,10 +840,10 @@ function App() {
             <h2 className="text-xl font-semibold text-purple-800">My Tasks</h2>
             <div className="flex space-x-2">
               <button 
-                onClick={addStarsToSafe}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+                onClick={() => setShowMathSettings(true)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                💰 Add to Safe
+                ⚙️ Math Settings
               </button>
               <button 
                 onClick={() => setShowMathChallenge(true)}
@@ -932,10 +952,27 @@ function App() {
           </div>
         </div>
         
-        {/* Math Challenge Modal */}
+        {/* Modals */}
         {showMathChallenge && (
           <MathChallenge 
             onClose={() => setShowMathChallenge(false)}
+            onComplete={loadData}
+          />
+        )}
+        
+        {showSafe && (
+          <SafeModal
+            isOpen={showSafe}
+            onClose={() => setShowSafe(false)}
+            starsInSafe={progress.stars_in_safe}
+            onWithdraw={withdrawFromSafe}
+          />
+        )}
+        
+        {showMathSettings && (
+          <MathSettingsModal
+            isOpen={showMathSettings}
+            onClose={() => setShowMathSettings(false)}
             onComplete={loadData}
           />
         )}
