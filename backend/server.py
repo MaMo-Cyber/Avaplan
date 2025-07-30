@@ -267,6 +267,23 @@ async def add_stars_to_safe(stars: int):
     await db.weekly_progress.replace_one({"week_start": week_start}, progress)
     return WeeklyProgress(**progress)
 
+@api_router.post("/progress/withdraw-from-safe")
+async def withdraw_stars_from_safe(stars: int):
+    week_start = get_current_week_start()
+    progress = await db.weekly_progress.find_one({"week_start": week_start})
+    
+    if not progress:
+        raise HTTPException(status_code=404, detail="No progress found for current week")
+    
+    if stars > progress["stars_in_safe"]:
+        raise HTTPException(status_code=400, detail="Not enough stars in safe")
+    
+    progress["stars_in_safe"] -= stars
+    progress["total_stars"] += stars
+    
+    await db.weekly_progress.replace_one({"week_start": week_start}, progress)
+    return WeeklyProgress(**progress)
+
 @api_router.post("/progress/reset")
 async def reset_weekly_progress():
     week_start = get_current_week_start()
