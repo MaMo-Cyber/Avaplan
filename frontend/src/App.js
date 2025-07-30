@@ -13,7 +13,7 @@ const StarIcon = ({ filled, onClick }) => (
       filled ? 'text-yellow-400' : 'text-gray-300'
     }`}
   >
-    ⭐
+    {filled ? '⭐' : '☆'}
   </button>
 );
 
