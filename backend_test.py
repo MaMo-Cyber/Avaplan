@@ -368,8 +368,12 @@ class BackendTester:
                     # Correct answer
                     answers[i] = problem["correct_answer"]
                 else:
-                    # Incorrect answer
-                    answers[i] = problem["correct_answer"] + 1
+                    # Incorrect answer - ensure it's a string
+                    try:
+                        incorrect_val = str(int(problem["correct_answer"]) + 1)
+                    except:
+                        incorrect_val = "999"  # fallback for non-numeric answers
+                    answers[i] = incorrect_val
             
             # Submit answers
             response = self.session.post(f"{BASE_URL}/math/challenge/{challenge_id}/submit", json=answers)
