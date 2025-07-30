@@ -95,7 +95,44 @@ const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onR
   );
 };
 
-// Safe Modal Component
+// Reward Claim Error Modal Component
+const RewardClaimErrorModal = ({ isOpen, onClose, rewardName, requiredStars, availableStars }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😔</div>
+          <h2 className="text-2xl font-bold text-purple-800 mb-4">Nicht genug Sterne!</h2>
+          <div className="text-gray-600 mb-6">
+            <p className="mb-3">Du möchtest <span className="font-semibold text-purple-800">"{rewardName}"</span> einlösen.</p>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <p className="mb-2">
+                <span className="font-medium">Benötigt:</span> {requiredStars} ⭐
+              </p>
+              <p className="mb-2">
+                <span className="font-medium">Im Tresor:</span> {availableStars} ⭐
+              </p>
+              <p className="text-red-600 font-medium">
+                Du brauchst noch {requiredStars - availableStars} ⭐ mehr!
+              </p>
+            </div>
+          </div>
+          <div className="text-sm text-gray-500 mb-6">
+            💡 Tipp: Sammle mehr Sterne durch Aufgaben oder Mathe-Herausforderungen!
+          </div>
+          <button 
+            onClick={onClose}
+            className="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            Verstanden
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
 
