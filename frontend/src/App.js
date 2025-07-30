@@ -971,9 +971,18 @@ function App() {
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="text-center py-8">
+        <div className="text-center py-8 relative">
           <h1 className="text-4xl font-bold text-purple-800 mb-2">⭐ Wöchentlicher Stern-Tracker ⭐</h1>
           <p className="text-purple-600">Erfülle deine Aufgaben und sammle Sterne für tolle Belohnungen!</p>
+          
+          {/* Reset All Stars Button - Top Right */}
+          <button
+            onClick={resetAllStars}
+            className="absolute top-0 right-0 bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm font-medium shadow-md"
+            title="Alle Sterne zurücksetzen"
+          >
+            🗑️ Alle Zurücksetzen
+          </button>
         </div>
 
         {/* Stars Summary */}
