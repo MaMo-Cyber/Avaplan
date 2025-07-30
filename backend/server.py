@@ -239,14 +239,23 @@ async def get_weekly_progress():
         stars = await db.daily_stars.find({"week_start": week_start}).to_list(1000)
         total_stars = sum(star["stars"] for star in stars)
         
-        progress_obj = WeeklyProgress(week_start=week_start, total_stars=total_stars)
+        progress_obj = WeeklyProgress(
+            week_start=week_start, 
+            total_stars=total_stars,
+            available_stars=0,
+            stars_in_safe=0
+        )
         await db.weekly_progress.insert_one(progress_obj.dict())
         return progress_obj
     
-    # Recalculate total stars
+    # Recalculate total stars from tasks
     stars = await db.daily_stars.find({"week_start": week_start}).to_list(1000)
     total_stars = sum(star["stars"] for star in stars)
     progress["total_stars"] = total_stars
+    
+    # Ensure available_stars field exists
+    if "available_stars" not in progress:
+        progress["available_stars"] = 0
     
     await db.weekly_progress.replace_one({"week_start": week_start}, progress)
     return WeeklyProgress(**progress)
