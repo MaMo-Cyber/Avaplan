@@ -51,7 +51,7 @@ const TaskRow = ({ task, weekStars, onStarClick }) => {
 };
 
 // Progress Bar Component
-const ProgressBar = ({ current, total, starsInSafe }) => {
+const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe }) => {
   const percentage = total > 0 ? (current / total) * 100 : 0;
   
   return (
@@ -69,8 +69,20 @@ const ProgressBar = ({ current, total, starsInSafe }) => {
         />
       </div>
       <div className="flex justify-between items-center">
-        <div className="text-purple-600">
-          💰 Stars in Safe: <span className="font-semibold">{starsInSafe}</span>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={onOpenSafe}
+            className="flex items-center bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+          >
+            💰 Safe: {starsInSafe} ⭐
+          </button>
+          <button 
+            onClick={onAddToSafe}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+            disabled={current === 0}
+          >
+            ⬇️ Add to Safe
+          </button>
         </div>
         <button 
           className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
