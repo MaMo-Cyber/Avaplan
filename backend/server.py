@@ -130,13 +130,23 @@ Make the problems diverse but appropriate for the grade level. Focus on numbers 
         
         problems = []
         for i, problem_data in enumerate(problems_data[:count]):  # Ensure we don't exceed count
+            answer = int(problem_data["answer"])
+            # Ensure answer doesn't exceed 100
+            if answer > 100:
+                continue  # Skip problems with answers > 100
+            
             problem = MathProblem(
                 question=problem_data["question"],
-                correct_answer=int(problem_data["answer"])
+                correct_answer=answer
             )
             problems.append(problem)
             
-        return problems
+        # If we don't have enough problems, generate fallback problems
+        if len(problems) < count:
+            additional_problems = await generate_simple_math_problems(grade, count - len(problems), settings)
+            problems.extend(additional_problems)
+            
+        return problems[:count]  # Return exactly the requested count
         
     except Exception as e:
         logging.error(f"Error generating math problems: {e}")
