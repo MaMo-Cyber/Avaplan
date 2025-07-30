@@ -214,7 +214,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
       setSettings(settingsRes.data);
       setStatistics(statsRes.data);
     } catch (error) {
-      console.error('Error loading math data:', error);
+      console.error('Fehler beim Laden der Mathe-Daten:', error);
     }
   };
 
@@ -223,21 +223,21 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
     try {
       await axios.put(`${API}/math/settings`, settings);
       onComplete();
-      alert('Settings saved successfully!');
+      alert('Einstellungen erfolgreich gespeichert!');
     } catch (error) {
-      console.error('Error updating settings:', error);
+      console.error('Fehler beim Aktualisieren der Einstellungen:', error);
     }
     setLoading(false);
   };
 
   const resetStatistics = async () => {
-    if (confirm('Are you sure you want to reset all math statistics?')) {
+    if (confirm('Bist du sicher, dass du alle Mathe-Statistiken zurücksetzen möchtest?')) {
       try {
         await axios.post(`${API}/math/statistics/reset`);
         loadData();
-        alert('Statistics reset successfully!');
+        alert('Statistiken erfolgreich zurückgesetzt!');
       } catch (error) {
-        console.error('Error resetting statistics:', error);
+        console.error('Fehler beim Zurücksetzen der Statistiken:', error);
       }
     }
   };
@@ -255,8 +255,8 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
   };
 
   const addStarTier = () => {
-    const percentage = prompt('Enter percentage threshold (e.g., 85):');
-    const stars = prompt('Enter stars to award:');
+    const percentage = prompt('Gib die Prozentschwelle ein (z.B. 85):');
+    const stars = prompt('Gib die Anzahl der zu vergebenden Sterne ein:');
     if (percentage && stars) {
       updateStarTier(percentage, parseInt(stars));
     }
@@ -268,7 +268,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-purple-800">Math Challenge Settings</h2>
+          <h2 className="text-2xl font-bold text-purple-800">Mathe-Herausforderung Einstellungen</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
         </div>
 
@@ -282,7 +282,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                 : 'text-gray-600 hover:text-purple-600'
             }`}
           >
-            ⚙️ Settings
+            ⚙️ Einstellungen
           </button>
           <button
             onClick={() => setActiveTab('statistics')}
@@ -292,7 +292,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                 : 'text-gray-600 hover:text-purple-600'
             }`}
           >
-            📊 Statistics
+            📊 Statistiken
           </button>
         </div>
 
@@ -303,7 +303,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-purple-800 mb-2">
-                  Maximum Number (Addition/Subtraction)
+                  Maximale Zahl (Addition/Subtraktion)
                 </label>
                 <input
                   type="number"
@@ -314,7 +314,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-purple-800 mb-2">
-                  Maximum Multiplication Table
+                  Maximale Multiplikationstabelle
                 </label>
                 <input
                   type="number"
@@ -327,20 +327,20 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
 
             {/* Star Rewards */}
             <div>
-              <h3 className="text-lg font-semibold text-purple-800 mb-3">⭐ Star Reward Tiers</h3>
-              <p className="text-sm text-gray-600 mb-4">Set how many stars to award based on percentage score</p>
+              <h3 className="text-lg font-semibold text-purple-800 mb-3">⭐ Sternen-Belohnungs-Stufen</h3>
+              <p className="text-sm text-gray-600 mb-4">Bestimme, wie viele Sterne basierend auf der Prozentscore vergeben werden</p>
               
               <div className="space-y-3">
                 {Object.entries(settings.star_tiers).map(([percentage, stars]) => (
                   <div key={percentage} className="flex items-center space-x-3 bg-purple-50 p-3 rounded-lg">
-                    <span className="font-medium">{percentage}% or higher:</span>
+                    <span className="font-medium">{percentage}% oder höher:</span>
                     <input
                       type="number"
                       value={stars}
                       onChange={(e) => updateStarTier(percentage, parseInt(e.target.value))}
                       className="w-20 p-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500"
                     />
-                    <span>⭐ stars</span>
+                    <span>⭐ Sterne</span>
                     <button
                       onClick={() => removeStarTier(percentage)}
                       className="text-red-500 hover:text-red-700"
@@ -355,7 +355,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                 onClick={addStarTier}
                 className="mt-3 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
               >
-                + Add Tier
+                + Stufe Hinzufügen
               </button>
             </div>
 
@@ -364,14 +364,14 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                 onClick={onClose}
                 className="px-6 py-2 border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
               >
-                Cancel
+                Abbrechen
               </button>
               <button 
                 onClick={updateSettings}
                 disabled={loading}
                 className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
               >
-                {loading ? 'Saving...' : 'Save Settings'}
+                {loading ? 'Speichern...' : 'Einstellungen Speichern'}
               </button>
             </div>
           </div>
@@ -383,19 +383,19 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
             {/* Overview Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="stats-card stats-card-total">
-                <h3 className="font-semibold mb-2">Total Attempts</h3>
+                <h3 className="font-semibold mb-2">Gesamt Versuche</h3>
                 <p className="text-3xl font-bold">{statistics.total_attempts}</p>
               </div>
               <div className="stats-card stats-card-completed">
-                <h3 className="font-semibold mb-2">Average Score</h3>
+                <h3 className="font-semibold mb-2">Durchschnittsscore</h3>
                 <p className="text-3xl font-bold">{statistics.average_score.toFixed(1)}%</p>
               </div>
               <div className="stats-card stats-card-pending">
-                <h3 className="font-semibold mb-2">Best Score</h3>
+                <h3 className="font-semibold mb-2">Bester Score</h3>
                 <p className="text-3xl font-bold">{statistics.best_score.toFixed(1)}%</p>
               </div>
               <div className="stats-card">
-                <h3 className="font-semibold mb-2">Stars Earned</h3>
+                <h3 className="font-semibold mb-2">Verdiente Sterne</h3>
                 <p className="text-3xl font-bold">{statistics.total_stars_earned} ⭐</p>
               </div>
             </div>
@@ -403,33 +403,33 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
             {/* Detailed Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="card">
-                <h3 className="text-lg font-semibold text-purple-800 mb-4">📚 Grade Breakdown</h3>
+                <h3 className="text-lg font-semibold text-purple-800 mb-4">📚 Klassen-Aufschlüsselung</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span>Grade 2 Attempts:</span>
+                    <span>Klasse 2 Versuche:</span>
                     <span className="font-semibold">{statistics.grade_2_attempts}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Grade 3 Attempts:</span>
+                    <span>Klasse 3 Versuche:</span>
                     <span className="font-semibold">{statistics.grade_3_attempts}</span>
                   </div>
                 </div>
               </div>
 
               <div className="card">
-                <h3 className="text-lg font-semibold text-purple-800 mb-4">🎯 Answer Breakdown</h3>
+                <h3 className="text-lg font-semibold text-purple-800 mb-4">🎯 Antworten-Aufschlüsselung</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-green-600">✅ Correct Answers:</span>
+                    <span className="text-green-600">✅ Richtige Antworten:</span>
                     <span className="font-semibold text-green-600">{statistics.total_correct}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-red-600">❌ Wrong Answers:</span>
+                    <span className="text-red-600">❌ Falsche Antworten:</span>
                     <span className="font-semibold text-red-600">{statistics.total_wrong}</span>
                   </div>
                   <div className="pt-2 border-t">
                     <div className="flex justify-between items-center">
-                      <span>Accuracy Rate:</span>
+                      <span>Genauigkeitsrate:</span>
                       <span className="font-semibold">
                         {statistics.total_correct + statistics.total_wrong > 0 
                           ? ((statistics.total_correct / (statistics.total_correct + statistics.total_wrong)) * 100).toFixed(1)
@@ -446,13 +446,13 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                 onClick={resetStatistics}
                 className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
               >
-                Reset Statistics
+                Statistiken Zurücksetzen
               </button>
               <button 
                 onClick={onClose}
                 className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors"
               >
-                Close
+                Schließen
               </button>
             </div>
           </div>
