@@ -153,7 +153,7 @@ const RewardClaimErrorModal = ({ isOpen, onClose, rewardName, requiredStars, ava
                 <span className="font-medium">Benötigt:</span> {requiredStars} ⭐
               </p>
               <p className="mb-2">
-                <span className="font-medium">Im Tresor:</span> {availableStars} ⭐
+                <span className="font-medium">Verfügbar:</span> {availableStars} ⭐
               </p>
               <p className="text-red-600 font-medium">
                 Du brauchst noch {requiredStars - availableStars} ⭐ mehr!
@@ -161,7 +161,7 @@ const RewardClaimErrorModal = ({ isOpen, onClose, rewardName, requiredStars, ava
             </div>
           </div>
           <div className="text-sm text-gray-500 mb-6">
-            💡 Tipp: Sammle mehr Sterne durch Aufgaben oder Mathe-Herausforderungen!
+            💡 Tipp: Sammle mehr Sterne durch Aufgaben oder nimm Sterne aus dem Tresor!
           </div>
           <button 
             onClick={onClose}
