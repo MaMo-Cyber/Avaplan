@@ -265,14 +265,66 @@ frontend:
         agent: "testing"
         comment: "✅ PASSED: Full user flow integration works perfectly. Successfully added multiple tasks (Test Task for Star Visibility, Morning Exercise, Study Math, Read Book). Set different star amounts across different days by clicking various stars. Progress bar updates correctly showing '10 / 11 stars'. Math challenge completes end-to-end successfully with proper results display. All components integrate seamlessly."
 
+  - task: "Safe Management Testing"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New feature added for testing - need to verify Safe button in progress bar, safe modal functionality, withdraw stars feature, and integration with existing Add to Safe functionality"
+
+  - task: "Math Settings Modal - Settings Tab"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New feature added for testing - need to verify Math Settings button opens modal, Settings tab shows maximum number/multiplication inputs, star reward tiers section with add/remove/edit functionality, and Save/Cancel buttons work"
+
+  - task: "Math Settings Modal - Statistics Tab"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New feature added for testing - need to verify Statistics tab shows overview cards (total attempts, average score, best score, stars earned), grade breakdown, answer breakdown with accuracy rate, and reset statistics functionality"
+
+  - task: "Safe and Math Settings Integration"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New feature added for testing - need to verify math challenge completion updates statistics, star tier settings affect rewards properly, and safe/math settings work together with existing features"
+
 metadata:
   created_by: "testing_agent"
-  version: "1.1"
-  test_sequence: 2
+  version: "1.2"
+  test_sequence: 3
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Safe Management Testing"
+    - "Math Settings Modal - Settings Tab"
+    - "Math Settings Modal - Statistics Tab"
+    - "Safe and Math Settings Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -286,3 +338,5 @@ agent_communication:
     message: "Frontend testing completed with 3/4 major features working correctly. ✅ PASSED: Star Visibility Test - empty stars immediately visible for all 7 days, clicking works perfectly. ✅ PASSED: Math Challenge Results Page - detailed results show problem numbers, user answers, correct/incorrect status (✅/❌), correct answers for wrong answers, proper color coding. ✅ PASSED: Full User Flow Integration - multiple tasks, star setting, progress bar updates, end-to-end math challenge all work seamlessly. ❌ FAILED: Math Challenge Input Validation - input fields accept negative values and values over 100 despite having min/max attributes. Submit button state management works correctly though."
   - agent: "testing"
     message: "✅ MATH CHALLENGE INPUT VALIDATION FIX VERIFIED! Comprehensive testing confirms the implementation is now working perfectly. All validation requirements met: 1) Negative values (-10, -1) properly rejected/converted, 2) Values over 100 (150→15, 999→99, 101→10) properly limited, 3) Special characters (e, E, +, -, ., ,) prevented, 4) Valid values (1-100) accepted, 5) Submit button logic works correctly (disabled with partial answers, enabled when all 30 fields filled), 6) Edge cases handled properly. The fix includes comprehensive onChange, onKeyDown, and onPaste handlers that enforce 0-100 range validation. All 4/4 major frontend features are now working correctly!"
+  - agent: "testing"
+    message: "Starting testing of NEW Safe Management and Math Settings features. Focus areas: 1) Safe Management - Safe button in progress bar, safe modal functionality, withdraw stars feature, integration with Add to Safe, 2) Math Settings Modal - Settings tab with number inputs and star tiers, Statistics tab with overview cards and breakdowns, 3) Integration testing - math challenge updates statistics, star tier settings affect rewards, safe/settings work with existing features. Will test using comprehensive Playwright script."
