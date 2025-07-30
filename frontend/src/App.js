@@ -1064,7 +1064,21 @@ function App() {
           </div>
         </div>
 
-        {/* Rewards Section */}
+  const deleteAllRewards = async () => {
+    const confirmMessage = 'Bist du sicher, dass du ALLE Belohnungen löschen möchtest?\n\n' +
+                          'Diese Aktion kann nicht rückgängig gemacht werden!';
+    
+    if (confirm(confirmMessage)) {
+      try {
+        await axios.delete(`${API}/rewards/all`);
+        loadData();
+        alert('Alle Belohnungen wurden erfolgreich gelöscht!');
+      } catch (error) {
+        console.error('Fehler beim Löschen aller Belohnungen:', error);
+        alert('Fehler beim Löschen der Belohnungen!');
+      }
+    }
+  };
         <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
           <h2 className="text-xl font-semibold text-purple-800 mb-4">🎁 Belohnungen</h2>
           
