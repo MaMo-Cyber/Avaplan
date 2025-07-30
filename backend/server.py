@@ -122,7 +122,7 @@ def get_current_week_start():
     return week_start.replace(hour=0, minute=0, second=0, microsecond=0)
 
 async def generate_math_problems(grade: int, count: int = 30) -> List[MathProblem]:
-    """Generate AI-powered math problems using OpenAI"""
+    """Generate AI-powered math problems using OpenAI with extended problem types"""
     openai_key = os.environ.get('OPENAI_API_KEY')
     if not openai_key:
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
@@ -135,19 +135,128 @@ async def generate_math_problems(grade: int, count: int = 30) -> List[MathProble
     else:
         settings = MathSettings(**settings_doc)
     
-    system_message = f"""You are a math problem generator for kids. Generate exactly {count} math problems suitable for Grade {grade}.
+    # Generate mix of problems based on enabled types
+    problems = []
+    enabled_types = [k for k, v in settings.problem_types.items() if v]
+    
+    if not enabled_types:
+        enabled_types = ["addition", "subtraction", "multiplication"]  # fallback
+    
+    problems_per_type = count // len(enabled_types)
+    remaining = count % len(enabled_types)
+    
+    for problem_type in enabled_types:
+        type_count = problems_per_type + (1 if remaining > 0 else 0)
+        remaining -= 1
+        
+        if problem_type == "clock_reading":
+            problems.extend(generate_clock_problems(type_count, settings))
+        elif problem_type == "currency_math":
+            problems.extend(generate_currency_problems(type_count, settings))
+        else:
+            # Generate traditional math problems via AI
+            ai_problems = await generate_ai_math_problems(problem_type, grade, type_count, settings)
+            problems.extend(ai_problems)
+    
+    # Shuffle the problems
+    random.shuffle(problems)
+    return problems[:count]
 
-IMPORTANT CONSTRAINTS:
-- ALL ANSWERS must be between 1 and 100 (never exceed 100)
-- For Grade 2: Addition and subtraction with numbers up to {settings.max_number}, multiplication tables up to x{settings.max_multiplication}
-- For Grade 3: Addition and subtraction with numbers up to {settings.max_number}, multiplication tables up to x{settings.max_multiplication}
-- Include "sister problems" (related problems like 5+3 and 3+5)
-- Make sure no answer exceeds 100
+def generate_clock_problems(count: int, settings: MathSettings) -> List[MathProblem]:
+    """Generate clock reading problems with SVG data"""
+    problems = []
+    clock_settings = settings.clock_settings
+    
+    for i in range(count):
+        hours = random.randint(1, 12)
+        
+        if clock_settings.get("include_five_minute_intervals", False):
+            minutes = random.choice([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55])
+        elif clock_settings.get("include_quarter_hours", True):
+            minutes = random.choice([0, 15, 30, 45])
+        elif clock_settings.get("include_half_hours", True):
+            minutes = random.choice([0, 30])
+        else:
+            minutes = 0
+        
+        # Create time string
+        time_str = f"{hours}:{minutes:02d}"
+        if minutes == 30:
+            time_str = f"{hours}:30"
+        elif minutes == 0:
+            time_str = f"{hours}:00"
+        elif minutes == 15:
+            time_str = f"{hours}:15"
+        elif minutes == 45:
+            time_str = f"{hours}:45"
+        
+        problem = MathProblem(
+            question="Wie viel Uhr zeigt die Uhr an?",
+            question_type="clock",
+            clock_data={"hours": hours, "minutes": minutes},
+            correct_answer=time_str
+        )
+        problems.append(problem)
+    
+    return problems
 
-Return ONLY a JSON array of objects with this exact format:
-[{{"question": "What is 5 + 3?", "answer": 8}}, {{"question": "What is 3 + 5?", "answer": 8}}]
+def generate_currency_problems(count: int, settings: MathSettings) -> List[MathProblem]:
+    """Generate currency math problems"""
+    problems = []
+    currency_settings = settings.currency_settings
+    symbol = currency_settings.get("currency_symbol", "€")
+    max_amount = currency_settings.get("max_amount", 20.00)
+    
+    for i in range(count):
+        operation = random.choice(["add", "subtract"])
+        
+        if operation == "add":
+            amount1 = round(random.uniform(0.50, max_amount/2), 2)
+            amount2 = round(random.uniform(0.50, max_amount - amount1), 2)
+            result = round(amount1 + amount2, 2)
+            question = f"Was kostet es insgesamt: {amount1:.2f}{symbol} + {amount2:.2f}{symbol}?"
+        else:  # subtract
+            amount1 = round(random.uniform(5.00, max_amount), 2)
+            amount2 = round(random.uniform(0.50, amount1), 2)
+            result = round(amount1 - amount2, 2)
+            question = f"Wie viel Wechselgeld bekommst du: {amount1:.2f}{symbol} - {amount2:.2f}{symbol}?"
+        
+        problem = MathProblem(
+            question=question,
+            question_type="currency",
+            currency_data={"amounts": [amount1, amount2], "operation": operation},
+            correct_answer=f"{result:.2f}"
+        )
+        problems.append(problem)
+    
+    return problems
 
-Make the problems diverse but appropriate for the grade level. Focus on numbers only, avoid complex word problems. Double-check that ALL answers are 100 or less."""
+async def generate_ai_math_problems(problem_type: str, grade: int, count: int, settings: MathSettings) -> List[MathProblem]:
+    """Generate traditional math problems using AI"""
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    
+    type_descriptions = {
+        "addition": "Addition",
+        "subtraction": "Subtraktion", 
+        "multiplication": "Multiplikation",
+        "word_problems": "Textaufgaben"
+    }
+    
+    type_desc = type_descriptions.get(problem_type, "Mathematik")
+    
+    system_message = f"""Du bist ein Mathe-Aufgaben-Generator für Kinder. Erstelle genau {count} {type_desc}-Aufgaben für Klasse {grade}.
+
+WICHTIGE BESCHRÄNKUNGEN:
+- ALLE Antworten müssen zwischen 1 und 100 liegen (niemals über 100)
+- Für Klasse {grade}: {type_desc} mit Zahlen bis {settings.max_number}
+- Bei Multiplikation: maximal bis x{settings.max_multiplication}
+- Stelle sicher, dass keine Antwort 100 überschreitet
+- Verwende nur deutsche Sprache
+
+Gib NUR ein JSON-Array von Objekten zurück in genau diesem Format:
+[{{"question": "Was ist 5 + 3?", "answer": "8"}}, {{"question": "Was ist 3 + 5?", "answer": "8"}}]
+
+Erstelle abwechslungsreiche aber altersgerechte Aufgaben. Fokus auf Zahlen, keine komplexen Textaufgaben. Überprüfe doppelt, dass ALLE Antworten 100 oder weniger sind."""
 
     try:
         chat = LlmChat(
@@ -156,34 +265,36 @@ Make the problems diverse but appropriate for the grade level. Focus on numbers 
             system_message=system_message
         ).with_model("openai", "gpt-4o")
         
-        user_message = UserMessage(text=f"Generate {count} math problems for Grade {grade}")
+        user_message = UserMessage(text=f"Generiere {count} {type_desc}-Aufgaben für Klasse {grade}")
         response = await chat.send_message(user_message)
         
         # Parse the JSON response
         problems_data = json.loads(response.strip())
         
         problems = []
-        for i, problem_data in enumerate(problems_data[:count]):  # Ensure we don't exceed count
-            answer = int(problem_data["answer"])
-            # Ensure answer doesn't exceed 100
-            if answer > 100:
-                continue  # Skip problems with answers > 100
+        for i, problem_data in enumerate(problems_data[:count]):
+            answer_str = str(problem_data["answer"])
+            
+            # Ensure numeric answers don't exceed 100
+            try:
+                if answer_str.replace(".", "").replace(",", "").isdigit():
+                    numeric_val = float(answer_str.replace(",", "."))
+                    if numeric_val > 100:
+                        continue  # Skip problems with answers > 100
+            except:
+                pass  # Non-numeric answers are ok
             
             problem = MathProblem(
                 question=problem_data["question"],
-                correct_answer=answer
+                question_type="text",
+                correct_answer=answer_str
             )
             problems.append(problem)
-            
-        # If we don't have enough problems, generate fallback problems
-        if len(problems) < count:
-            additional_problems = await generate_simple_math_problems(grade, count - len(problems), settings)
-            problems.extend(additional_problems)
-            
-        return problems[:count]  # Return exactly the requested count
+        
+        return problems
         
     except Exception as e:
-        logging.error(f"Error generating math problems: {e}")
+        logging.error(f"Error generating AI math problems: {e}")
         # Fallback to simple generated problems
         return await generate_simple_math_problems(grade, count, settings)
 
