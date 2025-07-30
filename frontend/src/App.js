@@ -136,7 +136,76 @@ const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onR
   );
 };
 
-// Reward Claim Error Modal Component
+// Clock SVG Component
+const ClockSVG = ({ hours, minutes }) => {
+  // Calculate angles for clock hands
+  const minuteAngle = (minutes * 6) - 90; // 6 degrees per minute
+  const hourAngle = ((hours % 12) * 30) + (minutes * 0.5) - 90; // 30 degrees per hour + minute adjustment
+  
+  return (
+    <div className="flex justify-center mb-4">
+      <svg width="200" height="200" viewBox="0 0 200 200" className="border-2 border-purple-300 rounded-full">
+        {/* Clock face */}
+        <circle cx="100" cy="100" r="95" fill="white" stroke="#8b5cf6" strokeWidth="4"/>
+        
+        {/* Hour markers */}
+        {[...Array(12)].map((_, i) => {
+          const angle = (i * 30) - 90;
+          const x1 = 100 + 80 * Math.cos(angle * Math.PI / 180);
+          const y1 = 100 + 80 * Math.sin(angle * Math.PI / 180);
+          const x2 = 100 + 70 * Math.cos(angle * Math.PI / 180);
+          const y2 = 100 + 70 * Math.sin(angle * Math.PI / 180);
+          return (
+            <line 
+              key={i} 
+              x1={x1} y1={y1} x2={x2} y2={y2} 
+              stroke="#6b7280" strokeWidth="3"
+            />
+          );
+        })}
+        
+        {/* Numbers */}
+        {[...Array(12)].map((_, i) => {
+          const num = i === 0 ? 12 : i;
+          const angle = (i * 30) - 90;
+          const x = 100 + 60 * Math.cos(angle * Math.PI / 180);
+          const y = 100 + 60 * Math.sin(angle * Math.PI / 180);
+          return (
+            <text 
+              key={i} 
+              x={x} y={y + 5} 
+              textAnchor="middle" 
+              fontSize="16" 
+              fontWeight="bold" 
+              fill="#4b5563"
+            >
+              {num}
+            </text>
+          );
+        })}
+        
+        {/* Hour hand */}
+        <line 
+          x1="100" y1="100" 
+          x2={100 + 50 * Math.cos(hourAngle * Math.PI / 180)} 
+          y2={100 + 50 * Math.sin(hourAngle * Math.PI / 180)}
+          stroke="#dc2626" strokeWidth="6" strokeLinecap="round"
+        />
+        
+        {/* Minute hand */}
+        <line 
+          x1="100" y1="100" 
+          x2={100 + 70 * Math.cos(minuteAngle * Math.PI / 180)} 
+          y2={100 + 70 * Math.sin(minuteAngle * Math.PI / 180)}
+          stroke="#1f2937" strokeWidth="4" strokeLinecap="round"
+        />
+        
+        {/* Center dot */}
+        <circle cx="100" cy="100" r="8" fill="#4b5563"/>
+      </svg>
+    </div>
+  );
+};
 const RewardClaimErrorModal = ({ isOpen, onClose, rewardName, requiredStars, availableStars }) => {
   if (!isOpen) return null;
 
