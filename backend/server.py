@@ -280,7 +280,7 @@ async def withdraw_stars_from_safe(stars: int):
         raise HTTPException(status_code=400, detail="Not enough stars in safe")
     
     progress["stars_in_safe"] -= stars
-    progress["total_stars"] += stars
+    progress["available_stars"] = progress.get("available_stars", 0) + stars
     
     await db.weekly_progress.replace_one({"week_start": week_start}, progress)
     return WeeklyProgress(**progress)
