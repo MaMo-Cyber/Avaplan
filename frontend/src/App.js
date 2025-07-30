@@ -51,15 +51,15 @@ const TaskRow = ({ task, weekStars, onStarClick }) => {
 };
 
 // Progress Bar Component
-const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe }) => {
+const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onResetWeek }) => {
   const percentage = total > 0 ? (current / total) * 100 : 0;
   
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-purple-800">Weekly Progress</h3>
+        <h3 className="text-lg font-semibold text-purple-800">Wöchentlicher Fortschritt</h3>
         <div className="text-sm text-purple-600">
-          {current} / {total} stars
+          {current} / {total} Sterne
         </div>
       </div>
       <div className="w-full bg-purple-100 rounded-full h-4 mb-4">
@@ -74,21 +74,21 @@ const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe }) =
             onClick={onOpenSafe}
             className="flex items-center bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
           >
-            💰 Safe: {starsInSafe} ⭐
+            💰 Tresor: {starsInSafe} ⭐
           </button>
           <button 
             onClick={onAddToSafe}
             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
             disabled={current === 0}
           >
-            ⬇️ Add to Safe
+            ⬇️ In Tresor
           </button>
         </div>
         <button 
           className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-          onClick={() => window.location.reload()} // Simple reset for now
+          onClick={onResetWeek}
         >
-          Reset Week
+          Woche Zurücksetzen
         </button>
       </div>
     </div>
