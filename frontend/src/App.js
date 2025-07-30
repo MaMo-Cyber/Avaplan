@@ -923,14 +923,23 @@ function App() {
     }
   };
 
-  const resetWeek = async () => {
-    if (confirm('Bist du sicher, dass du die Woche zurücksetzen möchtest? Dies löscht alle Sterne der aktuellen Woche, aber nicht die im Tresor.')) {
+  const resetAllStars = async () => {
+    const confirmMessage = 'Bist du sicher, dass du ALLE Sterne zurücksetzen möchtest?\n\n' +
+                          'Das wird löschen:\n' +
+                          '• Alle Aufgaben-Sterne\n' +
+                          '• Alle verfügbaren Sterne\n' +
+                          '• Alle Sterne im Tresor\n' +
+                          '• Alle beanspruchten Belohnungen\n\n' +
+                          'Diese Aktion kann nicht rückgängig gemacht werden!';
+    
+    if (confirm(confirmMessage)) {
       try {
-        await axios.post(`${API}/progress/reset`);
+        await axios.post(`${API}/progress/reset-all-stars`);
         loadData();
+        alert('Alle Sterne wurden erfolgreich zurückgesetzt!');
       } catch (error) {
-        console.error('Fehler beim Zurücksetzen der Woche:', error);
-        alert('Fehler beim Zurücksetzen der Woche!');
+        console.error('Fehler beim Zurücksetzen aller Sterne:', error);
+        alert('Fehler beim Zurücksetzen der Sterne!');
       }
     }
   };
