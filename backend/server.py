@@ -408,13 +408,20 @@ async def submit_math_answers(challenge_id: str, answers: Dict[int, int]):
     # Update math statistics
     await update_math_statistics(challenge_obj.grade, correct_count, total_problems, percentage, stars_earned)
     
-    # Add earned stars to weekly progress
+    # Add earned stars to weekly progress (as available stars for rewards)
     week_start = get_current_week_start()
     progress = await db.weekly_progress.find_one({"week_start": week_start})
     if not progress:
-        progress = WeeklyProgress(week_start=week_start, total_stars=stars_earned).dict()
+        progress = WeeklyProgress(
+            week_start=week_start, 
+            total_stars=0, 
+            available_stars=stars_earned,
+            stars_in_safe=0
+        ).dict()
     else:
-        progress["total_stars"] += stars_earned
+        if "available_stars" not in progress:
+            progress["available_stars"] = 0
+        progress["available_stars"] += stars_earned
     
     await db.weekly_progress.replace_one({"week_start": week_start}, progress, upsert=True)
     await db.math_challenges.replace_one({"id": challenge_id}, challenge_obj.dict())
