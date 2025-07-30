@@ -5,6 +5,77 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Clock SVG Component
+const ClockSVG = ({ hours, minutes }) => {
+  // Calculate angles for clock hands
+  const minuteAngle = (minutes * 6) - 90; // 6 degrees per minute
+  const hourAngle = ((hours % 12) * 30) + (minutes * 0.5) - 90; // 30 degrees per hour + minute adjustment
+  
+  return (
+    <div className="flex justify-center mb-4">
+      <svg width="200" height="200" viewBox="0 0 200 200" className="border-2 border-purple-300 rounded-full">
+        {/* Clock face */}
+        <circle cx="100" cy="100" r="95" fill="white" stroke="#8b5cf6" strokeWidth="4"/>
+        
+        {/* Hour markers */}
+        {[...Array(12)].map((_, i) => {
+          const angle = (i * 30) - 90;
+          const x1 = 100 + 80 * Math.cos(angle * Math.PI / 180);
+          const y1 = 100 + 80 * Math.sin(angle * Math.PI / 180);
+          const x2 = 100 + 70 * Math.cos(angle * Math.PI / 180);
+          const y2 = 100 + 70 * Math.sin(angle * Math.PI / 180);
+          return (
+            <line 
+              key={i} 
+              x1={x1} y1={y1} x2={x2} y2={y2} 
+              stroke="#6b7280" strokeWidth="3"
+            />
+          );
+        })}
+        
+        {/* Numbers */}
+        {[...Array(12)].map((_, i) => {
+          const num = i === 0 ? 12 : i;
+          const angle = (i * 30) - 90;
+          const x = 100 + 60 * Math.cos(angle * Math.PI / 180);
+          const y = 100 + 60 * Math.sin(angle * Math.PI / 180);
+          return (
+            <text 
+              key={i} 
+              x={x} y={y + 5} 
+              textAnchor="middle" 
+              fontSize="16" 
+              fontWeight="bold" 
+              fill="#4b5563"
+            >
+              {num}
+            </text>
+          );
+        })}
+        
+        {/* Hour hand */}
+        <line 
+          x1="100" y1="100" 
+          x2={100 + 50 * Math.cos(hourAngle * Math.PI / 180)} 
+          y2={100 + 50 * Math.sin(hourAngle * Math.PI / 180)}
+          stroke="#dc2626" strokeWidth="6" strokeLinecap="round"
+        />
+        
+        {/* Minute hand */}
+        <line 
+          x1="100" y1="100" 
+          x2={100 + 70 * Math.cos(minuteAngle * Math.PI / 180)} 
+          y2={100 + 70 * Math.sin(minuteAngle * Math.PI / 180)}
+          stroke="#1f2937" strokeWidth="4" strokeLinecap="round"
+        />
+        
+        {/* Center dot */}
+        <circle cx="100" cy="100" r="8" fill="#4b5563"/>
+      </svg>
+    </div>
+  );
+};
+
 // Star Component
 const StarIcon = ({ filled, onClick }) => (
   <button 
@@ -92,6 +163,8 @@ const StarsSummary = ({ taskStars, availableStars, onAddTaskStarsToAvailable }) 
     </div>
   );
 };
+
+// Progress Bar Component
 const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onResetWeek }) => {
   const percentage = total > 0 ? (current / total) * 100 : 0;
   
@@ -136,76 +209,7 @@ const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onR
   );
 };
 
-// Clock SVG Component
-const ClockSVG = ({ hours, minutes }) => {
-  // Calculate angles for clock hands
-  const minuteAngle = (minutes * 6) - 90; // 6 degrees per minute
-  const hourAngle = ((hours % 12) * 30) + (minutes * 0.5) - 90; // 30 degrees per hour + minute adjustment
-  
-  return (
-    <div className="flex justify-center mb-4">
-      <svg width="200" height="200" viewBox="0 0 200 200" className="border-2 border-purple-300 rounded-full">
-        {/* Clock face */}
-        <circle cx="100" cy="100" r="95" fill="white" stroke="#8b5cf6" strokeWidth="4"/>
-        
-        {/* Hour markers */}
-        {[...Array(12)].map((_, i) => {
-          const angle = (i * 30) - 90;
-          const x1 = 100 + 80 * Math.cos(angle * Math.PI / 180);
-          const y1 = 100 + 80 * Math.sin(angle * Math.PI / 180);
-          const x2 = 100 + 70 * Math.cos(angle * Math.PI / 180);
-          const y2 = 100 + 70 * Math.sin(angle * Math.PI / 180);
-          return (
-            <line 
-              key={i} 
-              x1={x1} y1={y1} x2={x2} y2={y2} 
-              stroke="#6b7280" strokeWidth="3"
-            />
-          );
-        })}
-        
-        {/* Numbers */}
-        {[...Array(12)].map((_, i) => {
-          const num = i === 0 ? 12 : i;
-          const angle = (i * 30) - 90;
-          const x = 100 + 60 * Math.cos(angle * Math.PI / 180);
-          const y = 100 + 60 * Math.sin(angle * Math.PI / 180);
-          return (
-            <text 
-              key={i} 
-              x={x} y={y + 5} 
-              textAnchor="middle" 
-              fontSize="16" 
-              fontWeight="bold" 
-              fill="#4b5563"
-            >
-              {num}
-            </text>
-          );
-        })}
-        
-        {/* Hour hand */}
-        <line 
-          x1="100" y1="100" 
-          x2={100 + 50 * Math.cos(hourAngle * Math.PI / 180)} 
-          y2={100 + 50 * Math.sin(hourAngle * Math.PI / 180)}
-          stroke="#dc2626" strokeWidth="6" strokeLinecap="round"
-        />
-        
-        {/* Minute hand */}
-        <line 
-          x1="100" y1="100" 
-          x2={100 + 70 * Math.cos(minuteAngle * Math.PI / 180)} 
-          y2={100 + 70 * Math.sin(minuteAngle * Math.PI / 180)}
-          stroke="#1f2937" strokeWidth="4" strokeLinecap="round"
-        />
-        
-        {/* Center dot */}
-        <circle cx="100" cy="100" r="8" fill="#4b5563"/>
-      </svg>
-    </div>
-  );
-};
+// Reward Claim Error Modal Component
 const RewardClaimErrorModal = ({ isOpen, onClose, rewardName, requiredStars, availableStars }) => {
   if (!isOpen) return null;
 
@@ -243,6 +247,8 @@ const RewardClaimErrorModal = ({ isOpen, onClose, rewardName, requiredStars, ava
     </div>
   );
 };
+
+// Safe Modal Component
 const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
 
@@ -302,7 +308,7 @@ const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
   );
 };
 
-// Math Settings Modal Component
+// Enhanced Math Settings Modal Component
 const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
   const [settings, setSettings] = useState(null);
   const [statistics, setStatistics] = useState(null);
@@ -372,11 +378,17 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
     }
   };
 
+  const updateProblemType = (type, enabled) => {
+    const newTypes = { ...settings.problem_types };
+    newTypes[type] = enabled;
+    setSettings({ ...settings, problem_types: newTypes });
+  };
+
   if (!isOpen || !settings || !statistics) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-      <div className="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl p-8 max-w-5xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-purple-800">Mathe-Herausforderung Einstellungen</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
@@ -409,6 +421,34 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
+            {/* Problem Types */}
+            <div>
+              <h3 className="text-lg font-semibold text-purple-800 mb-3">🧮 Aufgaben-Typen</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(settings.problem_types || {}).map(([type, enabled]) => {
+                  const typeNames = {
+                    addition: "➕ Addition",
+                    subtraction: "➖ Subtraktion",
+                    multiplication: "✖️ Multiplikation",
+                    clock_reading: "🕐 Uhrzeiten ablesen",
+                    currency_math: "💰 Währungsrechnungen",
+                    word_problems: "📝 Textaufgaben"
+                  };
+                  return (
+                    <label key={type} className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={(e) => updateProblemType(type, e.target.checked)}
+                        className="w-5 h-5 text-purple-600 rounded"
+                      />
+                      <span className="font-medium">{typeNames[type] || type}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Basic Settings */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -434,6 +474,86 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                 />
               </div>
             </div>
+
+            {/* Currency Settings */}
+            {settings.problem_types?.currency_math && (
+              <div className="border border-purple-200 rounded-lg p-4">
+                <h4 className="text-md font-semibold text-purple-800 mb-3">💰 Währungs-Einstellungen</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-purple-800 mb-2">
+                      Währungssymbol
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.currency_settings?.currency_symbol || "€"}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        currency_settings: {
+                          ...settings.currency_settings,
+                          currency_symbol: e.target.value
+                        }
+                      })}
+                      className="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-purple-800 mb-2">
+                      Maximaler Betrag
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={settings.currency_settings?.max_amount || 20.00}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        currency_settings: {
+                          ...settings.currency_settings,
+                          max_amount: parseFloat(e.target.value)
+                        }
+                      })}
+                      className="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Clock Settings */}
+            {settings.problem_types?.clock_reading && (
+              <div className="border border-purple-200 rounded-lg p-4">
+                <h4 className="text-md font-semibold text-purple-800 mb-3">🕐 Uhrzeiten-Einstellungen</h4>
+                <div className="space-y-3">
+                  {Object.entries(settings.clock_settings || {}).map(([key, value]) => {
+                    const settingNames = {
+                      include_half_hours: "Halbe Stunden (X:30)",
+                      include_quarter_hours: "Viertelstunden (X:15, X:45)",
+                      include_five_minute_intervals: "5-Minuten-Schritte"
+                    };
+                    if (typeof value === 'boolean') {
+                      return (
+                        <label key={key} className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={value}
+                            onChange={(e) => setSettings({
+                              ...settings,
+                              clock_settings: {
+                                ...settings.clock_settings,
+                                [key]: e.target.checked
+                              }
+                            })}
+                            className="w-4 h-4 text-purple-600 rounded"
+                          />
+                          <span>{settingNames[key] || key}</span>
+                        </label>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Star Rewards */}
             <div>
@@ -571,7 +691,8 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
     </div>
   );
 };
-// Math Challenge Component
+
+// Enhanced Math Challenge Component
 const MathChallenge = ({ onClose, onComplete }) => {
   const [grade, setGrade] = useState(null);
   const [challenge, setChallenge] = useState(null);
@@ -644,6 +765,14 @@ const MathChallenge = ({ onClose, onComplete }) => {
                     </span>
                     <span className="font-medium">Aufgabe {index + 1}</span>
                   </div>
+                  
+                  {/* Render different problem types */}
+                  {problem.question_type === 'clock' && problem.clock_data && (
+                    <div className="mb-3">
+                      <ClockSVG hours={problem.clock_data.hours} minutes={problem.clock_data.minutes} />
+                    </div>
+                  )}
+                  
                   <p className="mb-2 font-medium">{problem.question}</p>
                   <div className="space-y-1 text-sm">
                     <p><span className="font-medium">Deine Antwort:</span> {problem.user_answer}</p>
@@ -715,7 +844,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
   if (challenge) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-        <div className="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-xl p-8 max-w-3xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-purple-800">Mathe Klasse {grade} Herausforderung</h2>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
@@ -733,44 +862,25 @@ const MathChallenge = ({ onClose, onComplete }) => {
                   : 'border-purple-200 bg-white'
               }`}>
                 <p className="mb-2 font-medium">{index + 1}. {problem.question}</p>
+                
+                {/* Render clock for clock problems */}
+                {problem.question_type === 'clock' && problem.clock_data && (
+                  <div className="mb-3">
+                    <ClockSVG hours={problem.clock_data.hours} minutes={problem.clock_data.minutes} />
+                  </div>
+                )}
+                
                 <input
-                  type="number"
-                  min="0"
-                  max="100"
+                  type="text"
                   className="w-full p-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500"
-                  placeholder="Deine Antwort (0-100)"
+                  placeholder={
+                    problem.question_type === 'clock' ? 'z.B. 3:30' : 
+                    problem.question_type === 'currency' ? 'z.B. 5,50' : 
+                    'Deine Antwort'
+                  }
                   value={answers[index] || ''}
                   onChange={(e) => {
-                    const value = e.target.value;
-                    // Allow empty string for clearing
-                    if (value === '') {
-                      setAnswers({...answers, [index]: ''});
-                      return;
-                    }
-                    
-                    // Parse the number
-                    const numValue = parseInt(value);
-                    
-                    // Only allow valid numbers between 0 and 100
-                    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-                      setAnswers({...answers, [index]: numValue});
-                    }
-                    // If invalid, don't update the state (keeps previous valid value)
-                  }}
-                  onKeyDown={(e) => {
-                    // Prevent negative sign and other invalid characters
-                    if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
-                      e.preventDefault();
-                    }
-                  }}
-                  onPaste={(e) => {
-                    // Prevent pasting invalid values
-                    e.preventDefault();
-                    const pastedText = e.clipboardData.getData('text');
-                    const numValue = parseInt(pastedText);
-                    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-                      setAnswers({...answers, [index]: numValue});
-                    }
+                    setAnswers({...answers, [index]: e.target.value});
                   }}
                 />
               </div>
@@ -835,7 +945,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
 function App() {
   const [tasks, setTasks] = useState([]);
   const [weekStars, setWeekStars] = useState([]);
-  const [progress, setProgress] = useState({ total_stars: 0, stars_in_safe: 0 });
+  const [progress, setProgress] = useState({ total_stars: 0, stars_in_safe: 0, available_stars: 0 });
   const [rewards, setRewards] = useState([]);
   const [newTaskName, setNewTaskName] = useState('');
   const [newRewardName, setNewRewardName] = useState('');
@@ -1149,23 +1259,18 @@ function App() {
           </div>
         </div>
 
-  const deleteAllRewards = async () => {
-    const confirmMessage = 'Bist du sicher, dass du ALLE Belohnungen löschen möchtest?\n\n' +
-                          'Diese Aktion kann nicht rückgängig gemacht werden!';
-    
-    if (confirm(confirmMessage)) {
-      try {
-        await axios.delete(`${API}/rewards/all`);
-        loadData();
-        alert('Alle Belohnungen wurden erfolgreich gelöscht!');
-      } catch (error) {
-        console.error('Fehler beim Löschen aller Belohnungen:', error);
-        alert('Fehler beim Löschen der Belohnungen!');
-      }
-    }
-  };
+        {/* Rewards Section */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
-          <h2 className="text-xl font-semibold text-purple-800 mb-4">🎁 Belohnungen</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-purple-800">🎁 Belohnungen</h2>
+            <button
+              onClick={deleteAllRewards}
+              className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
+              title="Alle Belohnungen löschen"
+            >
+              🗑️ Alle Löschen
+            </button>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {rewards.map(reward => (
