@@ -294,6 +294,35 @@ async def withdraw_stars_from_safe(stars: int):
     await db.weekly_progress.replace_one({"week_start": week_start}, progress)
     return WeeklyProgress(**progress)
 
+@api_router.post("/progress/reset-all-stars")
+async def reset_all_stars():
+    """Reset all stars everywhere - tasks, safe, available, everything"""
+    week_start = get_current_week_start()
+    
+    # Clear all daily stars
+    await db.daily_stars.delete_many({})
+    
+    # Reset all progress data
+    progress = WeeklyProgress(
+        week_start=week_start,
+        total_stars=0,
+        available_stars=0,
+        stars_in_safe=0
+    )
+    await db.weekly_progress.replace_one(
+        {"week_start": week_start}, 
+        progress.dict(), 
+        upsert=True
+    )
+    
+    # Reset all claimed rewards to unclaimed
+    await db.rewards.update_many(
+        {"is_claimed": True}, 
+        {"$set": {"is_claimed": False, "claimed_at": None}}
+    )
+    
+    return {"message": "All stars reset successfully"}
+
 @api_router.post("/progress/reset")
 async def reset_weekly_progress():
     week_start = get_current_week_start()
