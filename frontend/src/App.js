@@ -461,6 +461,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
     </div>
   );
 };
+// Math Challenge Component
 const MathChallenge = ({ onClose, onComplete }) => {
   const [grade, setGrade] = useState(null);
   const [challenge, setChallenge] = useState(null);
