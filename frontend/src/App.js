@@ -450,7 +450,21 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
             </div>
 
             {/* Basic Settings */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-purple-800 mb-2">
+                  Anzahl Aufgaben pro Herausforderung
+                </label>
+                <input
+                  type="number"
+                  min="10"
+                  max="50"
+                  value={settings.problem_count}
+                  onChange={(e) => setSettings({...settings, problem_count: parseInt(e.target.value)})}
+                  className="w-full p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">Standard: 30 Aufgaben</p>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-purple-800 mb-2">
                   Maximale Zahl (Addition/Subtraktion)
