@@ -1,38 +1,281 @@
-.App {
-    text-align: center;
+/* Global Styles */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%);
+  min-height: 100vh;
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Custom Components */
+.stats-card {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(139, 92, 246, 0.3);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+.stats-card-total {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.stats-card-completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.stats-card-pending {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* Star Animations */
+@keyframes starPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.star-animate {
+  animation: starPulse 0.3s ease-in-out;
+}
+
+/* Task Row Hover Effects */
+.task-row {
+  transition: all 0.2s ease;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.task-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -4px rgba(139, 92, 246, 0.15);
+  border-color: #c084fc;
+}
+
+/* Progress Bar Animation */
+@keyframes progressFill {
+  from { width: 0%; }
+  to { width: var(--progress-width); }
+}
+
+.progress-bar {
+  animation: progressFill 1s ease-out;
+}
+
+/* Button Styles */
+.btn-primary {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  border: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -4px rgba(124, 58, 237, 0.3);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+  color: #7c3aed;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #c084fc;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  transform: translateY(-1px);
+}
+
+/* Input Styles */
+.form-input {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+/* Card Styles */
+.card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Reward Card Styles */
+.reward-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 1rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.reward-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(245, 158, 11, 0.3);
+}
+
+.reward-card.claimed {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-color: #9ca3af;
+  color: #6b7280;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Math Problem Styles */
+.math-problem {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #0ea5e9;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.math-problem:hover {
+  border-color: #0284c7;
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .task-grid {
+    font-size: 0.875rem;
+  }
+  
+  .stats-card {
+    padding: 1rem;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+/* Loading Animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #8b5cf6;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Safe Animation */
+@keyframes coinDrop {
+  0% { transform: translateY(-20px) scale(1); opacity: 0; }
+  50% { transform: translateY(0) scale(1.1); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.coin-drop {
+  animation: coinDrop 0.5s ease-out;
+}
+
+/* Success Animation */
+@keyframes celebration {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-5deg); }
+  75% { transform: scale(1.1) rotate(5deg); }
+}
+
+.celebrate {
+  animation: celebration 0.6s ease-in-out;
+}
+
+/* Week Grid */
+.week-grid {
+  display: grid;
+  grid-template-columns: 2fr repeat(7, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .week-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .day-cell {
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+  }
 }
 
-.App-link {
-    color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+  
+  .form-input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
 }
