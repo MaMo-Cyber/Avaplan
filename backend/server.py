@@ -244,7 +244,23 @@ async def generate_ai_math_problems(problem_type: str, grade: int, count: int, s
     
     type_desc = type_descriptions.get(problem_type, "Mathematik")
     
-    system_message = f"""Du bist ein Mathe-Aufgaben-Generator für Kinder. Erstelle genau {count} {type_desc}-Aufgaben für Klasse {grade}.
+    # Create appropriate system message based on problem type
+    if problem_type == "word_problems":
+        system_message = f"""Du bist ein Mathe-Aufgaben-Generator für Kinder. Erstelle genau {count} {type_desc} für Klasse {grade}.
+
+WICHTIGE BESCHRÄNKUNGEN:
+- ALLE Antworten müssen zwischen 1 und 100 liegen (niemals über 100)
+- Für Klasse {grade}: Textaufgaben mit Zahlen bis {settings.max_number}
+- Erstelle realistische Alltagssituationen für Kinder
+- Verwende nur deutsche Sprache
+- Die Geschichten sollen einfach und verständlich sein
+
+Gib NUR ein JSON-Array von Objekten zurück in genau diesem Format:
+[{{"question": "Anna hat 12 Äpfel. Sie gibt 5 Äpfel an ihre Freundin. Wie viele Äpfel hat Anna noch?", "answer": "7"}}, {{"question": "Tom sammelt 8 Sticker am Montag und 6 Sticker am Dienstag. Wie viele Sticker hat er insgesamt?", "answer": "14"}}]
+
+Erstelle abwechslungsreiche Textaufgaben mit verschiedenen Alltagssituationen. Überprüfe doppelt, dass ALLE Antworten 100 oder weniger sind."""
+    else:
+        system_message = f"""Du bist ein Mathe-Aufgaben-Generator für Kinder. Erstelle genau {count} {type_desc}-Aufgaben für Klasse {grade}.
 
 WICHTIGE BESCHRÄNKUNGEN:
 - ALLE Antworten müssen zwischen 1 und 100 liegen (niemals über 100)
