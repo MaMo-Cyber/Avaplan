@@ -202,7 +202,53 @@ backend:
         comment: "Math settings fully configurable: Get settings ✅, Update settings ✅. Proper number ranges and star tier configuration working as expected."
 
 frontend:
-  # Frontend testing not performed as per instructions
+  - task: "Star Visibility Test"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Task added for testing - need to verify that empty stars (☆) are immediately visible for all 7 days when adding new tasks, and that clicking stars fills them properly (⭐)"
+
+  - task: "Math Challenge Input Validation"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Task added for testing - need to verify answers are limited to 0-100 in input fields and submit button is disabled with incomplete answers"
+
+  - task: "Math Challenge Results Page"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Task added for testing - need to verify detailed results page shows each problem with user answer, correct/incorrect status (✅/❌), and correct answers for wrong answers"
+
+  - task: "Full User Flow Integration"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Task added for testing - need to verify complete user flow: adding multiple tasks, setting different star amounts, progress bar updates, math challenge end-to-end, and earned stars being added to progress"
 
 metadata:
   created_by: "testing_agent"
