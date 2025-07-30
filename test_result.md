@@ -105,6 +105,22 @@
 user_problem_statement: "Test the new Safe Management and Math Settings features I just added to the Weekly Star Tracker: 1. Safe Management Testing - Look for the new '💰 Safe: X ⭐' button in the progress bar area, Click it to open the safe modal and verify it shows current stars in safe, Test withdrawing stars from the safe (if any are available), Verify the 'Add to Safe' functionality still works, Check that withdrawn stars are added back to weekly progress. 2. Math Settings & Statistics Testing - Look for the new '⚙️ Math Settings' button in the tasks section, Click it to open the math settings modal, Test both tabs: '⚙️ Settings' and '📊 Statistics'. Settings Tab should show: Maximum number input field, Maximum multiplication table input field, Star reward tiers section with percentage thresholds, Ability to add/remove/edit star tiers, Save/Cancel buttons. Statistics Tab should show: Total attempts, average score, best score, stars earned overview cards, Grade breakdown (Grade 2 vs Grade 3 attempts), Answer breakdown (correct vs wrong answers, accuracy rate), Reset statistics button. 3. Integration Testing - Complete a math challenge and verify statistics update, Check that new star tier settings affect rewards properly, Ensure the safe and math settings work together with the existing features."
 
 backend:
+  - task: "Word Problems (Textaufgaben) Functionality"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "German review request - testing word problems functionality specifically. Need to verify: 1) Math Settings with only word_problems enabled, 2) Grade 2/3 word problem generation, 3) AI response parsing for German text, 4) Problem type distribution, 5) Error handling and fallback mechanisms"
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE IDENTIFIED: Word problems not working due to OpenAI API quota exceeded. Root cause analysis: 1) ✅ FIXED: Pydantic validation error in generate_simple_math_problems (correct_answer expected string, got integer), 2) ❌ ACTIVE: OpenAI API quota exceeded (429 Too Many Requests), causing fallback to English simple math problems instead of German word problems, 3) ✅ IMPROVED: Updated system message to properly handle word problems vs regular math. The system can configure word_problems settings correctly, but AI generation fails and falls back to English 'What is X + Y?' problems. Requires OpenAI quota increase or alternative solution."
+
+backend:
   - task: "API Health Check"
     implemented: true
     working: true
