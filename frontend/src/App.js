@@ -955,6 +955,13 @@ function App() {
           <p className="text-purple-600">Erfülle deine Aufgaben und sammle Sterne für tolle Belohnungen!</p>
         </div>
 
+        {/* Stars Summary */}
+        <StarsSummary 
+          taskStars={progress.total_stars}
+          availableStars={progress.available_stars || 0}
+          onAddTaskStarsToAvailable={addTaskStarsToAvailable}
+        />
+
         {/* Progress Section */}
         <ProgressBar 
           current={progress.total_stars} 
