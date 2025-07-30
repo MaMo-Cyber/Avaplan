@@ -89,6 +89,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
   const [challenge, setChallenge] = useState(null);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
+  const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const startChallenge = async (selectedGrade) => {
@@ -97,6 +98,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
       const response = await axios.post(`${API}/math/challenge/${selectedGrade}`);
       setChallenge(response.data);
       setGrade(selectedGrade);
+      setAnswers({});
     } catch (error) {
       console.error('Error creating math challenge:', error);
       alert('Error creating math challenge. Please try again.');
@@ -111,6 +113,7 @@ const MathChallenge = ({ onClose, onComplete }) => {
     try {
       const response = await axios.post(`${API}/math/challenge/${challenge.id}/submit`, answers);
       setResult(response.data);
+      setShowResults(true);
     } catch (error) {
       console.error('Error submitting answers:', error);
       alert('Error submitting answers. Please try again.');
@@ -118,7 +121,73 @@ const MathChallenge = ({ onClose, onComplete }) => {
     setLoading(false);
   };
 
-  if (result) {
+  const allAnswersProvided = challenge && Object.keys(answers).length === challenge.problems.length &&
+    challenge.problems.every((_, index) => answers[index] !== undefined && answers[index] !== '');
+
+  // Results Detail Page
+  if (showResults && result) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+        <div className="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+          <div className="text-center mb-6">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-purple-800 mb-4">Great Job!</h2>
+            <div className="space-y-2 mb-6">
+              <p>Correct Answers: {result.correct_answers}/{result.total_problems}</p>
+              <p>Score: {result.percentage.toFixed(1)}%</p>
+              <p className="text-lg font-semibold text-yellow-600">
+                Stars Earned: {result.stars_earned} ⭐
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-purple-800 mb-4">Review Your Answers:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {result.challenge.problems.map((problem, index) => (
+                <div key={index} className={`p-4 rounded-lg border-2 ${
+                  problem.is_correct 
+                    ? 'bg-green-50 border-green-300' 
+                    : 'bg-red-50 border-red-300'
+                }`}>
+                  <div className="flex items-center mb-2">
+                    <span className="text-lg mr-2">
+                      {problem.is_correct ? '✅' : '❌'}
+                    </span>
+                    <span className="font-medium">Problem {index + 1}</span>
+                  </div>
+                  <p className="mb-2 font-medium">{problem.question}</p>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Your answer:</span> {problem.user_answer}</p>
+                    {!problem.is_correct && (
+                      <p className="text-green-600">
+                        <span className="font-medium">Correct answer:</span> {problem.correct_answer}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <button 
+              onClick={() => {
+                onComplete();
+                onClose();
+              }}
+              className="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-600 transition-colors text-lg"
+            >
+              Awesome! Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Summary Results Page (kept for quick view)
+  if (result && !showResults) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
@@ -134,13 +203,19 @@ const MathChallenge = ({ onClose, onComplete }) => {
             </div>
             <div className="flex space-x-4">
               <button 
+                onClick={() => setShowResults(true)}
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Review Answers
+              </button>
+              <button 
                 onClick={() => {
                   onComplete();
                   onClose();
                 }}
                 className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors"
               >
-                Awesome!
+                Continue
               </button>
             </div>
           </div>
@@ -158,16 +233,31 @@ const MathChallenge = ({ onClose, onComplete }) => {
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
           </div>
           
+          <div className="mb-4 text-sm text-gray-600">
+            Fill in ALL answers to enable submission. Answers completed: {Object.keys(answers).length}/{challenge.problems.length}
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {challenge.problems.map((problem, index) => (
-              <div key={index} className="p-4 border border-purple-200 rounded-lg">
+              <div key={index} className={`p-4 border-2 rounded-lg transition-colors ${
+                answers[index] !== undefined && answers[index] !== '' 
+                  ? 'border-green-300 bg-green-50' 
+                  : 'border-purple-200 bg-white'
+              }`}>
                 <p className="mb-2 font-medium">{index + 1}. {problem.question}</p>
                 <input
                   type="number"
+                  min="0"
+                  max="100"
                   className="w-full p-2 border border-purple-300 rounded focus:outline-none focus:border-purple-500"
                   placeholder="Your answer"
                   value={answers[index] || ''}
-                  onChange={(e) => setAnswers({...answers, [index]: parseInt(e.target.value) || 0})}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 100)) {
+                      setAnswers({...answers, [index]: value === '' ? '' : parseInt(value)});
+                    }
+                  }}
                 />
               </div>
             ))}
@@ -182,10 +272,10 @@ const MathChallenge = ({ onClose, onComplete }) => {
             </button>
             <button 
               onClick={submitAnswers}
-              disabled={loading || Object.keys(answers).length === 0}
-              className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
+              disabled={loading || !allAnswersProvided}
+              className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Submitting...' : 'Submit Answers'}
+              {loading ? 'Submitting...' : `Submit All Answers (${Object.keys(answers).length}/${challenge.problems.length})`}
             </button>
           </div>
         </div>
