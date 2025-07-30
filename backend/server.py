@@ -393,6 +393,9 @@ async def submit_math_answers(challenge_id: str, answers: Dict[int, int]):
     
     challenge_obj.stars_earned = stars_earned
     
+    # Update math statistics
+    await update_math_statistics(challenge_obj.grade, correct_count, total_problems, percentage, stars_earned)
+    
     # Add earned stars to weekly progress
     week_start = get_current_week_start()
     progress = await db.weekly_progress.find_one({"week_start": week_start})
@@ -411,6 +414,34 @@ async def submit_math_answers(challenge_id: str, answers: Dict[int, int]):
         "percentage": percentage,
         "stars_earned": stars_earned
     }
+
+async def update_math_statistics(grade: int, correct: int, total: int, percentage: float, stars_earned: int):
+    """Update math challenge statistics"""
+    stats = await db.math_statistics.find_one()
+    
+    if not stats:
+        stats = MathStatistics().dict()
+    
+    stats["total_attempts"] += 1
+    if grade == 2:
+        stats["grade_2_attempts"] += 1
+    else:
+        stats["grade_3_attempts"] += 1
+    
+    stats["total_correct"] += correct
+    stats["total_wrong"] += (total - correct)
+    stats["total_stars_earned"] += stars_earned
+    
+    # Calculate new average
+    stats["average_score"] = (stats["average_score"] * (stats["total_attempts"] - 1) + percentage) / stats["total_attempts"]
+    
+    # Update best score
+    if percentage > stats["best_score"]:
+        stats["best_score"] = percentage
+    
+    stats["last_updated"] = datetime.utcnow()
+    
+    await db.math_statistics.replace_one({}, stats, upsert=True)
 
 @api_router.get("/math/settings")
 async def get_math_settings():
