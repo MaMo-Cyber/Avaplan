@@ -676,7 +676,11 @@ async def create_math_challenge(grade: int):
     if grade not in [2, 3]:
         raise HTTPException(status_code=400, detail="Grade must be 2 or 3")
     
-    problems = await generate_math_problems(grade)
+    # Get settings to use configured problem count
+    settings_doc = await db.math_settings.find_one()
+    problem_count = settings_doc.get("problem_count", 30) if settings_doc else 30
+    
+    problems = await generate_math_problems(grade, problem_count)
     challenge = MathChallenge(grade=grade, problems=problems)
     
     await db.math_challenges.insert_one(challenge.dict())
