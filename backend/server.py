@@ -533,7 +533,7 @@ async def create_math_challenge(grade: int):
     return challenge
 
 @api_router.post("/math/challenge/{challenge_id}/submit")
-async def submit_math_answers(challenge_id: str, answers: Dict[int, int]):
+async def submit_math_answers(challenge_id: str, answers: Dict[int, str]):
     challenge = await db.math_challenges.find_one({"id": challenge_id})
     if not challenge:
         raise HTTPException(status_code=404, detail="Challenge not found")
@@ -546,8 +546,24 @@ async def submit_math_answers(challenge_id: str, answers: Dict[int, int]):
     # Grade the answers
     for i, problem in enumerate(challenge_obj.problems):
         if i in answers:
-            problem.user_answer = answers[i]
-            problem.is_correct = problem.user_answer == problem.correct_answer
+            user_answer = str(answers[i]).strip().lower()
+            problem.user_answer = user_answer
+            
+            # Different comparison logic based on problem type
+            if problem.question_type == "currency":
+                # For currency, allow answers like "5.50" or "5,50" 
+                correct_answer = problem.correct_answer.replace(",", ".")
+                user_answer_clean = user_answer.replace(",", ".")
+                problem.is_correct = correct_answer == user_answer_clean
+            elif problem.question_type == "clock":
+                # For clock, allow multiple valid formats
+                correct_time = problem.correct_answer
+                # Normalize both answers (remove spaces, convert formats)
+                problem.is_correct = normalize_time_answer(user_answer) == normalize_time_answer(correct_time)
+            else:
+                # For text problems, direct string comparison
+                problem.is_correct = problem.correct_answer.lower() == user_answer
+            
             if problem.is_correct:
                 correct_count += 1
     
@@ -600,6 +616,29 @@ async def submit_math_answers(challenge_id: str, answers: Dict[int, int]):
         "percentage": percentage,
         "stars_earned": stars_earned
     }
+
+def normalize_time_answer(time_str: str) -> str:
+    """Normalize time answers for comparison"""
+    time_str = time_str.replace(" ", "").replace("uhr", "").replace("Uhr", "")
+    
+    # Handle formats like "3:30", "15:30", "3.30", etc.
+    if ":" in time_str:
+        parts = time_str.split(":")
+    elif "." in time_str:
+        parts = time_str.split(".")
+    else:
+        # Just a number, assume it's hours
+        return f"{int(time_str)}:00"
+    
+    if len(parts) == 2:
+        hours = int(parts[0])
+        minutes = int(parts[1])
+        # Convert 24h to 12h format if needed
+        if hours > 12:
+            hours = hours - 12
+        return f"{hours}:{minutes:02d}"
+    
+    return time_str
 
 async def update_math_statistics(grade: int, correct: int, total: int, percentage: float, stars_earned: int):
     """Update math challenge statistics"""
