@@ -294,6 +294,12 @@ async def withdraw_stars_from_safe(stars: int):
     await db.weekly_progress.replace_one({"week_start": week_start}, progress)
     return WeeklyProgress(**progress)
 
+@api_router.delete("/rewards/all")
+async def delete_all_rewards():
+    """Delete all rewards"""
+    result = await db.rewards.delete_many({})
+    return {"message": f"All rewards deleted ({result.deleted_count} rewards removed)"}
+
 @api_router.post("/progress/reset-all-stars")
 async def reset_all_stars():
     """Reset all stars everywhere - tasks, safe, available, everything"""
