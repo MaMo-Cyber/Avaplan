@@ -327,15 +327,17 @@ async def claim_reward(reward_id: str):
     if not reward:
         raise HTTPException(status_code=404, detail="Reward not found")
     
-    # Check if enough stars in safe
+    # Check if enough available stars
     week_start = get_current_week_start()
     progress = await db.weekly_progress.find_one({"week_start": week_start})
     
-    if not progress or progress["stars_in_safe"] < reward["required_stars"]:
-        raise HTTPException(status_code=400, detail="Not enough stars in safe")
+    available_stars = progress.get("available_stars", 0) if progress else 0
+    
+    if available_stars < reward["required_stars"]:
+        raise HTTPException(status_code=400, detail="Not enough available stars")
     
     # Deduct stars and mark reward as claimed
-    progress["stars_in_safe"] -= reward["required_stars"]
+    progress["available_stars"] -= reward["required_stars"]
     reward["is_claimed"] = True
     reward["claimed_at"] = datetime.utcnow()
     
