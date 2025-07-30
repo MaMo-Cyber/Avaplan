@@ -397,6 +397,18 @@ frontend:
         agent: "testing"
         comment: "✅ PASSED: Math Challenge modal completely in German! Title 'Verdiene Extra-Sterne!', grade selection text 'Wähle deine Mathe-Klassenstufe:', grade buttons '📚 Mathe Klasse 2' and '🎓 Mathe Klasse 3', 'Vielleicht Später' button all properly translated and functional. Modal opens and closes correctly with German interface."
 
+  - task: "Sterne-Übersicht Component Test"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New Sterne-Übersicht functionality added for testing - need to verify the three-area display (Verfügbare Sterne, Aufgaben-Sterne, Gesamt Verdient), button functionality, reward logic changes, safe integration, and German interface"
+
 metadata:
   created_by: "testing_agent"
   version: "1.2"
