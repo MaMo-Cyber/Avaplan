@@ -257,9 +257,13 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Star Visibility Test"
+    - "Math Challenge Input Validation"
+    - "Math Challenge Results Page"
+    - "Full User Flow Integration"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
