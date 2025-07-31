@@ -544,21 +544,23 @@ async def get_weekly_progress():
     # Recalculate total stars from tasks
     stars = await db.daily_stars.find({"week_start": week_start}).to_list(1000)
     total_stars_earned = sum(star["stars"] for star in stars)
-    progress["total_stars_earned"] = total_stars_earned
     
-    # Ensure all fields exist with defaults
-    if "total_stars_used" not in progress:
-        progress["total_stars_used"] = 0
-    if "available_stars" not in progress:
-        progress["available_stars"] = 0
-    if "stars_in_safe" not in progress:
-        progress["stars_in_safe"] = 0
+    # Create a clean dict without MongoDB ObjectId
+    clean_progress = {
+        "id": progress.get("id", str(uuid.uuid4())),
+        "week_start": progress["week_start"],
+        "total_stars_earned": total_stars_earned,
+        "total_stars_used": progress.get("total_stars_used", 0),
+        "available_stars": progress.get("available_stars", 0),
+        "stars_in_safe": progress.get("stars_in_safe", 0)
+    }
     
     # Add computed total_stars field
-    progress["total_stars"] = progress["total_stars_earned"] - progress["total_stars_used"]
+    clean_progress["total_stars"] = clean_progress["total_stars_earned"] - clean_progress["total_stars_used"]
     
-    await db.weekly_progress.replace_one({"week_start": week_start}, progress)
-    return progress
+    # Update the database with clean data
+    await db.weekly_progress.replace_one({"week_start": week_start}, clean_progress)
+    return clean_progress
 
 @api_router.post("/progress/add-to-safe")
 async def add_stars_to_safe(stars: int):
