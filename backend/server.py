@@ -556,7 +556,8 @@ async def add_stars_to_safe(stars: int):
     
     # Move stars from total_stars to safe
     progress["stars_in_safe"] += stars
-    progress["total_stars"] -= stars
+    # DO NOT reduce total_stars - it should always reflect the sum of daily task stars
+    # The frontend logic should track which stars have been "used" differently
     
     await db.weekly_progress.replace_one({"week_start": week_start}, progress)
     return WeeklyProgress(**progress)
