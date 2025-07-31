@@ -168,6 +168,21 @@ backend:
         agent: "testing"
         comment: "✅ GRADE-SPECIFIC GERMAN TEMPLATES WORKING PERFECTLY! Comprehensive validation confirmed: 1) Grade 2 Simple Templates - Found Anna/Äpfel, Tom/Sticker, Lisa/Bonbons, Max/Spielzeugautos, Blumen scenarios with basic addition/subtraction, 2) Grade 3 Complex Templates - Found Sarah/Euro/Taschengeld, Paket/Keksen division, Packung/Stifte multiplication, Tim/Minuten, Klasse/Schüler scenarios, 3) All answers verified ≤ 100 for both grades, 4) Templates generate realistic age-appropriate scenarios. The generate_german_word_problems() function correctly selects grade2_templates vs grade3_templates and ensures mathematical constraints are met."
 
+  - task: "Stars System Fixes (Sternen-System-Fixes)"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "German review request - testing Sternen-System-Fixes to validate correct functionality. Need to verify: 1) Stars Validation Test - create 5 stars through tasks, try to move 10 stars (should fail), try to move 3 stars (should work), 2) Safe Transfer Validation Test - test with 8 task stars, try 12 in safe (should error), try 5 (should work), 3) Weekly Reset Test - verify safe stars preserved during reset, 4) Safe Withdrawal Test - test withdrawing stars from safe, 5) Complete Workflow Test - end-to-end testing with safe preservation"
+      - working: false
+        agent: "testing"
+        comment: "🐛 CRITICAL BUG IDENTIFIED IN STARS SYSTEM: Comprehensive testing revealed a fundamental logic bug in add_stars_to_safe() function. ✅ FUNCTIONALITY VALIDATION PASSED: All 5 requested test scenarios work correctly - stars validation (can only use stars you own), safe transfer validation (prevents excessive transfers), weekly reset preserves safe stars, safe withdrawal works correctly, complete workflow functions end-to-end. ❌ CRITICAL BUG: The add_stars_to_safe() function incorrectly reduces total_stars when moving stars to safe (line 559: progress['total_stars'] -= stars), but get_progress() recalculates total_stars from daily star records, creating inconsistent state. According to the WeeklyProgress model, total_stars should represent 'Stars earned from tasks this week' and should NEVER be reduced. 🔧 RECOMMENDED FIX: Remove line 559 in add_stars_to_safe() - total_stars should always equal sum of daily star records. Despite this bug, all core functionality works correctly, but with confusing behavior for users."
+
 backend:
   - task: "API Health Check"
     implemented: true
