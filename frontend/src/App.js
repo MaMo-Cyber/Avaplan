@@ -996,14 +996,22 @@ function App() {
   };
 
   const addTask = async () => {
-    if (!newTaskName.trim()) return;
+    const taskName = newTaskName.trim();
+    if (!taskName) {
+      alert('Bitte gib einen Aufgabennamen ein!');
+      return;
+    }
     
     try {
-      await axios.post(`${API}/tasks`, { name: newTaskName });
-      setNewTaskName('');
-      loadData();
+      const response = await axios.post(`${API}/tasks`, { name: taskName });
+      if (response.status === 200) {
+        setNewTaskName('');
+        await loadData();
+        console.log('Aufgabe erfolgreich hinzugefügt:', taskName);
+      }
     } catch (error) {
       console.error('Fehler beim Hinzufügen der Aufgabe:', error);
+      alert('Fehler beim Hinzufügen der Aufgabe. Bitte versuche es erneut.');
     }
   };
 
