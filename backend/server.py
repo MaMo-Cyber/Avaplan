@@ -618,13 +618,16 @@ async def reset_weekly_progress():
     # Clear daily stars for current week
     await db.daily_stars.delete_many({"week_start": week_start})
     
-    # Reset total stars but keep safe stars
+    # Reset total stars and available stars BUT KEEP SAFE STARS
     progress = await db.weekly_progress.find_one({"week_start": week_start})
     if progress:
+        # Keep safe stars, reset others
         progress["total_stars"] = 0
+        progress["available_stars"] = 0
+        # stars_in_safe remains unchanged!
         await db.weekly_progress.replace_one({"week_start": week_start}, progress)
     
-    return {"message": "Weekly progress reset"}
+    return {"message": "Weekly progress reset (safe stars preserved)"}
 
 # Rewards Endpoints
 @api_router.post("/rewards", response_model=Reward)
