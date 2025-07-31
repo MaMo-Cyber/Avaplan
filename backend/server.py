@@ -782,12 +782,13 @@ async def submit_math_answers(challenge_id: str, answers: Dict[int, str]):
     week_start = get_current_week_start()
     progress = await db.weekly_progress.find_one({"week_start": week_start})
     if not progress:
-        progress = WeeklyProgress(
-            week_start=week_start, 
-            total_stars=0, 
-            available_stars=stars_earned,
-            stars_in_safe=0
-        ).dict()
+        progress = {
+            "week_start": week_start, 
+            "total_stars_earned": 0,
+            "total_stars_used": 0,
+            "available_stars": stars_earned,
+            "stars_in_safe": 0
+        }
     else:
         if "available_stars" not in progress:
             progress["available_stars"] = 0
