@@ -44,9 +44,15 @@ class DailyStar(BaseModel):
 class WeeklyProgress(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     week_start: datetime
-    total_stars: int = Field(default=0)  # Stars earned from tasks this week
+    total_stars_earned: int = Field(default=0)  # Total stars earned from tasks (never decreases)
+    total_stars_used: int = Field(default=0)   # Stars that have been moved to safe or available
     stars_in_safe: int = Field(default=0)  # Stars stored in safe
     available_stars: int = Field(default=0)  # Stars available for rewards (withdrawn from safe + bonus stars)
+    
+    @property
+    def total_stars(self):
+        """Available stars for moving (earned - used)"""
+        return self.total_stars_earned - self.total_stars_used
 
 class Reward(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
