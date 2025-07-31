@@ -799,6 +799,235 @@ class BackendTester:
             self.log_test("No Problem Types Fallback", False, f"Exception: {str(e)}")
         
         return success_count >= 2
+
+    def test_stars_system_fixes(self):
+        """Test Sternen-System-Fixes (Stars System Fixes) - German Review Request"""
+        success_count = 0
+        
+        print("\n⭐ Testing Sternen-System-Fixes (Stars System Fixes) - German Review Request")
+        
+        # Reset all stars first to start with clean state
+        try:
+            response = self.session.post(f"{BASE_URL}/progress/reset-all-stars")
+            if response.status_code == 200:
+                self.log_test("Reset All Stars (Setup)", True, "All stars reset for clean test start")
+            else:
+                self.log_test("Reset All Stars (Setup)", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Reset All Stars (Setup)", False, f"Exception: {str(e)}")
+        
+        # 1. Stars Validation Test: Create 5 stars through tasks
+        try:
+            # Create 2 tasks
+            task1_data = {"name": "Hausaufgaben machen"}
+            task2_data = {"name": "Zimmer aufräumen"}
+            
+            response1 = self.session.post(f"{BASE_URL}/tasks", json=task1_data)
+            response2 = self.session.post(f"{BASE_URL}/tasks", json=task2_data)
+            
+            if response1.status_code == 200 and response2.status_code == 200:
+                task1_id = response1.json()["id"]
+                task2_id = response2.json()["id"]
+                self.created_resources['tasks'].extend([task1_id, task2_id])
+                
+                # Add stars: Task 1 gets 2 stars on Monday, 1 star on Tuesday
+                # Task 2 gets 2 stars on Wednesday (total = 5 stars)
+                star_updates = [
+                    (task1_id, "monday", 2),
+                    (task1_id, "tuesday", 1), 
+                    (task2_id, "wednesday", 2)
+                ]
+                
+                for task_id, day, stars in star_updates:
+                    response = self.session.post(f"{BASE_URL}/stars/{task_id}/{day}?stars={stars}")
+                    if response.status_code != 200:
+                        raise Exception(f"Failed to add {stars} stars for {day}")
+                
+                # Verify we have 5 total stars
+                response = self.session.get(f"{BASE_URL}/progress")
+                if response.status_code == 200:
+                    progress = response.json()
+                    if progress.get("total_stars") == 5:
+                        self.log_test("Create 5 Task Stars", True, f"Successfully created 5 task stars")
+                        success_count += 1
+                    else:
+                        self.log_test("Create 5 Task Stars", False, f"Expected 5 stars, got {progress.get('total_stars')}")
+                else:
+                    self.log_test("Create 5 Task Stars", False, f"Failed to get progress: {response.status_code}")
+            else:
+                self.log_test("Create 5 Task Stars", False, "Failed to create test tasks")
+        except Exception as e:
+            self.log_test("Create 5 Task Stars", False, f"Exception: {str(e)}")
+        
+        # 2. Try to move 10 stars to available (should fail)
+        try:
+            response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=10")
+            if response.status_code == 400:
+                self.log_test("Move 10 Stars Validation (Should Fail)", True, "Correctly rejected moving 10 stars (only 5 available)")
+                success_count += 1
+            else:
+                self.log_test("Move 10 Stars Validation (Should Fail)", False, f"Should have failed with 400, got {response.status_code}")
+        except Exception as e:
+            self.log_test("Move 10 Stars Validation (Should Fail)", False, f"Exception: {str(e)}")
+        
+        # 3. Try to move 3 stars to safe (should work)
+        try:
+            response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=3")
+            if response.status_code == 200:
+                progress = response.json()
+                if progress.get("stars_in_safe") == 3 and progress.get("total_stars") == 2:
+                    self.log_test("Move 3 Stars to Safe (Should Work)", True, f"Successfully moved 3 stars to safe, 2 remaining in total_stars")
+                    success_count += 1
+                else:
+                    self.log_test("Move 3 Stars to Safe (Should Work)", False, f"Incorrect star distribution: safe={progress.get('stars_in_safe')}, total={progress.get('total_stars')}")
+            else:
+                self.log_test("Move 3 Stars to Safe (Should Work)", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Move 3 Stars to Safe (Should Work)", False, f"Exception: {str(e)}")
+        
+        # 4. Safe Transfer Validation Test: Add more task stars to get 8 total
+        try:
+            # Add more stars to reach 8 task stars total (we have 2 remaining + need 6 more)
+            # Add 3 stars on Thursday for task1, 3 stars on Friday for task2
+            star_updates = [
+                (task1_id, "thursday", 2),
+                (task1_id, "friday", 2),
+                (task2_id, "saturday", 2)
+            ]
+            
+            for task_id, day, stars in star_updates:
+                response = self.session.post(f"{BASE_URL}/stars/{task_id}/{day}?stars={stars}")
+                if response.status_code != 200:
+                    raise Exception(f"Failed to add {stars} stars for {day}")
+            
+            # Verify we now have 8 task stars (2 remaining + 6 new)
+            response = self.session.get(f"{BASE_URL}/progress")
+            if response.status_code == 200:
+                progress = response.json()
+                if progress.get("total_stars") == 8:
+                    self.log_test("Create 8 Task Stars Total", True, f"Successfully have 8 task stars")
+                    success_count += 1
+                else:
+                    self.log_test("Create 8 Task Stars Total", False, f"Expected 8 task stars, got {progress.get('total_stars')}")
+            else:
+                self.log_test("Create 8 Task Stars Total", False, f"Failed to get progress: {response.status_code}")
+        except Exception as e:
+            self.log_test("Create 8 Task Stars Total", False, f"Exception: {str(e)}")
+        
+        # 5. Try to put 12 stars in safe (should error 400)
+        try:
+            response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=12")
+            if response.status_code == 400:
+                self.log_test("Add 12 Stars to Safe (Should Fail)", True, "Correctly rejected adding 12 stars to safe (only 8 available)")
+                success_count += 1
+            else:
+                self.log_test("Add 12 Stars to Safe (Should Fail)", False, f"Should have failed with 400, got {response.status_code}")
+        except Exception as e:
+            self.log_test("Add 12 Stars to Safe (Should Fail)", False, f"Exception: {str(e)}")
+        
+        # 6. Try to put 5 stars in safe (should work)
+        try:
+            response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=5")
+            if response.status_code == 200:
+                progress = response.json()
+                # Should now have 8 stars in safe (3 + 5) and 3 task stars remaining
+                if progress.get("stars_in_safe") == 8 and progress.get("total_stars") == 3:
+                    self.log_test("Add 5 Stars to Safe (Should Work)", True, f"Successfully added 5 more stars to safe (total safe: 8, remaining task: 3)")
+                    success_count += 1
+                else:
+                    self.log_test("Add 5 Stars to Safe (Should Work)", False, f"Incorrect distribution: safe={progress.get('stars_in_safe')}, total={progress.get('total_stars')}")
+            else:
+                self.log_test("Add 5 Stars to Safe (Should Work)", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Add 5 Stars to Safe (Should Work)", False, f"Exception: {str(e)}")
+        
+        # 7. Weekly Reset Test: Test that safe stars are preserved
+        try:
+            # Before reset: should have 3 total_stars, 0 available_stars, 8 stars_in_safe
+            response = self.session.post(f"{BASE_URL}/progress/reset")
+            if response.status_code == 200:
+                # After reset: should have 0 total_stars, 0 available_stars, 8 stars_in_safe (preserved)
+                response = self.session.get(f"{BASE_URL}/progress")
+                if response.status_code == 200:
+                    progress = response.json()
+                    if (progress.get("total_stars") == 0 and 
+                        progress.get("available_stars") == 0 and 
+                        progress.get("stars_in_safe") == 8):
+                        self.log_test("Weekly Reset (Safe Stars Preserved)", True, "Safe stars preserved during weekly reset")
+                        success_count += 1
+                    else:
+                        self.log_test("Weekly Reset (Safe Stars Preserved)", False, f"Incorrect state after reset: total={progress.get('total_stars')}, available={progress.get('available_stars')}, safe={progress.get('stars_in_safe')}")
+                else:
+                    self.log_test("Weekly Reset (Safe Stars Preserved)", False, f"Failed to get progress after reset: {response.status_code}")
+            else:
+                self.log_test("Weekly Reset (Safe Stars Preserved)", False, f"Reset failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Weekly Reset (Safe Stars Preserved)", False, f"Exception: {str(e)}")
+        
+        # 8. Safe Withdrawal Test: Withdraw 3 stars from safe
+        try:
+            response = self.session.post(f"{BASE_URL}/progress/withdraw-from-safe?stars=3")
+            if response.status_code == 200:
+                progress = response.json()
+                # Should now have 5 stars in safe and 3 available stars
+                if progress.get("stars_in_safe") == 5 and progress.get("available_stars") == 3:
+                    self.log_test("Safe Withdrawal Test", True, f"Successfully withdrew 3 stars from safe (safe: 5, available: 3)")
+                    success_count += 1
+                else:
+                    self.log_test("Safe Withdrawal Test", False, f"Incorrect withdrawal result: safe={progress.get('stars_in_safe')}, available={progress.get('available_stars')}")
+            else:
+                self.log_test("Safe Withdrawal Test", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Safe Withdrawal Test", False, f"Exception: {str(e)}")
+        
+        # 9. Complete Workflow Test: Add task stars → Safe → Available → Weekly Reset
+        try:
+            # Add 2 more task stars
+            response = self.session.post(f"{BASE_URL}/stars/{task1_id}/sunday?stars=2")
+            if response.status_code == 200:
+                # Move 1 star to safe
+                response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=1")
+                if response.status_code == 200:
+                    # Withdraw 2 stars from safe to available
+                    response = self.session.post(f"{BASE_URL}/progress/withdraw-from-safe?stars=2")
+                    if response.status_code == 200:
+                        # Check state before reset
+                        response = self.session.get(f"{BASE_URL}/progress")
+                        if response.status_code == 200:
+                            progress_before = response.json()
+                            
+                            # Do weekly reset
+                            response = self.session.post(f"{BASE_URL}/progress/reset")
+                            if response.status_code == 200:
+                                # Check state after reset
+                                response = self.session.get(f"{BASE_URL}/progress")
+                                if response.status_code == 200:
+                                    progress_after = response.json()
+                                    
+                                    # Safe stars should be preserved, others reset
+                                    if (progress_after.get("total_stars") == 0 and
+                                        progress_after.get("available_stars") == 0 and
+                                        progress_after.get("stars_in_safe") == progress_before.get("stars_in_safe")):
+                                        self.log_test("Complete Workflow Test", True, "Complete workflow with safe preservation works correctly")
+                                        success_count += 1
+                                    else:
+                                        self.log_test("Complete Workflow Test", False, f"Workflow failed: before_safe={progress_before.get('stars_in_safe')}, after_safe={progress_after.get('stars_in_safe')}")
+                                else:
+                                    self.log_test("Complete Workflow Test", False, "Failed to get progress after workflow reset")
+                            else:
+                                self.log_test("Complete Workflow Test", False, "Failed to reset in workflow test")
+                        else:
+                            self.log_test("Complete Workflow Test", False, "Failed to get progress before workflow reset")
+                    else:
+                        self.log_test("Complete Workflow Test", False, "Failed to withdraw stars in workflow test")
+                else:
+                    self.log_test("Complete Workflow Test", False, "Failed to add stars to safe in workflow test")
+            else:
+                self.log_test("Complete Workflow Test", False, "Failed to add task stars in workflow test")
+        except Exception as e:
+            self.log_test("Complete Workflow Test", False, f"Exception: {str(e)}")
+        
+        return success_count >= 7  # Expect at least 7 out of 9 tests to pass
     
     def cleanup_resources(self):
         """Clean up created test resources"""
