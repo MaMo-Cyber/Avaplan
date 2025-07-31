@@ -1363,14 +1363,19 @@ function App() {
             />
             <input
               type="number"
+              min="1"
               placeholder="Benötigte Sterne"
               value={newRewardStars}
               onChange={(e) => setNewRewardStars(e.target.value)}
               className="w-32 p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
             />
             <button 
-              onClick={addReward}
-              className="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                addReward();
+              }}
+              className="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 transition-colors font-medium"
+              disabled={!newRewardName.trim() || !newRewardStars || parseInt(newRewardStars) < 1}
             >
               Belohnung Hinzufügen
             </button>
