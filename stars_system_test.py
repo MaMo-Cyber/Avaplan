@@ -182,10 +182,14 @@ def main():
     response = requests.post(f"{BASE_URL}/progress/withdraw-from-safe?stars=3")
     if response.status_code == 200:
         progress = response.json()
-        if progress.get("stars_in_safe") == 5 and progress.get("available_stars") == 3:
-            log_test("Safe Withdrawal Test", True, f"Successfully withdrew 3 stars from safe (safe: 5, available: 3)")
+        # Calculate expected values based on current safe amount
+        expected_safe = progress_after.get("stars_in_safe") - 3 if progress_after else 0
+        expected_available = 3
+        if progress.get("stars_in_safe") == expected_safe and progress.get("available_stars") == expected_available:
+            log_test("Safe Withdrawal Test", True, f"Successfully withdrew 3 stars from safe (safe: {expected_safe}, available: {expected_available})")
         else:
             log_test("Safe Withdrawal Test", False, f"Incorrect withdrawal result: safe={progress.get('stars_in_safe')}, available={progress.get('available_stars')}")
+            print(f"   Expected: safe={expected_safe}, available={expected_available}")
     else:
         log_test("Safe Withdrawal Test", False, f"Status code: {response.status_code}")
     
