@@ -1097,10 +1097,23 @@ function App() {
       return;
     }
 
-    const starsToAdd = prompt(`Wie viele Aufgaben-Sterne zu verfügbaren Sternen hinzufügen? (Verfügbar: ${progress.total_stars})`);
-    if (!starsToAdd || parseInt(starsToAdd) <= 0) return;
+    const maxAvailable = progress.total_stars;
+    const starsToAdd = prompt(`Wie viele Aufgaben-Sterne zu verfügbaren Sternen hinzufügen? (Verfügbar: ${maxAvailable})`);
     
-    const amount = Math.min(parseInt(starsToAdd), progress.total_stars);
+    if (!starsToAdd) return;
+    
+    const amount = parseInt(starsToAdd);
+    
+    // Validation: Cannot add more than available
+    if (amount > maxAvailable) {
+      alert(`Du hast nur ${maxAvailable} Aufgaben-Sterne! Du kannst nicht mehr verschieben als du besitzt.`);
+      return;
+    }
+    
+    if (amount <= 0) {
+      alert('Bitte gib eine gültige Anzahl ein!');
+      return;
+    }
     
     try {
       // Move stars from total_stars to available_stars by adding to safe first, then withdrawing
@@ -1110,6 +1123,7 @@ function App() {
     } catch (error) {
       console.error('Fehler beim Verschieben der Sterne:', error);
       alert('Fehler beim Verschieben der Sterne!');
+      loadData(); // Reload in case of inconsistent state
     }
   };
 
