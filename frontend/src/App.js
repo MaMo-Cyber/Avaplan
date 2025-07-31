@@ -1034,18 +1034,34 @@ function App() {
   };
 
   const addReward = async () => {
-    if (!newRewardName.trim() || !newRewardStars) return;
+    const rewardName = newRewardName.trim();
+    const rewardStars = parseInt(newRewardStars);
+    
+    if (!rewardName) {
+      alert('Bitte gib einen Belohnungsnamen ein!');
+      return;
+    }
+    
+    if (!rewardStars || rewardStars < 1) {
+      alert('Bitte gib eine gültige Anzahl Sterne ein (mindestens 1)!');
+      return;
+    }
     
     try {
-      await axios.post(`${API}/rewards`, { 
-        name: newRewardName, 
-        required_stars: parseInt(newRewardStars) 
+      const response = await axios.post(`${API}/rewards`, { 
+        name: rewardName, 
+        required_stars: rewardStars
       });
-      setNewRewardName('');
-      setNewRewardStars('');
-      loadData();
+      
+      if (response.status === 200) {
+        setNewRewardName('');
+        setNewRewardStars('');
+        await loadData();
+        console.log('Belohnung erfolgreich hinzugefügt:', rewardName, rewardStars);
+      }
     } catch (error) {
       console.error('Fehler beim Hinzufügen der Belohnung:', error);
+      alert('Fehler beim Hinzufügen der Belohnung. Bitte versuche es erneut.');
     }
   };
 
