@@ -134,7 +134,7 @@ def main():
     print("❌ Test 5: Try to put 12 stars in safe (should error 400)")
     response = requests.post(f"{BASE_URL}/progress/add-to-safe?stars=12")
     if response.status_code == 400:
-        log_test("Add 12 Stars to Safe (Should Fail)", True, "Correctly rejected adding 12 stars to safe (only 8 available)")
+        log_test("Add 12 Stars to Safe (Should Fail)", True, f"Correctly rejected adding 12 stars to safe (only {expected_total} available)")
     else:
         log_test("Add 12 Stars to Safe (Should Fail)", False, f"Should have failed with 400, got {response.status_code}")
     
@@ -143,11 +143,13 @@ def main():
     response = requests.post(f"{BASE_URL}/progress/add-to-safe?stars=5")
     if response.status_code == 200:
         progress = response.json()
-        # Should now have 8 stars in safe (3 + 5) and 3 task stars remaining
-        if progress.get("stars_in_safe") == 8 and progress.get("total_stars") == 3:
-            log_test("Add 5 Stars to Safe (Should Work)", True, f"Successfully added 5 more stars to safe (total safe: 8, remaining task: 3)")
+        expected_safe = 3 + 5  # Previous 3 + new 5 = 8
+        expected_remaining = expected_total - 5  # Should be 3 remaining
+        if progress.get("stars_in_safe") == expected_safe and progress.get("total_stars") == expected_remaining:
+            log_test("Add 5 Stars to Safe (Should Work)", True, f"Successfully added 5 more stars to safe (total safe: {expected_safe}, remaining task: {expected_remaining})")
         else:
             log_test("Add 5 Stars to Safe (Should Work)", False, f"Incorrect distribution: safe={progress.get('stars_in_safe')}, total={progress.get('total_stars')}")
+            print(f"   Expected: safe={expected_safe}, total={expected_remaining}")
             print(f"   Current state: {progress}")
     else:
         log_test("Add 5 Stars to Safe (Should Work)", False, f"Status code: {response.status_code}")
