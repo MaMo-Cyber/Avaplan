@@ -1068,6 +1068,7 @@ class BackendTester:
             ("Configurable Problem Count", self.test_configurable_problem_count),
             ("Mixed Problem Types Distribution", self.test_mixed_problem_types),
             ("Word Problem Error Handling", self.test_word_problem_error_handling),
+            ("Stars System Fixes (Sternen-System-Fixes)", self.test_stars_system_fixes),
         ]
         
         passed_tests = 0
