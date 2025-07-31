@@ -525,28 +525,40 @@ async def get_weekly_progress():
     if not progress:
         # Calculate total stars for current week
         stars = await db.daily_stars.find({"week_start": week_start}).to_list(1000)
-        total_stars = sum(star["stars"] for star in stars)
+        total_stars_earned = sum(star["stars"] for star in stars)
         
         progress_obj = WeeklyProgress(
             week_start=week_start, 
-            total_stars=total_stars,
+            total_stars_earned=total_stars_earned,
+            total_stars_used=0,
             available_stars=0,
             stars_in_safe=0
         )
         await db.weekly_progress.insert_one(progress_obj.dict())
-        return progress_obj
+        
+        # Add computed property manually for response
+        result = progress_obj.dict()
+        result["total_stars"] = progress_obj.total_stars
+        return result
     
     # Recalculate total stars from tasks
     stars = await db.daily_stars.find({"week_start": week_start}).to_list(1000)
-    total_stars = sum(star["stars"] for star in stars)
-    progress["total_stars"] = total_stars
+    total_stars_earned = sum(star["stars"] for star in stars)
+    progress["total_stars_earned"] = total_stars_earned
     
-    # Ensure available_stars field exists
+    # Ensure all fields exist with defaults
+    if "total_stars_used" not in progress:
+        progress["total_stars_used"] = 0
     if "available_stars" not in progress:
         progress["available_stars"] = 0
+    if "stars_in_safe" not in progress:
+        progress["stars_in_safe"] = 0
+    
+    # Add computed total_stars field
+    progress["total_stars"] = progress["total_stars_earned"] - progress["total_stars_used"]
     
     await db.weekly_progress.replace_one({"week_start": week_start}, progress)
-    return WeeklyProgress(**progress)
+    return progress
 
 @api_router.post("/progress/add-to-safe")
 async def add_stars_to_safe(stars: int):
