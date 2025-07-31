@@ -568,17 +568,24 @@ async def add_stars_to_safe(stars: int):
     if not progress:
         raise HTTPException(status_code=404, detail="No progress found for current week")
     
-    # Validation: Can only add stars that are actually available in total_stars
-    if stars > progress["total_stars"]:
-        raise HTTPException(status_code=400, detail=f"Not enough stars to add to safe. Available: {progress['total_stars']}, Requested: {stars}")
+    # Calculate available stars (earned - used)
+    total_stars_earned = progress.get("total_stars_earned", 0)
+    total_stars_used = progress.get("total_stars_used", 0)
+    available_for_transfer = total_stars_earned - total_stars_used
     
-    # Move stars from total_stars to safe
+    # Validation: Can only add stars that haven't been used yet
+    if stars > available_for_transfer:
+        raise HTTPException(status_code=400, detail=f"Not enough stars to add to safe. Available: {available_for_transfer}, Requested: {stars}")
+    
+    # Move stars from available to safe
     progress["stars_in_safe"] += stars
-    # DO NOT reduce total_stars - it should always reflect the sum of daily task stars
-    # The frontend logic should track which stars have been "used" differently
+    progress["total_stars_used"] += stars  # Track that these stars are now "used"
+    
+    # Update computed total_stars field for response
+    progress["total_stars"] = available_for_transfer - stars
     
     await db.weekly_progress.replace_one({"week_start": week_start}, progress)
-    return WeeklyProgress(**progress)
+    return progress
 
 @api_router.post("/progress/withdraw-from-safe")
 async def withdraw_stars_from_safe(stars: int):
