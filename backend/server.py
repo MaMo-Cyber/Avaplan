@@ -646,12 +646,14 @@ async def reset_weekly_progress():
     # Clear daily stars for current week
     await db.daily_stars.delete_many({"week_start": week_start})
     
-    # Reset total stars and available stars BUT KEEP SAFE STARS
+    # Reset earned and available stars BUT KEEP SAFE STARS
     progress = await db.weekly_progress.find_one({"week_start": week_start})
     if progress:
-        # Keep safe stars, reset others
-        progress["total_stars"] = 0
+        # Reset all earned/used/available stars, keep safe stars
+        progress["total_stars_earned"] = 0
+        progress["total_stars_used"] = 0
         progress["available_stars"] = 0
+        progress["total_stars"] = 0  # computed field
         # stars_in_safe remains unchanged!
         await db.weekly_progress.replace_one({"week_start": week_start}, progress)
     
