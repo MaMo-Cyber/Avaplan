@@ -1133,15 +1133,35 @@ function App() {
       return;
     }
     
-    const starsToAdd = prompt(`Wie viele Sterne in den Tresor legen? (Verfügbar: ${progress.total_stars})`);
+    const maxAvailable = progress.total_stars;
+    const starsToAdd = prompt(`Wie viele Sterne in den Tresor legen? (Verfügbar: ${maxAvailable})`);
+    
     if (!starsToAdd) return;
     
+    const amount = parseInt(starsToAdd);
+    
+    // Validation: Cannot add more than available
+    if (amount > maxAvailable) {
+      alert(`Du hast nur ${maxAvailable} Sterne verfügbar! Du kannst nicht mehr in den Tresor legen als du besitzt.`);
+      return;
+    }
+    
+    if (amount <= 0) {
+      alert('Bitte gib eine gültige Anzahl ein!');
+      return;
+    }
+    
     try {
-      await axios.post(`${API}/progress/add-to-safe?stars=${parseInt(starsToAdd)}`);
+      await axios.post(`${API}/progress/add-to-safe?stars=${amount}`);
       loadData();
     } catch (error) {
       console.error('Fehler beim Hinzufügen von Sternen zum Tresor:', error);
-      alert('Nicht genügend Sterne verfügbar!');
+      if (error.response?.data?.detail) {
+        alert(error.response.data.detail);
+      } else {
+        alert('Nicht genügend Sterne verfügbar!');
+      }
+      loadData(); // Reload to fix any inconsistent state
     }
   };
 
