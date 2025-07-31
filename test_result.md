@@ -544,7 +544,8 @@ metadata:
 
 test_plan:
   current_focus: []
-  stuck_tasks: []
+  stuck_tasks:
+    - "Stars System Fixes (Sternen-System-Fixes)"
   test_all: false
   test_priority: "high_first"
 
