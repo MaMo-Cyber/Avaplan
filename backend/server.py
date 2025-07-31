@@ -579,15 +579,21 @@ async def add_stars_to_safe(stars: int):
     if stars > available_for_transfer:
         raise HTTPException(status_code=400, detail=f"Not enough stars to add to safe. Available: {available_for_transfer}, Requested: {stars}")
     
-    # Move stars from available to safe
-    progress["stars_in_safe"] += stars
-    progress["total_stars_used"] += stars  # Track that these stars are now "used"
+    # Create clean progress dict
+    clean_progress = {
+        "id": progress.get("id", str(uuid.uuid4())),
+        "week_start": progress["week_start"],
+        "total_stars_earned": total_stars_earned,
+        "total_stars_used": total_stars_used + stars,  # Track that these stars are now "used"
+        "available_stars": progress.get("available_stars", 0),
+        "stars_in_safe": progress.get("stars_in_safe", 0) + stars
+    }
     
-    # Update computed total_stars field for response
-    progress["total_stars"] = available_for_transfer - stars
+    # Add computed total_stars field for response
+    clean_progress["total_stars"] = clean_progress["total_stars_earned"] - clean_progress["total_stars_used"]
     
-    await db.weekly_progress.replace_one({"week_start": week_start}, progress)
-    return progress
+    await db.weekly_progress.replace_one({"week_start": week_start}, clean_progress)
+    return clean_progress
 
 @api_router.post("/progress/withdraw-from-safe")
 async def withdraw_stars_from_safe(stars: int):
