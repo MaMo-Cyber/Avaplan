@@ -550,9 +550,11 @@ async def add_stars_to_safe(stars: int):
     if not progress:
         raise HTTPException(status_code=404, detail="No progress found for current week")
     
+    # Validation: Can only add stars that are actually available in total_stars
     if stars > progress["total_stars"]:
-        raise HTTPException(status_code=400, detail="Not enough stars to add to safe")
+        raise HTTPException(status_code=400, detail=f"Not enough stars to add to safe. Available: {progress['total_stars']}, Requested: {stars}")
     
+    # Move stars from total_stars to safe
     progress["stars_in_safe"] += stars
     progress["total_stars"] -= stars
     
