@@ -1203,6 +1203,16 @@ function App() {
           onAddTaskStarsToAvailable={addTaskStarsToAvailable}
         />
 
+        {/* Math Challenge Button - Large and Prominent */}
+        <div className="flex justify-center mb-6">
+          <button 
+            onClick={() => setShowMathChallenge(true)}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-12 py-6 rounded-2xl text-xl font-bold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            🧮 Mathe-Herausforderung Starten
+          </button>
+        </div>
+
         {/* Progress Section */}
         <ProgressBar 
           current={progress.total_stars} 
