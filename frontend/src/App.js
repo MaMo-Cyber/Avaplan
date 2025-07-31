@@ -1292,11 +1292,20 @@ function App() {
               value={newTaskName}
               onChange={(e) => setNewTaskName(e.target.value)}
               className="flex-1 p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
-              onKeyPress={(e) => e.key === 'Enter' && addTask()}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addTask();
+                }
+              }}
             />
             <button 
-              onClick={addTask}
-              className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                addTask();
+              }}
+              className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors font-medium"
+              disabled={!newTaskName.trim()}
             >
               Aufgabe Hinzufügen
             </button>
