@@ -27,11 +27,17 @@ def main():
     print("⭐ Testing Sternen-System-Fixes (Stars System Fixes) - German Review Request")
     print("=" * 80)
     
-    # Reset all stars to start clean
+    # Reset all stars to start clean (including safe)
     print("🔄 Resetting all stars for clean test start...")
     response = requests.post(f"{BASE_URL}/progress/reset-all-stars")
     if response.status_code == 200:
-        log_test("Reset All Stars (Setup)", True, "All stars reset for clean test start")
+        # Verify clean state
+        progress = get_progress()
+        if progress and progress.get("total_stars") == 0 and progress.get("stars_in_safe") == 0 and progress.get("available_stars") == 0:
+            log_test("Reset All Stars (Setup)", True, "All stars reset for clean test start")
+        else:
+            log_test("Reset All Stars (Setup)", False, f"Not completely clean: {progress}")
+            return
     else:
         log_test("Reset All Stars (Setup)", False, f"Status code: {response.status_code}")
         return
