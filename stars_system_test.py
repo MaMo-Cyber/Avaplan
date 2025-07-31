@@ -168,10 +168,11 @@ def main():
         
         if (progress_after.get("total_stars") == 0 and 
             progress_after.get("available_stars") == 0 and 
-            progress_after.get("stars_in_safe") == 8):
+            progress_after.get("stars_in_safe") == progress_before.get("stars_in_safe")):
             log_test("Weekly Reset (Safe Stars Preserved)", True, "Safe stars preserved during weekly reset")
         else:
             log_test("Weekly Reset (Safe Stars Preserved)", False, f"Incorrect state after reset: total={progress_after.get('total_stars')}, available={progress_after.get('available_stars')}, safe={progress_after.get('stars_in_safe')}")
+            print(f"   Expected safe to remain: {progress_before.get('stars_in_safe')}, got: {progress_after.get('stars_in_safe')}")
     else:
         log_test("Weekly Reset (Safe Stars Preserved)", False, f"Reset failed: {response.status_code}")
     
