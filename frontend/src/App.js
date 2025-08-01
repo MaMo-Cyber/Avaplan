@@ -2950,6 +2950,9 @@ function App() {
               // Optional: Scroll zu Rewards Sektion
               document.querySelector('.rewards-section')?.scrollIntoView({ behavior: 'smooth' });
             }}
+            onOpenMathSettings={() => setShowMathSettings(true)}
+            onOpenGermanSettings={() => setShowGermanSettings(true)}
+            onOpenEnglishSettings={() => setShowEnglishSettings(true)}
           />
         )}
       </div>
