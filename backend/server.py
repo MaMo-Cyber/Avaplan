@@ -1093,6 +1093,775 @@ Gib NUR ein JSON-Array zurück:
         logging.error(f"Error generating AI fill blank problems: {e}")
         return []
 
+# English Challenge Generation Functions
+async def generate_english_problems(grade: int, count: int = None) -> List[EnglishProblem]:
+    """Generate AI-powered English language problems"""
+    
+    # Get English settings
+    settings_doc = await db.english_settings.find_one()
+    if not settings_doc:
+        settings = EnglishSettings()
+        await db.english_settings.insert_one(settings.dict())
+    else:
+        settings = EnglishSettings(**settings_doc)
+    
+    # Use configured problem count if not specified
+    if count is None:
+        count = settings.problem_count
+    
+    # Generate mix of problems based on enabled types
+    problems = []
+    enabled_types = [k for k, v in settings.problem_types.items() if v]
+    
+    if not enabled_types:
+        enabled_types = ["vocabulary_de_en", "vocabulary_en_de", "simple_sentences"]  # fallback
+    
+    problems_per_type = count // len(enabled_types)
+    remaining = count % len(enabled_types)
+    
+    for problem_type in enabled_types:
+        type_count = problems_per_type + (1 if remaining > 0 else 0)
+        remaining -= 1
+        
+        if problem_type == "vocabulary_de_en":
+            problems.extend(await generate_vocabulary_de_en_problems(type_count, grade, settings))
+        elif problem_type == "vocabulary_en_de":
+            problems.extend(await generate_vocabulary_en_de_problems(type_count, grade, settings))
+        elif problem_type == "simple_sentences":
+            problems.extend(await generate_simple_sentence_problems(type_count, grade, settings))
+        elif problem_type == "basic_grammar":
+            problems.extend(await generate_basic_grammar_problems(type_count, grade, settings))
+        elif problem_type == "colors_numbers":
+            problems.extend(await generate_colors_numbers_problems(type_count, grade, settings))
+        elif problem_type == "animals_objects":
+            problems.extend(await generate_animals_objects_problems(type_count, grade, settings))
+    
+    # Shuffle the problems
+    random.shuffle(problems)
+    return problems[:count]
+
+async def generate_vocabulary_de_en_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate German to English vocabulary problems"""
+    problems = []
+    
+    # Try AI generation first
+    try:
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        if openai_key:
+            ai_problems = await generate_ai_vocabulary_de_en_problems(count, grade, settings)
+            if ai_problems:
+                return ai_problems
+    except Exception as e:
+        logging.error(f"AI vocabulary DE->EN generation failed: {e}")
+    
+    # Fallback to predefined vocabulary problems
+    grade2_vocabulary = [
+        {"german": "Hund", "english": "dog", "wrong": ["cat", "bird", "fish"]},
+        {"german": "Katze", "english": "cat", "wrong": ["dog", "mouse", "bird"]},
+        {"german": "Auto", "english": "car", "wrong": ["bus", "train", "bike"]},
+        {"german": "Haus", "english": "house", "wrong": ["tree", "car", "book"]},
+        {"german": "Baum", "english": "tree", "wrong": ["flower", "grass", "house"]},
+        {"german": "Wasser", "english": "water", "wrong": ["milk", "juice", "tea"]},
+        {"german": "Brot", "english": "bread", "wrong": ["cake", "apple", "cheese"]},
+        {"german": "Apfel", "english": "apple", "wrong": ["banana", "orange", "grape"]},
+        {"german": "Schule", "english": "school", "wrong": ["home", "park", "shop"]},
+        {"german": "Buch", "english": "book", "wrong": ["pen", "paper", "table"]},
+        {"german": "rot", "english": "red", "wrong": ["blue", "green", "yellow"]},
+        {"german": "blau", "english": "blue", "wrong": ["red", "green", "black"]},
+        {"german": "groß", "english": "big", "wrong": ["small", "long", "fast"]},
+        {"german": "klein", "english": "small", "wrong": ["big", "tall", "wide"]},
+        {"german": "gut", "english": "good", "wrong": ["bad", "fast", "slow"]},
+        {"german": "Ball", "english": "ball", "wrong": ["toy", "game", "stick"]},
+        {"german": "Mama", "english": "mom", "wrong": ["dad", "sister", "brother"]},
+        {"german": "Papa", "english": "dad", "wrong": ["mom", "uncle", "grandpa"]},
+        {"german": "Kind", "english": "child", "wrong": ["adult", "baby", "parent"]},
+        {"german": "Freund", "english": "friend", "wrong": ["enemy", "teacher", "doctor"]},
+        {"german": "Sonne", "english": "sun", "wrong": ["moon", "star", "cloud"]},
+        {"german": "Mond", "english": "moon", "wrong": ["sun", "star", "planet"]},
+        {"german": "Blume", "english": "flower", "wrong": ["tree", "grass", "leaf"]},
+        {"german": "Vogel", "english": "bird", "wrong": ["fish", "cat", "dog"]},
+        {"german": "Fisch", "english": "fish", "wrong": ["bird", "cat", "mouse"]},
+        {"german": "Maus", "english": "mouse", "wrong": ["cat", "dog", "bird"]},
+        {"german": "Tür", "english": "door", "wrong": ["window", "wall", "roof"]},
+        {"german": "Fenster", "english": "window", "wrong": ["door", "wall", "floor"]},
+        {"german": "Tisch", "english": "table", "wrong": ["chair", "bed", "sofa"]},
+        {"german": "Stuhl", "english": "chair", "wrong": ["table", "bed", "lamp"]},
+        {"german": "warm", "english": "warm", "wrong": ["cold", "hot", "cool"]},
+        {"german": "kalt", "english": "cold", "wrong": ["warm", "hot", "cool"]},
+        {"german": "schnell", "english": "fast", "wrong": ["slow", "big", "small"]},
+        {"german": "langsam", "english": "slow", "wrong": ["fast", "quick", "rapid"]},
+        {"german": "neu", "english": "new", "wrong": ["old", "used", "broken"]},
+        {"german": "alt", "english": "old", "wrong": ["new", "young", "fresh"]},
+        {"german": "glücklich", "english": "happy", "wrong": ["sad", "angry", "tired"]},
+        {"german": "traurig", "english": "sad", "wrong": ["happy", "glad", "joyful"]},
+        {"german": "Milch", "english": "milk", "wrong": ["water", "juice", "tea"]},
+        {"german": "Käse", "english": "cheese", "wrong": ["bread", "butter", "meat"]},
+        {"german": "Ei", "english": "egg", "wrong": ["chicken", "milk", "bread"]},
+        {"german": "Fleisch", "english": "meat", "wrong": ["bread", "fruit", "vegetable"]},
+        {"german": "Gemüse", "english": "vegetable", "wrong": ["fruit", "meat", "bread"]},
+        {"german": "Obst", "english": "fruit", "wrong": ["vegetable", "meat", "bread"]},
+        {"german": "Banane", "english": "banana", "wrong": ["apple", "orange", "grape"]},
+        {"german": "Orange", "english": "orange", "wrong": ["apple", "banana", "lemon"]},
+        {"german": "Zitrone", "english": "lemon", "wrong": ["orange", "apple", "lime"]},
+        {"german": "Traube", "english": "grape", "wrong": ["berry", "cherry", "plum"]},
+        {"german": "Kirsche", "english": "cherry", "wrong": ["grape", "berry", "plum"]},
+        {"german": "Erdbeere", "english": "strawberry", "wrong": ["cherry", "grape", "berry"]},
+        {"german": "Familie", "english": "family", "wrong": ["friends", "people", "group"]},
+        {"german": "Bruder", "english": "brother", "wrong": ["sister", "cousin", "friend"]},
+        {"german": "Schwester", "english": "sister", "wrong": ["brother", "cousin", "friend"]},
+        {"german": "Oma", "english": "grandma", "wrong": ["mom", "aunt", "sister"]},
+        {"german": "Opa", "english": "grandpa", "wrong": ["dad", "uncle", "brother"]},
+        {"german": "Tante", "english": "aunt", "wrong": ["mom", "sister", "cousin"]},
+        {"german": "Onkel", "english": "uncle", "wrong": ["dad", "brother", "cousin"]},
+        {"german": "Baby", "english": "baby", "wrong": ["child", "adult", "teenager"]},
+        {"german": "Junge", "english": "boy", "wrong": ["girl", "man", "child"]},
+        {"german": "Mädchen", "english": "girl", "wrong": ["boy", "woman", "child"]},
+        {"german": "Mann", "english": "man", "wrong": ["woman", "boy", "person"]},
+        {"german": "Frau", "english": "woman", "wrong": ["man", "girl", "person"]},
+        {"german": "Tier", "english": "animal", "wrong": ["plant", "person", "thing"]},
+        {"german": "Pferd", "english": "horse", "wrong": ["cow", "pig", "sheep"]},
+        {"german": "Kuh", "english": "cow", "wrong": ["horse", "pig", "goat"]},
+        {"german": "Schwein", "english": "pig", "wrong": ["cow", "horse", "sheep"]},
+        {"german": "Schaf", "english": "sheep", "wrong": ["goat", "cow", "pig"]},
+        {"german": "Ziege", "english": "goat", "wrong": ["sheep", "cow", "horse"]},
+        {"german": "Hase", "english": "rabbit", "wrong": ["mouse", "cat", "hamster"]},
+        {"german": "Hamster", "english": "hamster", "wrong": ["mouse", "rabbit", "rat"]},
+        {"german": "spielen", "english": "to play", "wrong": ["to work", "to sleep", "to eat"]},
+        {"german": "laufen", "english": "to run", "wrong": ["to walk", "to jump", "to sit"]},
+        {"german": "gehen", "english": "to go", "wrong": ["to come", "to stay", "to stop"]},
+        {"german": "kommen", "english": "to come", "wrong": ["to go", "to leave", "to stay"]},
+        {"german": "essen", "english": "to eat", "wrong": ["to drink", "to sleep", "to play"]},
+        {"german": "trinken", "english": "to drink", "wrong": ["to eat", "to sleep", "to walk"]},
+        {"german": "schlafen", "english": "to sleep", "wrong": ["to wake", "to eat", "to play"]},
+        {"german": "sehen", "english": "to see", "wrong": ["to hear", "to feel", "to smell"]},
+        {"german": "hören", "english": "to hear", "wrong": ["to see", "to feel", "to taste"]},
+        {"german": "sprechen", "english": "to speak", "wrong": ["to listen", "to write", "to read"]},
+        {"german": "lesen", "english": "to read", "wrong": ["to write", "to speak", "to listen"]},
+        {"german": "schreiben", "english": "to write", "wrong": ["to read", "to draw", "to paint"]},
+        {"german": "malen", "english": "to paint", "wrong": ["to draw", "to write", "to color"]},
+        {"german": "singen", "english": "to sing", "wrong": ["to dance", "to play", "to listen"]},
+        {"german": "tanzen", "english": "to dance", "wrong": ["to sing", "to jump", "to run"]},
+        {"german": "springen", "english": "to jump", "wrong": ["to run", "to walk", "to dance"]},
+        {"german": "schwimmen", "english": "to swim", "wrong": ["to run", "to fly", "to walk"]},
+        {"german": "fliegen", "english": "to fly", "wrong": ["to swim", "to run", "to jump"]},
+        {"german": "fahren", "english": "to drive", "wrong": ["to walk", "to fly", "to swim"]},
+        {"german": "arbeiten", "english": "to work", "wrong": ["to play", "to rest", "to sleep"]},
+        {"german": "lernen", "english": "to learn", "wrong": ["to teach", "to forget", "to play"]},
+        {"german": "lehren", "english": "to teach", "wrong": ["to learn", "to study", "to play"]},
+        {"german": "helfen", "english": "to help", "wrong": ["to hurt", "to ignore", "to leave"]},
+        {"german": "kaufen", "english": "to buy", "wrong": ["to sell", "to give", "to take"]},
+        {"german": "verkaufen", "english": "to sell", "wrong": ["to buy", "to give", "to keep"]},
+        {"german": "geben", "english": "to give", "wrong": ["to take", "to keep", "to sell"]},
+        {"german": "nehmen", "english": "to take", "wrong": ["to give", "to leave", "to put"]},
+        {"german": "haben", "english": "to have", "wrong": ["to be", "to get", "to lose"]},
+        {"german": "sein", "english": "to be", "wrong": ["to have", "to do", "to go"]},
+        {"german": "werden", "english": "to become", "wrong": ["to be", "to have", "to stay"]},
+        {"german": "machen", "english": "to make", "wrong": ["to break", "to fix", "to buy"]},
+        {"german": "tun", "english": "to do", "wrong": ["to make", "to be", "to have"]},
+        {"german": "können", "english": "can", "wrong": ["must", "should", "will"]},
+        {"german": "müssen", "english": "must", "wrong": ["can", "may", "should"]},
+        {"german": "wollen", "english": "want", "wrong": ["need", "must", "can"]},
+        {"german": "mögen", "english": "like", "wrong": ["hate", "love", "need"]},
+        {"german": "lieben", "english": "love", "wrong": ["like", "hate", "need"]},
+        {"german": "hassen", "english": "hate", "wrong": ["love", "like", "enjoy"]},
+        {"german": "brauchen", "english": "need", "wrong": ["want", "have", "get"]},
+        {"german": "bekommen", "english": "get", "wrong": ["give", "take", "have"]},
+        {"german": "verlieren", "english": "lose", "wrong": ["find", "win", "get"]},
+        {"german": "finden", "english": "find", "wrong": ["lose", "search", "look"]},
+        {"german": "suchen", "english": "search", "wrong": ["find", "lose", "get"]},
+        {"german": "warten", "english": "wait", "wrong": ["go", "run", "leave"]},
+        {"german": "bleiben", "english": "stay", "wrong": ["go", "leave", "come"]},
+        {"german": "verlassen", "english": "leave", "wrong": ["stay", "come", "arrive"]},
+        {"german": "ankommen", "english": "arrive", "wrong": ["leave", "go", "stay"]},
+        {"german": "beginnen", "english": "begin", "wrong": ["end", "stop", "finish"]},
+        {"german": "aufhören", "english": "stop", "wrong": ["start", "begin", "continue"]},
+        {"german": "weitermachen", "english": "continue", "wrong": ["stop", "end", "pause"]},
+        {"german": "Nummer", "english": "number", "wrong": ["letter", "word", "name"]},
+        {"german": "eins", "english": "one", "wrong": ["two", "three", "four"]},
+        {"german": "zwei", "english": "two", "wrong": ["one", "three", "four"]},
+        {"german": "drei", "english": "three", "wrong": ["two", "four", "five"]},
+        {"german": "vier", "english": "four", "wrong": ["three", "five", "six"]},
+        {"german": "fünf", "english": "five", "wrong": ["four", "six", "seven"]},
+        {"german": "sechs", "english": "six", "wrong": ["five", "seven", "eight"]},
+        {"german": "sieben", "english": "seven", "wrong": ["six", "eight", "nine"]},
+        {"german": "acht", "english": "eight", "wrong": ["seven", "nine", "ten"]},
+        {"german": "neun", "english": "nine", "wrong": ["eight", "ten", "eleven"]},
+        {"german": "zehn", "english": "ten", "wrong": ["nine", "eleven", "twelve"]}
+    ]
+    
+    grade3_vocabulary = [
+        {"german": "Wissenschaft", "english": "science", "wrong": ["art", "history", "music"]},
+        {"german": "Experiment", "english": "experiment", "wrong": ["test", "game", "lesson"]},
+        {"german": "Forschung", "english": "research", "wrong": ["study", "homework", "project"]},
+        {"german": "Entdeckung", "english": "discovery", "wrong": ["invention", "creation", "finding"]},
+        {"german": "Erfindung", "english": "invention", "wrong": ["discovery", "creation", "idea"]},
+        {"german": "Technologie", "english": "technology", "wrong": ["science", "computer", "machine"]},
+        {"german": "Computer", "english": "computer", "wrong": ["television", "radio", "phone"]},
+        {"german": "Internet", "english": "internet", "wrong": ["computer", "website", "email"]},
+        {"german": "Programm", "english": "program", "wrong": ["computer", "software", "game"]},
+        {"german": "Software", "english": "software", "wrong": ["hardware", "computer", "program"]},
+        {"german": "Roboter", "english": "robot", "wrong": ["machine", "computer", "android"]},
+        {"german": "Maschine", "english": "machine", "wrong": ["robot", "tool", "device"]},
+        {"german": "Werkzeug", "english": "tool", "wrong": ["machine", "instrument", "device"]},
+        {"german": "Instrument", "english": "instrument", "wrong": ["tool", "device", "machine"]},
+        {"german": "Gerät", "english": "device", "wrong": ["machine", "tool", "gadget"]},
+        {"german": "Energie", "english": "energy", "wrong": ["power", "electricity", "fuel"]},
+        {"german": "Elektrizität", "english": "electricity", "wrong": ["energy", "power", "battery"]},
+        {"german": "Batterie", "english": "battery", "wrong": ["electricity", "power", "energy"]},
+        {"german": "Motor", "english": "engine", "wrong": ["machine", "motor", "device"]},
+        {"german": "Fahrzeug", "english": "vehicle", "wrong": ["car", "transport", "machine"]},
+        # ... continue with more grade 3 vocabulary
+    ]
+    
+    vocabulary_list = grade2_vocabulary if grade == 2 else grade3_vocabulary
+    
+    # Shuffle and select random subset to ensure variety
+    import random
+    shuffled_vocab = random.sample(vocabulary_list, min(count * 3, len(vocabulary_list)))
+    
+    for i in range(min(count, len(shuffled_vocab))):
+        vocab = shuffled_vocab[i]
+        options = [vocab["english"]] + vocab["wrong"]
+        random.shuffle(options)
+        
+        problem = EnglishProblem(
+            question=f"Was bedeutet '{vocab['german']}' auf Englisch?",
+            question_type="vocabulary_de_en",
+            options=options,
+            correct_answer=vocab["english"],
+            problem_data={"german_word": vocab["german"]}
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_vocabulary_en_de_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate English to German vocabulary problems"""
+    problems = []
+    
+    # Try AI generation first
+    try:
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        if openai_key:
+            ai_problems = await generate_ai_vocabulary_en_de_problems(count, grade, settings)
+            if ai_problems:
+                return ai_problems
+    except Exception as e:
+        logging.error(f"AI vocabulary EN->DE generation failed: {e}")
+    
+    # Use same vocabulary list but reverse the question
+    grade2_vocabulary = [
+        {"german": "Hund", "english": "dog", "wrong": ["Katze", "Vogel", "Fisch"]},
+        {"german": "Katze", "english": "cat", "wrong": ["Hund", "Maus", "Vogel"]},
+        {"german": "Auto", "english": "car", "wrong": ["Bus", "Zug", "Fahrrad"]},
+        {"german": "Haus", "english": "house", "wrong": ["Baum", "Auto", "Buch"]},
+        {"german": "Baum", "english": "tree", "wrong": ["Blume", "Gras", "Haus"]},
+        {"german": "Wasser", "english": "water", "wrong": ["Milch", "Saft", "Tee"]},
+        {"german": "Brot", "english": "bread", "wrong": ["Kuchen", "Apfel", "Käse"]},
+        {"german": "Apfel", "english": "apple", "wrong": ["Banane", "Orange", "Traube"]},
+        {"german": "Schule", "english": "school", "wrong": ["Haus", "Park", "Laden"]},
+        {"german": "Buch", "english": "book", "wrong": ["Stift", "Papier", "Tisch"]},
+        {"german": "rot", "english": "red", "wrong": ["blau", "grün", "gelb"]},
+        {"german": "blau", "english": "blue", "wrong": ["rot", "grün", "schwarz"]},
+        {"german": "groß", "english": "big", "wrong": ["klein", "lang", "schnell"]},
+        {"german": "klein", "english": "small", "wrong": ["groß", "hoch", "breit"]},
+        {"german": "gut", "english": "good", "wrong": ["schlecht", "schnell", "langsam"]},
+        {"german": "Ball", "english": "ball", "wrong": ["Spielzeug", "Spiel", "Stock"]},
+        {"german": "Mama", "english": "mom", "wrong": ["Papa", "Schwester", "Bruder"]},
+        {"german": "Papa", "english": "dad", "wrong": ["Mama", "Onkel", "Opa"]},
+        {"german": "Kind", "english": "child", "wrong": ["Erwachsener", "Baby", "Eltern"]},
+        {"german": "Freund", "english": "friend", "wrong": ["Feind", "Lehrer", "Arzt"]},
+        {"german": "Sonne", "english": "sun", "wrong": ["Mond", "Stern", "Wolke"]},
+        {"german": "Mond", "english": "moon", "wrong": ["Sonne", "Stern", "Planet"]},
+        {"german": "Blume", "english": "flower", "wrong": ["Baum", "Gras", "Blatt"]},
+        {"german": "Vogel", "english": "bird", "wrong": ["Fisch", "Katze", "Hund"]},
+        {"german": "Fisch", "english": "fish", "wrong": ["Vogel", "Katze", "Maus"]},
+        {"german": "Maus", "english": "mouse", "wrong": ["Katze", "Hund", "Vogel"]},
+        {"german": "Tür", "english": "door", "wrong": ["Fenster", "Wand", "Dach"]},
+        {"german": "Fenster", "english": "window", "wrong": ["Tür", "Wand", "Boden"]},
+        {"german": "Tisch", "english": "table", "wrong": ["Stuhl", "Bett", "Sofa"]},
+        {"german": "Stuhl", "english": "chair", "wrong": ["Tisch", "Bett", "Lampe"]},
+        {"german": "warm", "english": "warm", "wrong": ["kalt", "heiß", "kühl"]},
+        {"german": "kalt", "english": "cold", "wrong": ["warm", "heiß", "kühl"]},
+        {"german": "schnell", "english": "fast", "wrong": ["langsam", "groß", "klein"]},
+        {"german": "langsam", "english": "slow", "wrong": ["schnell", "rasch", "eilig"]},
+        {"german": "neu", "english": "new", "wrong": ["alt", "gebraucht", "kaputt"]},
+        {"german": "alt", "english": "old", "wrong": ["neu", "jung", "frisch"]},
+        {"german": "glücklich", "english": "happy", "wrong": ["traurig", "wütend", "müde"]},
+        {"german": "traurig", "english": "sad", "wrong": ["glücklich", "froh", "fröhlich"]},
+        {"german": "Milch", "english": "milk", "wrong": ["Wasser", "Saft", "Tee"]},
+        {"german": "Käse", "english": "cheese", "wrong": ["Brot", "Butter", "Fleisch"]},
+        {"german": "Ei", "english": "egg", "wrong": ["Huhn", "Milch", "Brot"]},
+        {"german": "Fleisch", "english": "meat", "wrong": ["Brot", "Obst", "Gemüse"]},
+        {"german": "Gemüse", "english": "vegetable", "wrong": ["Obst", "Fleisch", "Brot"]},
+        {"german": "Obst", "english": "fruit", "wrong": ["Gemüse", "Fleisch", "Brot"]},
+        {"german": "Banane", "english": "banana", "wrong": ["Apfel", "Orange", "Traube"]},
+        {"german": "Orange", "english": "orange", "wrong": ["Apfel", "Banane", "Zitrone"]},
+        {"german": "Zitrone", "english": "lemon", "wrong": ["Orange", "Apfel", "Limette"]},
+        {"german": "Traube", "english": "grape", "wrong": ["Beere", "Kirsche", "Pflaume"]},
+        {"german": "Kirsche", "english": "cherry", "wrong": ["Traube", "Beere", "Pflaume"]},
+        {"german": "Erdbeere", "english": "strawberry", "wrong": ["Kirsche", "Traube", "Beere"]},
+        {"german": "Familie", "english": "family", "wrong": ["Freunde", "Leute", "Gruppe"]},
+        {"german": "Bruder", "english": "brother", "wrong": ["Schwester", "Cousin", "Freund"]},
+        {"german": "Schwester", "english": "sister", "wrong": ["Bruder", "Cousine", "Freundin"]},
+        {"german": "Oma", "english": "grandma", "wrong": ["Mama", "Tante", "Schwester"]},
+        {"german": "Opa", "english": "grandpa", "wrong": ["Papa", "Onkel", "Bruder"]},
+        {"german": "Tante", "english": "aunt", "wrong": ["Mama", "Schwester", "Cousine"]},
+        {"german": "Onkel", "english": "uncle", "wrong": ["Papa", "Bruder", "Cousin"]},
+        {"german": "Baby", "english": "baby", "wrong": ["Kind", "Erwachsener", "Teenager"]},
+        {"german": "Junge", "english": "boy", "wrong": ["Mädchen", "Mann", "Kind"]},
+        {"german": "Mädchen", "english": "girl", "wrong": ["Junge", "Frau", "Kind"]},
+        {"german": "Mann", "english": "man", "wrong": ["Frau", "Junge", "Person"]},
+        {"german": "Frau", "english": "woman", "wrong": ["Mann", "Mädchen", "Person"]},
+        {"german": "Tier", "english": "animal", "wrong": ["Pflanze", "Person", "Ding"]},
+        {"german": "Pferd", "english": "horse", "wrong": ["Kuh", "Schwein", "Schaf"]},
+        {"german": "Kuh", "english": "cow", "wrong": ["Pferd", "Schwein", "Ziege"]},
+        {"german": "Schwein", "english": "pig", "wrong": ["Kuh", "Pferd", "Schaf"]},
+        {"german": "Schaf", "english": "sheep", "wrong": ["Ziege", "Kuh", "Schwein"]},
+        {"german": "Ziege", "english": "goat", "wrong": ["Schaf", "Kuh", "Pferd"]},
+        {"german": "Hase", "english": "rabbit", "wrong": ["Maus", "Katze", "Hamster"]},
+        {"german": "Hamster", "english": "hamster", "wrong": ["Maus", "Hase", "Ratte"]},
+        {"german": "eins", "english": "one", "wrong": ["zwei", "drei", "vier"]},
+        {"german": "zwei", "english": "two", "wrong": ["eins", "drei", "vier"]},
+        {"german": "drei", "english": "three", "wrong": ["zwei", "vier", "fünf"]},
+        {"german": "vier", "english": "four", "wrong": ["drei", "fünf", "sechs"]},
+        {"german": "fünf", "english": "five", "wrong": ["vier", "sechs", "sieben"]},
+        {"german": "sechs", "english": "six", "wrong": ["fünf", "sieben", "acht"]},
+        {"german": "sieben", "english": "seven", "wrong": ["sechs", "acht", "neun"]},
+        {"german": "acht", "english": "eight", "wrong": ["sieben", "neun", "zehn"]},
+        {"german": "neun", "english": "nine", "wrong": ["acht", "zehn", "elf"]},
+        {"german": "zehn", "english": "ten", "wrong": ["neun", "elf", "zwölf"]}
+    ]
+    
+    grade3_vocabulary = [
+        {"german": "Wissenschaft", "english": "science", "wrong": ["Kunst", "Geschichte", "Musik"]},
+        {"german": "Experiment", "english": "experiment", "wrong": ["Test", "Spiel", "Lektion"]},
+        {"german": "Forschung", "english": "research", "wrong": ["Studium", "Hausaufgabe", "Projekt"]},
+        {"german": "Entdeckung", "english": "discovery", "wrong": ["Erfindung", "Schöpfung", "Fund"]},
+        {"german": "Erfindung", "english": "invention", "wrong": ["Entdeckung", "Schöpfung", "Idee"]},
+        {"german": "Technologie", "english": "technology", "wrong": ["Wissenschaft", "Computer", "Maschine"]},
+        {"german": "Computer", "english": "computer", "wrong": ["Fernseher", "Radio", "Telefon"]},
+        {"german": "Internet", "english": "internet", "wrong": ["Computer", "Website", "E-Mail"]},
+        {"german": "Programm", "english": "program", "wrong": ["Computer", "Software", "Spiel"]},
+        {"german": "Software", "english": "software", "wrong": ["Hardware", "Computer", "Programm"]},
+        {"german": "Roboter", "english": "robot", "wrong": ["Maschine", "Computer", "Android"]},
+        {"german": "Maschine", "english": "machine", "wrong": ["Roboter", "Werkzeug", "Gerät"]},
+        {"german": "Werkzeug", "english": "tool", "wrong": ["Maschine", "Instrument", "Gerät"]},
+        {"german": "Instrument", "english": "instrument", "wrong": ["Werkzeug", "Gerät", "Maschine"]},
+        {"german": "Gerät", "english": "device", "wrong": ["Maschine", "Werkzeug", "Gadget"]},
+        {"german": "Energie", "english": "energy", "wrong": ["Kraft", "Elektrizität", "Brennstoff"]},
+        {"german": "Elektrizität", "english": "electricity", "wrong": ["Energie", "Kraft", "Batterie"]},
+        {"german": "Batterie", "english": "battery", "wrong": ["Elektrizität", "Kraft", "Energie"]},
+        {"german": "Motor", "english": "engine", "wrong": ["Maschine", "Motor", "Gerät"]},
+        {"german": "Fahrzeug", "english": "vehicle", "wrong": ["Auto", "Transport", "Maschine"]}
+    ]
+    
+    vocabulary_list = grade2_vocabulary if grade == 2 else grade3_vocabulary
+    
+    # Shuffle and select random subset to ensure variety
+    import random
+    shuffled_vocab = random.sample(vocabulary_list, min(count * 3, len(vocabulary_list)))
+    
+    for i in range(min(count, len(shuffled_vocab))):
+        vocab = shuffled_vocab[i]
+        options = [vocab["german"]] + vocab["wrong"]
+        random.shuffle(options)
+        
+        problem = EnglishProblem(
+            question=f"Was bedeutet '{vocab['english']}' auf Deutsch?",
+            question_type="vocabulary_en_de",
+            options=options,
+            correct_answer=vocab["german"],
+            problem_data={"english_word": vocab["english"]}
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_simple_sentence_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate simple sentence translation problems"""
+    problems = []
+    
+    # Try AI generation first
+    try:
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        if openai_key:
+            ai_problems = await generate_ai_simple_sentence_problems(count, grade, settings)
+            if ai_problems:
+                return ai_problems
+    except Exception as e:
+        logging.error(f"AI simple sentence generation failed: {e}")
+    
+    # Fallback to predefined simple sentences
+    grade2_sentences = [
+        {"german": "Ich bin ein Kind.", "english": "I am a child.", "wrong": ["I have a child.", "I see a child.", "I like children."]},
+        {"german": "Das Auto ist rot.", "english": "The car is red.", "wrong": ["The car is blue.", "The car is big.", "The car is new."]},
+        {"german": "Ich habe einen Hund.", "english": "I have a dog.", "wrong": ["I see a dog.", "I am a dog.", "I like dogs."]},
+        {"german": "Die Katze schläft.", "english": "The cat sleeps.", "wrong": ["The cat eats.", "The cat runs.", "The cat plays."]},
+        {"german": "Wir gehen zur Schule.", "english": "We go to school.", "wrong": ["We are at school.", "We like school.", "We have school."]},
+        {"german": "Mama kocht Essen.", "english": "Mom cooks food.", "wrong": ["Mom eats food.", "Mom buys food.", "Mom likes food."]},
+        {"german": "Papa arbeitet viel.", "english": "Dad works a lot.", "wrong": ["Dad sleeps a lot.", "Dad plays a lot.", "Dad eats a lot."]},
+        {"german": "Das Haus ist groß.", "english": "The house is big.", "wrong": ["The house is small.", "The house is new.", "The house is old."]},
+        {"german": "Ich mag Äpfel.", "english": "I like apples.", "wrong": ["I eat apples.", "I have apples.", "I see apples."]},
+        {"german": "Der Ball ist rund.", "english": "The ball is round.", "wrong": ["The ball is big.", "The ball is red.", "The ball is new."]},
+        {"german": "Wir spielen im Park.", "english": "We play in the park.", "wrong": ["We walk in the park.", "We sit in the park.", "We run in the park."]},
+        {"german": "Die Sonne scheint.", "english": "The sun shines.", "wrong": ["The sun sleeps.", "The sun runs.", "The sun eats."]},
+        {"german": "Ich trinke Wasser.", "english": "I drink water.", "wrong": ["I see water.", "I have water.", "I like water."]},
+        {"german": "Das Buch ist interessant.", "english": "The book is interesting.", "wrong": ["The book is big.", "The book is new.", "The book is red."]},
+        {"german": "Mein Freund ist nett.", "english": "My friend is nice.", "wrong": ["My friend is big.", "My friend is new.", "My friend is old."]},
+        {"german": "Die Blume duftet.", "english": "The flower smells good.", "wrong": ["The flower looks good.", "The flower is good.", "The flower feels good."]},
+        {"german": "Ich lese gerne.", "english": "I like to read.", "wrong": ["I have to read.", "I can read.", "I will read."]},
+        {"german": "Der Vogel singt.", "english": "The bird sings.", "wrong": ["The bird flies.", "The bird eats.", "The bird sleeps."]},
+        {"german": "Es regnet heute.", "english": "It rains today.", "wrong": ["It snows today.", "It's sunny today.", "It's windy today."]},
+        {"german": "Ich bin müde.", "english": "I am tired.", "wrong": ["I am happy.", "I am sad.", "I am hungry."]},
+        {"german": "Das Wetter ist schön.", "english": "The weather is nice.", "wrong": ["The weather is bad.", "The weather is cold.", "The weather is hot."]},
+        {"german": "Wir haben Hunger.", "english": "We are hungry.", "wrong": ["We are thirsty.", "We are tired.", "We are happy."]},
+        {"german": "Die Kinder lachen.", "english": "The children laugh.", "wrong": ["The children cry.", "The children sleep.", "The children run."]},
+        {"german": "Ich helfe Mama.", "english": "I help Mom.", "wrong": ["I see Mom.", "I call Mom.", "I love Mom."]},
+        {"german": "Der Fisch schwimmt.", "english": "The fish swims.", "wrong": ["The fish flies.", "The fish runs.", "The fish jumps."]},
+        {"german": "Wir lernen Deutsch.", "english": "We learn German.", "wrong": ["We speak German.", "We read German.", "We write German."]},
+        {"german": "Das Baby weint.", "english": "The baby cries.", "wrong": ["The baby laughs.", "The baby sleeps.", "The baby eats."]},
+        {"german": "Ich wasche meine Hände.", "english": "I wash my hands.", "wrong": ["I see my hands.", "I have my hands.", "I use my hands."]},
+        {"german": "Die Uhr tickt.", "english": "The clock ticks.", "wrong": ["The clock rings.", "The clock shows.", "The clock runs."]},
+        {"german": "Wir kaufen Brot.", "english": "We buy bread.", "wrong": ["We eat bread.", "We make bread.", "We see bread."]},
+        {"german": "Ich höre Musik.", "english": "I listen to music.", "wrong": ["I make music.", "I see music.", "I have music."]},
+        {"german": "Der Hund läuft.", "english": "The dog runs.", "wrong": ["The dog sleeps.", "The dog eats.", "The dog barks."]},
+        {"german": "Wir malen Bilder.", "english": "We paint pictures.", "wrong": ["We see pictures.", "We have pictures.", "We like pictures."]},
+        {"german": "Das Eis ist kalt.", "english": "The ice cream is cold.", "wrong": ["The ice cream is hot.", "The ice cream is sweet.", "The ice cream is big."]},
+        {"german": "Ich putze Zähne.", "english": "I brush teeth.", "wrong": ["I see teeth.", "I have teeth.", "I count teeth."]},
+        {"german": "Die Tür ist offen.", "english": "The door is open.", "wrong": ["The door is closed.", "The door is big.", "The door is new."]},
+        {"german": "Wir singen Lieder.", "english": "We sing songs.", "wrong": ["We hear songs.", "We write songs.", "We like songs."]},
+        {"german": "Ich ziehe mich an.", "english": "I get dressed.", "wrong": ["I go to bed.", "I wake up.", "I take a shower."]},
+        {"german": "Der Baum ist hoch.", "english": "The tree is tall.", "wrong": ["The tree is short.", "The tree is wide.", "The tree is old."]},
+        {"german": "Wir essen Gemüse.", "english": "We eat vegetables.", "wrong": ["We grow vegetables.", "We buy vegetables.", "We like vegetables."]},
+        {"german": "Ich spiele Ball.", "english": "I play ball.", "wrong": ["I throw ball.", "I catch ball.", "I see ball."]},
+        {"german": "Die Milch ist weiß.", "english": "The milk is white.", "wrong": ["The milk is cold.", "The milk is fresh.", "The milk is good."]},
+        {"german": "Wir gehen schlafen.", "english": "We go to sleep.", "wrong": ["We go home.", "We go outside.", "We go shopping."]},
+        {"german": "Ich kämme mein Haar.", "english": "I comb my hair.", "wrong": ["I wash my hair.", "I cut my hair.", "I see my hair."]},
+        {"german": "Das Fenster ist groß.", "english": "The window is big.", "wrong": ["The window is small.", "The window is clean.", "The window is open."]},
+        {"german": "Wir fahren Bus.", "english": "We take the bus.", "wrong": ["We see the bus.", "We wait for the bus.", "We like the bus."]},
+        {"german": "Ich füttre die Katze.", "english": "I feed the cat.", "wrong": ["I pet the cat.", "I see the cat.", "I call the cat."]},
+        {"german": "Der Käse schmeckt gut.", "english": "The cheese tastes good.", "wrong": ["The cheese looks good.", "The cheese smells good.", "The cheese is good."]},
+        {"german": "Wir besuchen Oma.", "english": "We visit Grandma.", "wrong": ["We call Grandma.", "We see Grandma.", "We help Grandma."]},
+        {"german": "Ich räume auf.", "english": "I clean up.", "wrong": ["I wake up.", "I get up.", "I give up."]}
+    ]
+    
+    grade3_sentences = [
+        {"german": "Ich interessiere mich für Wissenschaft.", "english": "I am interested in science.", "wrong": ["I study science.", "I like science.", "I need science."]},
+        {"german": "Der Computer funktioniert nicht.", "english": "The computer doesn't work.", "wrong": ["The computer is broken.", "The computer is old.", "The computer is slow."]},
+        {"german": "Wir experimentieren im Labor.", "english": "We experiment in the laboratory.", "wrong": ["We work in the laboratory.", "We study in the laboratory.", "We learn in the laboratory."]},
+        {"german": "Die Technologie entwickelt sich schnell.", "english": "Technology develops quickly.", "wrong": ["Technology works quickly.", "Technology changes quickly.", "Technology grows quickly."]},
+        {"german": "Ich programmiere einen Roboter.", "english": "I program a robot.", "wrong": ["I build a robot.", "I repair a robot.", "I control a robot."]},
+        {"german": "Das Internet verbindet Menschen.", "english": "The internet connects people.", "wrong": ["The internet helps people.", "The internet teaches people.", "The internet shows people."]},
+        {"german": "Wir erforschen die Natur.", "english": "We explore nature.", "wrong": ["We protect nature.", "We study nature.", "We love nature."]},
+        {"german": "Die Erfindung verändert das Leben.", "english": "The invention changes life.", "wrong": ["The invention improves life.", "The invention helps life.", "The invention makes life."]},
+        {"german": "Ich analysiere die Daten.", "english": "I analyze the data.", "wrong": ["I collect the data.", "I save the data.", "I use the data."]},
+        {"german": "Der Wissenschaftler macht Entdeckungen.", "english": "The scientist makes discoveries.", "wrong": ["The scientist finds discoveries.", "The scientist has discoveries.", "The scientist shows discoveries."]},
+        {"german": "Wir benutzen moderne Geräte.", "english": "We use modern devices.", "wrong": ["We buy modern devices.", "We repair modern devices.", "We need modern devices."]},
+        {"german": "Die Maschine arbeitet automatisch.", "english": "The machine works automatically.", "wrong": ["The machine runs automatically.", "The machine starts automatically.", "The machine stops automatically."]},
+        {"german": "Ich löse komplizierte Probleme.", "english": "I solve complicated problems.", "wrong": ["I find complicated problems.", "I have complicated problems.", "I see complicated problems."]},
+        {"german": "Das System ist sehr effizient.", "english": "The system is very efficient.", "wrong": ["The system is very fast.", "The system is very good.", "The system is very new."]},
+        {"german": "Wir entwickeln neue Software.", "english": "We develop new software.", "wrong": ["We use new software.", "We buy new software.", "We test new software."]},
+        {"german": "Die Energie kommt von der Sonne.", "english": "The energy comes from the sun.", "wrong": ["The energy needs the sun.", "The energy uses the sun.", "The energy makes the sun."]},
+        {"german": "Ich konstruiere eine Brücke.", "english": "I construct a bridge.", "wrong": ["I design a bridge.", "I build a bridge.", "I plan a bridge."]},
+        {"german": "Der Motor verbraucht wenig Benzin.", "english": "The engine uses little gasoline.", "wrong": ["The engine needs little gasoline.", "The engine has little gasoline.", "The engine makes little gasoline."]},
+        {"german": "Wir kommunizieren über das Internet.", "english": "We communicate via the internet.", "wrong": ["We work via the internet.", "We learn via the internet.", "We play via the internet."]},
+        {"german": "Die Batterie speichert Elektrizität.", "english": "The battery stores electricity.", "wrong": ["The battery makes electricity.", "The battery uses electricity.", "The battery needs electricity."]},
+        {"german": "Ich repariere defekte Geräte.", "english": "I repair broken devices.", "wrong": ["I find broken devices.", "I buy broken devices.", "I throw broken devices."]},
+        {"german": "Das Mikroskop vergrößert kleine Objekte.", "english": "The microscope magnifies small objects.", "wrong": ["The microscope finds small objects.", "The microscope makes small objects.", "The microscope shows small objects."]},
+        {"german": "Wir dokumentieren unsere Experimente.", "english": "We document our experiments.", "wrong": ["We plan our experiments.", "We finish our experiments.", "We start our experiments."]},
+        {"german": "Die Forschung bringt neue Erkenntnisse.", "english": "Research brings new insights.", "wrong": ["Research finds new insights.", "Research makes new insights.", "Research needs new insights."]},
+        {"german": "Ich installiere ein neues Programm.", "english": "I install a new program.", "wrong": ["I buy a new program.", "I use a new program.", "I test a new program."]},
+        {"german": "Der Satellit umkreist die Erde.", "english": "The satellite orbits the Earth.", "wrong": ["The satellite flies around the Earth.", "The satellite watches the Earth.", "The satellite protects the Earth."]},
+        {"german": "Wir messen die Temperatur.", "english": "We measure the temperature.", "wrong": ["We check the temperature.", "We change the temperature.", "We control the temperature."]},
+        {"german": "Die Innovation revolutioniert die Industrie.", "english": "The innovation revolutionizes the industry.", "wrong": ["The innovation helps the industry.", "The innovation changes the industry.", "The innovation improves the industry."]},
+        {"german": "Ich kalibriere das Instrument.", "english": "I calibrate the instrument.", "wrong": ["I use the instrument.", "I repair the instrument.", "I test the instrument."]},
+        {"german": "Das Labor ist steril und sauber.", "english": "The laboratory is sterile and clean.", "wrong": ["The laboratory is big and clean.", "The laboratory is new and clean.", "The laboratory is modern and clean."]}
+    ]
+    
+    sentences = grade2_sentences if grade == 2 else grade3_sentences
+    
+    # Shuffle and select random subset to ensure variety
+    import random
+    shuffled_sentences = random.sample(sentences, min(count * 3, len(sentences)))
+    
+    for i in range(min(count, len(shuffled_sentences))):
+        sentence = shuffled_sentences[i]
+        options = [sentence["english"]] + sentence["wrong"]
+        random.shuffle(options)
+        
+        problem = EnglishProblem(
+            question=f"Wie übersetzt man diesen Satz ins Englische?\n\n'{sentence['german']}'",
+            question_type="simple_sentences",
+            options=options,
+            correct_answer=sentence["english"],
+            problem_data={"german_sentence": sentence["german"]}
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_basic_grammar_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate basic English grammar problems"""
+    problems = []
+    
+    grade2_grammar = [
+        {"question": "Wähle die richtige Form: 'I ___ a student.'", "answer": "am", "options": ["am", "is", "are"]},
+        {"question": "Wähle die richtige Form: 'She ___ happy.'", "answer": "is", "options": ["am", "is", "are"]},
+        {"question": "Wähle die richtige Form: 'We ___ friends.'", "answer": "are", "options": ["am", "is", "are"]},
+        {"question": "Wähle die richtige Form: 'The cat ___ sleeping.'", "answer": "is", "options": ["am", "is", "are"]},
+        {"question": "Wähle die richtige Form: 'I ___ a dog.'", "answer": "have", "options": ["have", "has", "had"]},
+        {"question": "Wähle die richtige Form: 'She ___ a book.'", "answer": "has", "options": ["have", "has", "had"]},
+        {"question": "Wähle die richtige Form: 'We ___ two cats.'", "answer": "have", "options": ["have", "has", "had"]},
+        {"question": "Wähle die richtige Form: 'He ___ to school.'", "answer": "goes", "options": ["go", "goes", "going"]},
+        {"question": "Wähle die richtige Form: 'I ___ to school.'", "answer": "go", "options": ["go", "goes", "going"]},
+        {"question": "Wähle die richtige Form: 'They ___ football.'", "answer": "play", "options": ["play", "plays", "playing"]}
+    ]
+    
+    grade3_grammar = [
+        {"question": "Wähle die richtige Zeit: 'Yesterday I ___ to the park.'", "answer": "went", "options": ["go", "went", "will go"]},
+        {"question": "Wähle die richtige Zeit: 'Tomorrow we ___ shopping.'", "answer": "will go", "options": ["go", "went", "will go"]},
+        {"question": "Wähle die richtige Zeit: 'She ___ her homework now.'", "answer": "is doing", "options": ["does", "did", "is doing"]},
+        {"question": "Wähle die richtige Form: 'This book is ___ than that one.'", "answer": "better", "options": ["good", "better", "best"]},
+        {"question": "Wähle die richtige Form: 'She is the ___ student in class.'", "answer": "best", "options": ["good", "better", "best"]},
+        {"question": "Wähle die richtige Form: 'I have ___ books than you.'", "answer": "more", "options": ["much", "more", "most"]},
+        {"question": "Wähle die richtige Form: 'Can you help ___?'", "answer": "me", "options": ["I", "me", "my"]},
+        {"question": "Wähle die richtige Form: '___ book is this?'", "answer": "Whose", "options": ["Who", "Whose", "Which"]},
+        {"question": "Wähle die richtige Form: '___ are you going?'", "answer": "Where", "options": ["What", "Where", "When"]},
+        {"question": "Wähle die richtige Form: 'I don't have ___ money.'", "answer": "any", "options": ["some", "any", "no"]}
+    ]
+    
+    grammar_list = grade2_grammar if grade == 2 else grade3_grammar
+    
+    for i in range(min(count, len(grammar_list))):
+        grammar = random.choice(grammar_list)
+        
+        problem = EnglishProblem(
+            question=grammar["question"],
+            question_type="basic_grammar",
+            options=grammar["options"],
+            correct_answer=grammar["answer"]
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_colors_numbers_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate colors and numbers problems"""
+    problems = []
+    
+    colors_numbers = [
+        {"german": "rot", "english": "red", "wrong": ["blue", "green", "yellow"]},
+        {"german": "blau", "english": "blue", "wrong": ["red", "green", "black"]},
+        {"german": "grün", "english": "green", "wrong": ["red", "blue", "yellow"]},
+        {"german": "gelb", "english": "yellow", "wrong": ["red", "blue", "green"]},
+        {"german": "schwarz", "english": "black", "wrong": ["white", "gray", "brown"]},
+        {"german": "weiß", "english": "white", "wrong": ["black", "gray", "silver"]},
+        {"german": "braun", "english": "brown", "wrong": ["black", "gray", "tan"]},
+        {"german": "rosa", "english": "pink", "wrong": ["red", "purple", "orange"]},
+        {"german": "lila", "english": "purple", "wrong": ["pink", "blue", "violet"]},
+        {"german": "orange", "english": "orange", "wrong": ["red", "yellow", "pink"]},
+        {"german": "eins", "english": "one", "wrong": ["two", "three", "four"]},
+        {"german": "zwei", "english": "two", "wrong": ["one", "three", "four"]},
+        {"german": "drei", "english": "three", "wrong": ["two", "four", "five"]},
+        {"german": "vier", "english": "four", "wrong": ["three", "five", "six"]},
+        {"german": "fünf", "english": "five", "wrong": ["four", "six", "seven"]},
+        {"german": "sechs", "english": "six", "wrong": ["five", "seven", "eight"]},
+        {"german": "sieben", "english": "seven", "wrong": ["six", "eight", "nine"]},
+        {"german": "acht", "english": "eight", "wrong": ["seven", "nine", "ten"]},
+        {"german": "neun", "english": "nine", "wrong": ["eight", "ten", "eleven"]},
+        {"german": "zehn", "english": "ten", "wrong": ["nine", "eleven", "twelve"]}
+    ]
+    
+    for i in range(min(count, len(colors_numbers))):
+        item = random.choice(colors_numbers)
+        options = [item["english"]] + item["wrong"]
+        random.shuffle(options)
+        
+        problem = EnglishProblem(
+            question=f"Was bedeutet '{item['german']}' auf Englisch?",
+            question_type="colors_numbers",
+            options=options,
+            correct_answer=item["english"],
+            problem_data={"german_word": item["german"]}
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_animals_objects_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate animals and objects problems"""
+    problems = []
+    
+    animals_objects = [
+        {"german": "Hund", "english": "dog", "wrong": ["cat", "bird", "fish"]},
+        {"german": "Katze", "english": "cat", "wrong": ["dog", "mouse", "bird"]},
+        {"german": "Vogel", "english": "bird", "wrong": ["fish", "cat", "dog"]},
+        {"german": "Fisch", "english": "fish", "wrong": ["bird", "cat", "mouse"]},
+        {"german": "Pferd", "english": "horse", "wrong": ["cow", "pig", "sheep"]},
+        {"german": "Kuh", "english": "cow", "wrong": ["horse", "pig", "goat"]},
+        {"german": "Schwein", "english": "pig", "wrong": ["cow", "horse", "sheep"]},
+        {"german": "Schaf", "english": "sheep", "wrong": ["goat", "cow", "pig"]},
+        {"german": "Maus", "english": "mouse", "wrong": ["cat", "rat", "hamster"]},
+        {"german": "Hase", "english": "rabbit", "wrong": ["mouse", "cat", "hamster"]},
+        {"german": "Tisch", "english": "table", "wrong": ["chair", "bed", "sofa"]},
+        {"german": "Stuhl", "english": "chair", "wrong": ["table", "bed", "lamp"]},
+        {"german": "Bett", "english": "bed", "wrong": ["chair", "table", "sofa"]},
+        {"german": "Lampe", "english": "lamp", "wrong": ["light", "candle", "torch"]},
+        {"german": "Fenster", "english": "window", "wrong": ["door", "wall", "floor"]},
+        {"german": "Tür", "english": "door", "wrong": ["window", "wall", "gate"]},
+        {"german": "Auto", "english": "car", "wrong": ["bus", "train", "bike"]},
+        {"german": "Bus", "english": "bus", "wrong": ["car", "train", "truck"]},
+        {"german": "Zug", "english": "train", "wrong": ["bus", "car", "plane"]},
+        {"german": "Flugzeug", "english": "airplane", "wrong": ["train", "car", "helicopter"]}
+    ]
+    
+    for i in range(min(count, len(animals_objects))):
+        item = random.choice(animals_objects)
+        options = [item["english"]] + item["wrong"]
+        random.shuffle(options)
+        
+        problem = EnglishProblem(
+            question=f"Was bedeutet '{item['german']}' auf Englisch?",
+            question_type="animals_objects",
+            options=options,
+            correct_answer=item["english"],
+            problem_data={"german_word": item["german"]}
+        )
+        problems.append(problem)
+    
+    return problems
+
+# AI-powered English problem generation functions
+async def generate_ai_vocabulary_de_en_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate German to English vocabulary problems using AI"""
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    
+    system_message = f"""Du bist ein Englisch-Lehrer für deutsche Kinder. Erstelle genau {count} Deutsch-zu-Englisch Vokabel-Aufgaben für Klasse {grade}.
+
+AUFGABENFORMAT:
+- Deutsche Wörter ins Englische übersetzen
+- Multiple Choice mit einer richtigen und 2-3 falschen englischen Antworten
+- Altersgerechte, einfache Vokabeln für Klasse {grade}
+- Fokus auf Grundwortschatz: Tiere, Familie, Farben, Zahlen, Alltag
+
+Gib NUR ein JSON-Array zurück:
+[{{"question": "Was bedeutet 'Hund' auf Englisch?", "options": ["dog", "cat", "bird"], "correct_answer": "dog"}}]"""
+
+    try:
+        chat = LlmChat(
+            api_key=openai_key,
+            session_id=f"english-vocab-de-en-{uuid.uuid4()}",
+            system_message=system_message
+        ).with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(text=f"Generiere {count} Deutsch-zu-Englisch Vokabel-Aufgaben für Klasse {grade}")
+        response = await chat.send_message(user_message)
+        
+        problems_data = json.loads(response.strip())
+        problems = []
+        
+        for problem_data in problems_data[:count]:
+            problem = EnglishProblem(
+                question=problem_data["question"],
+                question_type="vocabulary_de_en",
+                options=problem_data["options"],
+                correct_answer=problem_data["correct_answer"]
+            )
+            problems.append(problem)
+        
+        return problems
+        
+    except Exception as e:
+        logging.error(f"Error generating AI DE->EN vocabulary problems: {e}")
+        return []
+
+async def generate_ai_vocabulary_en_de_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate English to German vocabulary problems using AI"""
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    
+    system_message = f"""Du bist ein Englisch-Lehrer für deutsche Kinder. Erstelle genau {count} Englisch-zu-Deutsch Vokabel-Aufgaben für Klasse {grade}.
+
+AUFGABENFORMAT:
+- Englische Wörter ins Deutsche übersetzen
+- Multiple Choice mit einer richtigen und 2-3 falschen deutschen Antworten
+- Altersgerechte, einfache Vokabeln für Klasse {grade}
+- Fokus auf Grundwortschatz: Tiere, Familie, Farben, Zahlen, Alltag
+
+Gib NUR ein JSON-Array zurück:
+[{{"question": "Was bedeutet 'dog' auf Deutsch?", "options": ["Hund", "Katze", "Vogel"], "correct_answer": "Hund"}}]"""
+
+    try:
+        chat = LlmChat(
+            api_key=openai_key,
+            session_id=f"english-vocab-en-de-{uuid.uuid4()}",
+            system_message=system_message
+        ).with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(text=f"Generiere {count} Englisch-zu-Deutsch Vokabel-Aufgaben für Klasse {grade}")
+        response = await chat.send_message(user_message)
+        
+        problems_data = json.loads(response.strip())
+        problems = []
+        
+        for problem_data in problems_data[:count]:
+            problem = EnglishProblem(
+                question=problem_data["question"],
+                question_type="vocabulary_en_de",
+                options=problem_data["options"],
+                correct_answer=problem_data["correct_answer"]
+            )
+            problems.append(problem)
+        
+        return problems
+        
+    except Exception as e:
+        logging.error(f"Error generating AI EN->DE vocabulary problems: {e}")
+        return []
+
+async def generate_ai_simple_sentence_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
+    """Generate simple sentence translation problems using AI"""
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    
+    system_message = f"""Du bist ein Englisch-Lehrer für deutsche Kinder. Erstelle genau {count} einfache Satz-Übersetzungsaufgaben für Klasse {grade}.
+
+AUFGABENFORMAT:
+- Deutsche Sätze ins Englische übersetzen
+- Multiple Choice mit einer richtigen und 2-3 falschen englischen Übersetzungen
+- Sehr einfache, kurze Sätze für Klasse {grade}
+- Grundlegende Satzstrukturen mit bekanntem Vokabular
+
+Gib NUR ein JSON-Array zurück:
+[{{"question": "Wie übersetzt man 'Ich bin ein Kind.' ins Englische?", "options": ["I am a child.", "I have a child.", "I see a child."], "correct_answer": "I am a child."}}]"""
+
+    try:
+        chat = LlmChat(
+            api_key=openai_key,
+            session_id=f"english-sentences-{uuid.uuid4()}",
+            system_message=system_message
+        ).with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(text=f"Generiere {count} einfache Satz-Übersetzungsaufgaben für Klasse {grade}")
+        response = await chat.send_message(user_message)
+        
+        problems_data = json.loads(response.strip())
+        problems = []
+        
+        for problem_data in problems_data[:count]:
+            problem = EnglishProblem(
+                question=problem_data["question"],
+                question_type="simple_sentences",
+                options=problem_data["options"],
+                correct_answer=problem_data["correct_answer"]
+            )
+            problems.append(problem)
+        
+        return problems
+        
+    except Exception as e:
+        logging.error(f"Error generating AI simple sentence problems: {e}")
+        return []
+
 # Helper functions
 def get_current_week_start():
     today = datetime.now()
