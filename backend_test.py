@@ -2723,6 +2723,12 @@ class BackendTester:
             ("German Problem Generation", self.test_german_problem_generation),
             ("German Integration with Existing System", self.test_german_integration_with_existing_system),
             ("German Challenge Variety Expansion", self.test_german_challenge_variety_expansion),
+            ("English Challenge Creation", self.test_english_challenge_creation),
+            ("English Settings API", self.test_english_settings_api),
+            ("English Statistics API", self.test_english_statistics_api),
+            ("English Challenge Submission", self.test_english_challenge_submission),
+            ("English Problem Generation", self.test_english_problem_generation),
+            ("English Integration with Existing System", self.test_english_integration_with_existing_system),
         ]
         
         passed_tests = 0
