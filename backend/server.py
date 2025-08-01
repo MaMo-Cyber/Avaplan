@@ -593,7 +593,7 @@ async def generate_spelling_problems(count: int, grade: int, settings: GermanSet
     return problems
 
 async def generate_word_type_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
-    """Generate word type identification problems"""
+    """Generate word type identification problems using massively expanded content"""
     problems = []
     
     # Try AI generation first
@@ -606,8 +606,17 @@ async def generate_word_type_problems(count: int, grade: int, settings: GermanSe
     except Exception as e:
         logging.error(f"AI word type generation failed: {e}")
     
-    # Massively expanded fallback templates
-    grade2_examples = [
+    # Import massively expanded content
+    try:
+        if grade == 2:
+            from german_content_complete import GRADE2_WORD_TYPES_COMPLETE
+            examples = GRADE2_WORD_TYPES_COMPLETE
+        else:
+            from german_grade3_content import GRADE3_WORD_TYPES_COMPLETE
+            examples = GRADE3_WORD_TYPES_COMPLETE
+    except ImportError:
+        # Fallback to smaller dataset if imports fail
+        grade2_examples = [
         {"sentence": "Der Hund bellt laut.", "word": "Hund", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
         {"sentence": "Das Auto fährt schnell.", "word": "fährt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
         {"sentence": "Die Blume ist schön.", "word": "schön", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
