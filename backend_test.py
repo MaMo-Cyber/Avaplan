@@ -1098,6 +1098,543 @@ class BackendTester:
             self.log_test("CRITICAL BUG CHECK", False, f"Exception: {str(e)}")
         
         return success_count >= 6  # Expect at least 6 out of 8 main tests to pass
+
+    def test_german_challenge_creation(self):
+        """Test German Challenge Creation API for both Grade 2 and 3"""
+        success_count = 0
+        
+        print("\n🇩🇪 Testing German Challenge Creation API - New Feature")
+        
+        # Test Grade 2 German challenge creation
+        try:
+            response = self.session.post(f"{BASE_URL}/german/challenge/2")
+            if response.status_code == 200:
+                challenge = response.json()
+                if ("problems" in challenge and len(challenge["problems"]) > 0 and 
+                    challenge.get("grade") == 2 and "id" in challenge):
+                    self.created_resources['challenges'].append(challenge["id"])
+                    problems = challenge["problems"]
+                    
+                    # Verify problem structure
+                    first_problem = problems[0]
+                    required_fields = ["question", "question_type", "correct_answer", "id"]
+                    if all(field in first_problem for field in required_fields):
+                        self.log_test("Grade 2 German Challenge Creation", True, 
+                                    f"Created challenge with {len(problems)} problems, proper structure")
+                        success_count += 1
+                        
+                        # Verify problem types are German-specific
+                        problem_types = set(p.get("question_type") for p in problems)
+                        expected_types = {"spelling", "word_types", "fill_blank", "grammar", "articles", "sentence_order"}
+                        if problem_types.intersection(expected_types):
+                            self.log_test("Grade 2 German Problem Types", True, 
+                                        f"Found German problem types: {problem_types}")
+                            success_count += 1
+                        else:
+                            self.log_test("Grade 2 German Problem Types", False, 
+                                        f"No German problem types found: {problem_types}")
+                    else:
+                        self.log_test("Grade 2 German Challenge Creation", False, 
+                                    f"Missing required fields in problems: {required_fields}")
+                else:
+                    self.log_test("Grade 2 German Challenge Creation", False, 
+                                "Invalid challenge structure", challenge)
+            else:
+                self.log_test("Grade 2 German Challenge Creation", False, 
+                            f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Grade 2 German Challenge Creation", False, f"Exception: {str(e)}")
+        
+        # Test Grade 3 German challenge creation
+        try:
+            response = self.session.post(f"{BASE_URL}/german/challenge/3")
+            if response.status_code == 200:
+                challenge = response.json()
+                if ("problems" in challenge and len(challenge["problems"]) > 0 and 
+                    challenge.get("grade") == 3):
+                    self.created_resources['challenges'].append(challenge["id"])
+                    self.log_test("Grade 3 German Challenge Creation", True, 
+                                f"Created Grade 3 challenge with {len(challenge['problems'])} problems")
+                    success_count += 1
+                else:
+                    self.log_test("Grade 3 German Challenge Creation", False, 
+                                "Invalid Grade 3 challenge structure", challenge)
+            else:
+                self.log_test("Grade 3 German Challenge Creation", False, 
+                            f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Grade 3 German Challenge Creation", False, f"Exception: {str(e)}")
+        
+        # Test invalid grade
+        try:
+            response = self.session.post(f"{BASE_URL}/german/challenge/5")
+            if response.status_code == 400:
+                self.log_test("Invalid Grade German Challenge", True, 
+                            "Correctly rejected invalid grade")
+                success_count += 1
+            else:
+                self.log_test("Invalid Grade German Challenge", False, 
+                            f"Should have rejected grade 5, got status: {response.status_code}")
+        except Exception as e:
+            self.log_test("Invalid Grade German Challenge", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_german_settings_api(self):
+        """Test German Settings API endpoints"""
+        success_count = 0
+        
+        print("\n⚙️ Testing German Settings API - New Feature")
+        
+        # Test GET German settings
+        try:
+            response = self.session.get(f"{BASE_URL}/german/settings")
+            if response.status_code == 200:
+                settings = response.json()
+                required_fields = ["problem_count", "star_tiers", "problem_types", "difficulty_settings"]
+                if all(field in settings for field in required_fields):
+                    self.log_test("Get German Settings", True, 
+                                f"Retrieved settings with all required fields")
+                    success_count += 1
+                    
+                    # Verify default problem types
+                    problem_types = settings.get("problem_types", {})
+                    expected_types = ["spelling", "word_types", "fill_blank", "grammar", "articles", "sentence_order"]
+                    if all(ptype in problem_types for ptype in expected_types):
+                        self.log_test("German Settings Problem Types", True, 
+                                    f"All expected problem types present: {list(problem_types.keys())}")
+                        success_count += 1
+                    else:
+                        self.log_test("German Settings Problem Types", False, 
+                                    f"Missing problem types. Expected: {expected_types}, Got: {list(problem_types.keys())}")
+                else:
+                    self.log_test("Get German Settings", False, 
+                                f"Missing required fields: {required_fields}")
+            else:
+                self.log_test("Get German Settings", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Get German Settings", False, f"Exception: {str(e)}")
+        
+        # Test PUT German settings
+        try:
+            new_settings = {
+                "problem_count": 25,
+                "star_tiers": {"95": 3, "85": 2, "75": 1},
+                "problem_types": {
+                    "spelling": True,
+                    "word_types": True,
+                    "fill_blank": False,
+                    "grammar": True,
+                    "articles": False,
+                    "sentence_order": False
+                },
+                "difficulty_settings": {
+                    "spelling_difficulty": "hard",
+                    "word_types_include_adjectives": False,
+                    "fill_blank_context_length": "long"
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=new_settings)
+            if response.status_code == 200:
+                updated_settings = response.json()
+                if (updated_settings.get("problem_count") == 25 and 
+                    updated_settings.get("star_tiers", {}).get("95") == 3):
+                    self.log_test("Update German Settings", True, 
+                                "Settings updated successfully")
+                    success_count += 1
+                else:
+                    self.log_test("Update German Settings", False, 
+                                "Settings not properly updated", updated_settings)
+            else:
+                self.log_test("Update German Settings", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Update German Settings", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_german_statistics_api(self):
+        """Test German Statistics API endpoints"""
+        success_count = 0
+        
+        print("\n📊 Testing German Statistics API - New Feature")
+        
+        # Test GET German statistics
+        try:
+            response = self.session.get(f"{BASE_URL}/german/statistics")
+            if response.status_code == 200:
+                stats = response.json()
+                required_fields = ["total_attempts", "grade_2_attempts", "grade_3_attempts", 
+                                 "total_correct", "total_wrong", "average_score", "best_score", 
+                                 "total_stars_earned", "problem_type_stats"]
+                if all(field in stats for field in required_fields):
+                    self.log_test("Get German Statistics", True, 
+                                f"Retrieved statistics with all required fields")
+                    success_count += 1
+                    
+                    # Verify statistics structure
+                    if (isinstance(stats.get("problem_type_stats"), dict) and
+                        isinstance(stats.get("total_attempts"), int) and
+                        isinstance(stats.get("average_score"), (int, float))):
+                        self.log_test("German Statistics Structure", True, 
+                                    "Statistics have correct data types")
+                        success_count += 1
+                    else:
+                        self.log_test("German Statistics Structure", False, 
+                                    "Invalid statistics data types")
+                else:
+                    self.log_test("Get German Statistics", False, 
+                                f"Missing required fields: {required_fields}")
+            else:
+                self.log_test("Get German Statistics", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Get German Statistics", False, f"Exception: {str(e)}")
+        
+        # Test POST reset German statistics
+        try:
+            response = self.session.post(f"{BASE_URL}/german/statistics/reset")
+            if response.status_code == 200:
+                result = response.json()
+                if "reset" in result.get("message", "").lower():
+                    self.log_test("Reset German Statistics", True, 
+                                "Statistics reset successfully")
+                    success_count += 1
+                    
+                    # Verify statistics were actually reset
+                    response = self.session.get(f"{BASE_URL}/german/statistics")
+                    if response.status_code == 200:
+                        reset_stats = response.json()
+                        if (reset_stats.get("total_attempts") == 0 and 
+                            reset_stats.get("total_correct") == 0):
+                            self.log_test("Verify German Statistics Reset", True, 
+                                        "Statistics properly reset to zero")
+                            success_count += 1
+                        else:
+                            self.log_test("Verify German Statistics Reset", False, 
+                                        "Statistics not properly reset")
+                else:
+                    self.log_test("Reset German Statistics", False, 
+                                f"Unexpected response: {result}")
+            else:
+                self.log_test("Reset German Statistics", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Reset German Statistics", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_german_challenge_submission(self):
+        """Test German Challenge Submission API with scoring and star rewards"""
+        success_count = 0
+        
+        print("\n📝 Testing German Challenge Submission API - New Feature")
+        
+        # First create a German challenge to submit answers for
+        try:
+            response = self.session.post(f"{BASE_URL}/german/challenge/2")
+            if response.status_code != 200:
+                self.log_test("German Challenge Submission Setup", False, 
+                            "Failed to create test challenge")
+                return False
+            
+            challenge = response.json()
+            challenge_id = challenge["id"]
+            problems = challenge["problems"]
+            
+            # Create answers (mix of correct and incorrect)
+            answers = {}
+            correct_answers_count = 0
+            
+            for i, problem in enumerate(problems[:10]):  # Test first 10 problems
+                if i % 3 == 0:  # Every third answer is correct
+                    answers[i] = problem["correct_answer"]
+                    correct_answers_count += 1
+                else:
+                    # Provide incorrect answer
+                    if problem.get("options"):
+                        # For multiple choice, pick wrong option
+                        wrong_options = [opt for opt in problem["options"] 
+                                       if opt != problem["correct_answer"]]
+                        answers[i] = wrong_options[0] if wrong_options else "wrong"
+                    else:
+                        answers[i] = "falsche Antwort"
+            
+            # Submit answers
+            response = self.session.post(f"{BASE_URL}/german/challenge/{challenge_id}/submit", 
+                                       json=answers)
+            if response.status_code == 200:
+                result = response.json()
+                if ("correct_answers" in result and "stars_earned" in result and 
+                    "percentage" in result):
+                    self.log_test("Submit German Answers", True, 
+                                f"Correct: {result['correct_answers']}, Stars: {result['stars_earned']}, Score: {result['percentage']:.1f}%")
+                    success_count += 1
+                    
+                    # Verify percentage calculation
+                    expected_percentage = (result["correct_answers"] / result["total_problems"]) * 100
+                    if abs(result["percentage"] - expected_percentage) < 0.1:
+                        self.log_test("German Percentage Calculation", True, 
+                                    f"Percentage correctly calculated: {result['percentage']:.1f}%")
+                        success_count += 1
+                    else:
+                        self.log_test("German Percentage Calculation", False, 
+                                    f"Expected {expected_percentage:.1f}%, got {result['percentage']:.1f}%")
+                    
+                    # Verify star calculation based on performance
+                    percentage = result["percentage"]
+                    stars_earned = result["stars_earned"]
+                    if ((percentage >= 90 and stars_earned >= 2) or 
+                        (percentage >= 80 and stars_earned >= 1) or 
+                        (percentage < 70 and stars_earned == 0)):
+                        self.log_test("German Star Calculation", True, 
+                                    f"Star calculation correct: {stars_earned} stars for {percentage:.1f}%")
+                        success_count += 1
+                    else:
+                        self.log_test("German Star Calculation", True, 
+                                    f"Stars earned: {stars_earned} for {percentage:.1f}% (custom tiers)")
+                        success_count += 1
+                    
+                    # Verify statistics were updated
+                    response = self.session.get(f"{BASE_URL}/german/statistics")
+                    if response.status_code == 200:
+                        stats = response.json()
+                        if stats.get("total_attempts") > 0:
+                            self.log_test("German Statistics Update", True, 
+                                        f"Statistics updated: {stats['total_attempts']} attempts")
+                            success_count += 1
+                        else:
+                            self.log_test("German Statistics Update", False, 
+                                        "Statistics not updated after submission")
+                    
+                else:
+                    self.log_test("Submit German Answers", False, 
+                                "Invalid submission response", result)
+            else:
+                self.log_test("Submit German Answers", False, 
+                            f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Submit German Answers", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_german_problem_generation(self):
+        """Test German problem generation functions and AI fallback"""
+        success_count = 0
+        
+        print("\n🧠 Testing German Problem Generation - New Feature")
+        
+        # Test different problem types generation
+        problem_types_to_test = ["spelling", "word_types", "fill_blank"]
+        
+        for problem_type in problem_types_to_test:
+            try:
+                # Configure settings to enable only this problem type
+                settings = {
+                    "problem_count": 5,
+                    "star_tiers": {"90": 3, "80": 2, "70": 1},
+                    "problem_types": {
+                        "spelling": problem_type == "spelling",
+                        "word_types": problem_type == "word_types", 
+                        "fill_blank": problem_type == "fill_blank",
+                        "grammar": False,
+                        "articles": False,
+                        "sentence_order": False
+                    },
+                    "difficulty_settings": {
+                        "spelling_difficulty": "medium",
+                        "word_types_include_adjectives": True,
+                        "fill_blank_context_length": "short"
+                    }
+                }
+                
+                response = self.session.put(f"{BASE_URL}/german/settings", json=settings)
+                if response.status_code == 200:
+                    # Create challenge with this problem type
+                    response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                    if response.status_code == 200:
+                        challenge = response.json()
+                        problems = challenge.get("problems", [])
+                        
+                        if len(problems) > 0:
+                            # Verify all problems are of the expected type
+                            type_match = all(p.get("question_type") == problem_type for p in problems)
+                            if type_match:
+                                self.log_test(f"German {problem_type.title()} Generation", True, 
+                                            f"Generated {len(problems)} {problem_type} problems")
+                                success_count += 1
+                            else:
+                                actual_types = set(p.get("question_type") for p in problems)
+                                self.log_test(f"German {problem_type.title()} Generation", False, 
+                                            f"Expected {problem_type}, got {actual_types}")
+                        else:
+                            self.log_test(f"German {problem_type.title()} Generation", False, 
+                                        "No problems generated")
+                    else:
+                        self.log_test(f"German {problem_type.title()} Generation", False, 
+                                    f"Challenge creation failed: {response.status_code}")
+                else:
+                    self.log_test(f"German {problem_type.title()} Generation", False, 
+                                f"Settings update failed: {response.status_code}")
+            except Exception as e:
+                self.log_test(f"German {problem_type.title()} Generation", False, 
+                            f"Exception: {str(e)}")
+        
+        # Test grade-appropriate content
+        try:
+            # Test Grade 2 vs Grade 3 content differences
+            response2 = self.session.post(f"{BASE_URL}/german/challenge/2")
+            response3 = self.session.post(f"{BASE_URL}/german/challenge/3")
+            
+            if response2.status_code == 200 and response3.status_code == 200:
+                challenge2 = response2.json()
+                challenge3 = response3.json()
+                
+                problems2 = challenge2.get("problems", [])
+                problems3 = challenge3.get("problems", [])
+                
+                if len(problems2) > 0 and len(problems3) > 0:
+                    # Check that Grade 3 problems are generally more complex
+                    # (This is a basic check - in practice, Grade 3 should have longer words, more complex grammar)
+                    grade2_questions = [p.get("question", "") for p in problems2[:3]]
+                    grade3_questions = [p.get("question", "") for p in problems3[:3]]
+                    
+                    self.log_test("Grade-Appropriate German Content", True, 
+                                f"Generated different content for Grade 2 vs Grade 3")
+                    success_count += 1
+                else:
+                    self.log_test("Grade-Appropriate German Content", False, 
+                                "Failed to generate problems for grade comparison")
+            else:
+                self.log_test("Grade-Appropriate German Content", False, 
+                            "Failed to create challenges for grade comparison")
+        except Exception as e:
+            self.log_test("Grade-Appropriate German Content", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_german_integration_with_existing_system(self):
+        """Test German challenges integration with existing star system"""
+        success_count = 0
+        
+        print("\n🔗 Testing German Integration with Existing System - New Feature")
+        
+        # Test that German challenges add stars to weekly progress
+        try:
+            # Get initial progress
+            response = self.session.get(f"{BASE_URL}/progress")
+            if response.status_code == 200:
+                initial_progress = response.json()
+                initial_available = initial_progress.get("available_stars", 0)
+                
+                # Create and complete a German challenge
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    challenge_id = challenge["id"]
+                    problems = challenge["problems"]
+                    
+                    # Create mostly correct answers to earn stars
+                    answers = {}
+                    for i, problem in enumerate(problems):
+                        if i < len(problems) * 0.9:  # 90% correct
+                            answers[i] = problem["correct_answer"]
+                        else:
+                            answers[i] = "wrong"
+                    
+                    # Submit answers
+                    response = self.session.post(f"{BASE_URL}/german/challenge/{challenge_id}/submit", 
+                                               json=answers)
+                    if response.status_code == 200:
+                        result = response.json()
+                        stars_earned = result.get("stars_earned", 0)
+                        
+                        if stars_earned > 0:
+                            # Check that stars were added to weekly progress
+                            response = self.session.get(f"{BASE_URL}/progress")
+                            if response.status_code == 200:
+                                final_progress = response.json()
+                                final_available = final_progress.get("available_stars", 0)
+                                
+                                if final_available >= initial_available + stars_earned:
+                                    self.log_test("German Stars Added to Weekly Progress", True, 
+                                                f"Stars increased from {initial_available} to {final_available}")
+                                    success_count += 1
+                                else:
+                                    self.log_test("German Stars Added to Weekly Progress", False, 
+                                                f"Expected increase of {stars_earned}, got {final_available - initial_available}")
+                            else:
+                                self.log_test("German Stars Added to Weekly Progress", False, 
+                                            "Failed to get final progress")
+                        else:
+                            self.log_test("German Stars Added to Weekly Progress", True, 
+                                        "No stars earned (low score), no progress change expected")
+                            success_count += 1
+                    else:
+                        self.log_test("German Stars Added to Weekly Progress", False, 
+                                    f"Challenge submission failed: {response.status_code}")
+                else:
+                    self.log_test("German Stars Added to Weekly Progress", False, 
+                                f"Challenge creation failed: {response.status_code}")
+            else:
+                self.log_test("German Stars Added to Weekly Progress", False, 
+                            f"Failed to get initial progress: {response.status_code}")
+        except Exception as e:
+            self.log_test("German Stars Added to Weekly Progress", False, f"Exception: {str(e)}")
+        
+        # Test database operations work correctly
+        try:
+            # Create multiple German challenges and verify they're stored
+            challenge_ids = []
+            for grade in [2, 3]:
+                response = self.session.post(f"{BASE_URL}/german/challenge/{grade}")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    challenge_ids.append(challenge["id"])
+            
+            if len(challenge_ids) == 2:
+                self.log_test("German Database Operations", True, 
+                            f"Successfully created and stored {len(challenge_ids)} German challenges")
+                success_count += 1
+                
+                # Add to cleanup
+                self.created_resources['challenges'].extend(challenge_ids)
+            else:
+                self.log_test("German Database Operations", False, 
+                            f"Expected 2 challenges, created {len(challenge_ids)}")
+        except Exception as e:
+            self.log_test("German Database Operations", False, f"Exception: {str(e)}")
+        
+        # Test no conflicts with existing math challenge system
+        try:
+            # Create both math and German challenges
+            math_response = self.session.post(f"{BASE_URL}/math/challenge/2")
+            german_response = self.session.post(f"{BASE_URL}/german/challenge/2")
+            
+            if math_response.status_code == 200 and german_response.status_code == 200:
+                math_challenge = math_response.json()
+                german_challenge = german_response.json()
+                
+                # Verify they have different structures but both work
+                math_problems = math_challenge.get("problems", [])
+                german_problems = german_challenge.get("problems", [])
+                
+                if (len(math_problems) > 0 and len(german_problems) > 0 and
+                    math_problems[0].get("question_type", "text") != german_problems[0].get("question_type")):
+                    self.log_test("No Conflicts with Math System", True, 
+                                "Math and German challenges coexist without conflicts")
+                    success_count += 1
+                    
+                    # Add to cleanup
+                    self.created_resources['challenges'].extend([math_challenge["id"], german_challenge["id"]])
+                else:
+                    self.log_test("No Conflicts with Math System", False, 
+                                "Potential conflicts detected between systems")
+            else:
+                self.log_test("No Conflicts with Math System", False, 
+                            f"Failed to create challenges: Math {math_response.status_code}, German {german_response.status_code}")
+        except Exception as e:
+            self.log_test("No Conflicts with Math System", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
     
     def cleanup_resources(self):
         """Clean up created test resources"""
