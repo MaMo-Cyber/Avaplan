@@ -706,6 +706,287 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
   );
 };
 
+// Enhanced German Challenge Component
+const GermanChallenge = ({ onClose, onComplete }) => {
+  const [grade, setGrade] = useState(null);
+  const [challenge, setChallenge] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [result, setResult] = useState(null);
+  const [showResults, setShowResults] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const startChallenge = async (selectedGrade) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API}/german/challenge/${selectedGrade}`);
+      setChallenge(response.data);
+      setGrade(selectedGrade);
+      setAnswers({});
+    } catch (error) {
+      console.error('Fehler beim Erstellen der Deutsch-Herausforderung:', error);
+      alert('Fehler beim Erstellen der Deutsch-Herausforderung. Bitte versuche es erneut.');
+    }
+    setLoading(false);
+  };
+
+  const submitAnswers = async () => {
+    if (!challenge) return;
+    
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API}/german/challenge/${challenge.id}/submit`, answers);
+      setResult(response.data);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Fehler beim Einreichen der Antworten:', error);
+      alert('Fehler beim Einreichen der Antworten. Bitte versuche es erneut.');
+    }
+    setLoading(false);
+  };
+
+  const allAnswersProvided = challenge && Object.keys(answers).length === challenge.problems.length &&
+    challenge.problems.every((_, index) => answers[index] !== undefined && answers[index] !== '');
+
+  // Results Detail Page
+  if (showResults && result) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+        <div className="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+          <div className="text-center mb-6">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-blue-800 mb-4">Fantastische Deutsch-Arbeit!</h2>
+            <div className="space-y-2 mb-6">
+              <p>Richtige Antworten: {result.correct_answers}/{result.total_problems}</p>
+              <p>Score: {result.percentage.toFixed(1)}%</p>
+              <p className="text-lg font-semibold text-yellow-600">
+                Verdiente Sterne: {result.stars_earned} ⭐
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-blue-800 mb-4">Überprüfe deine Antworten:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {result.challenge.problems.map((problem, index) => (
+                <div key={index} className={`p-4 rounded-lg border-2 ${
+                  problem.is_correct 
+                    ? 'bg-green-50 border-green-300' 
+                    : 'bg-red-50 border-red-300'
+                }`}>
+                  <div className="flex items-center mb-2">
+                    <span className="text-lg mr-2">
+                      {problem.is_correct ? '✅' : '❌'}
+                    </span>
+                    <span className="font-medium">Aufgabe {index + 1}</span>
+                  </div>
+                  
+                  <p className="mb-2 font-medium whitespace-pre-line">{problem.question}</p>
+                  
+                  {/* Show options for multiple choice */}
+                  {problem.options && (
+                    <div className="mb-2 text-sm">
+                      <p className="font-medium">Optionen:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {problem.options.map((option, optIndex) => (
+                          <span 
+                            key={optIndex}
+                            className={`px-2 py-1 rounded text-xs ${
+                              option === problem.correct_answer 
+                                ? 'bg-green-100 text-green-800' 
+                                : option === problem.user_answer 
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {option}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Deine Antwort:</span> {problem.user_answer}</p>
+                    {!problem.is_correct && (
+                      <p className="text-green-600">
+                        <span className="font-medium">Richtige Antwort:</span> {problem.correct_answer}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <button 
+              onClick={() => {
+                onComplete();
+                onClose();
+              }}
+              className="bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-600 transition-colors text-lg"
+            >
+              Super! Weiter
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Summary Results Page (kept for quick view)
+  if (result && !showResults) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-blue-800 mb-4">Fantastische Deutsch-Arbeit!</h2>
+            <div className="space-y-2 mb-6">
+              <p>Richtige Antworten: {result.correct_answers}/{result.total_problems}</p>
+              <p>Score: {result.percentage.toFixed(1)}%</p>
+              <p className="text-lg font-semibold text-yellow-600">
+                Verdiente Sterne: {result.stars_earned} ⭐
+              </p>
+            </div>
+            <div className="flex space-x-4">
+              <button 
+                onClick={() => setShowResults(true)}
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Antworten Überprüfen
+              </button>
+              <button 
+                onClick={() => {
+                  onComplete();
+                  onClose();
+                }}
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Weiter
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (challenge) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+        <div className="bg-white rounded-xl p-8 max-w-3xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-blue-800">Deutsch Klasse {grade} Herausforderung</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
+          </div>
+          
+          <div className="mb-4 text-sm text-gray-600">
+            Fülle ALLE Antworten aus, um die Einreichung zu aktivieren. Antworten ausgefüllt: {Object.keys(answers).length}/{challenge.problems.length}
+            <br />
+            <span className="text-blue-600 font-medium">Insgesamt {challenge.problems.length} Aufgaben</span>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 mb-6">
+            {challenge.problems.map((problem, index) => (
+              <div key={index} className={`p-4 border-2 rounded-lg transition-colors ${
+                answers[index] !== undefined && answers[index] !== '' 
+                  ? 'border-green-300 bg-green-50' 
+                  : 'border-blue-200 bg-white'
+              }`}>
+                <p className="mb-3 font-medium whitespace-pre-line">{index + 1}. {problem.question}</p>
+                
+                {/* Multiple Choice Questions */}
+                {problem.options && problem.options.length > 0 && (
+                  <div className="space-y-2">
+                    {problem.options.map((option, optIndex) => (
+                      <label key={optIndex} className="flex items-center space-x-3 cursor-pointer hover:bg-blue-50 p-2 rounded">
+                        <input
+                          type="radio"
+                          name={`question-${index}`}
+                          value={option}
+                          checked={answers[index] === option}
+                          onChange={(e) => {
+                            setAnswers({...answers, [index]: e.target.value});
+                          }}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Text Input Questions */}
+                {(!problem.options || problem.options.length === 0) && (
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                    placeholder="Deine Antwort"
+                    value={answers[index] || ''}
+                    onChange={(e) => {
+                      setAnswers({...answers, [index]: e.target.value});
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex justify-end space-x-4">
+            <button 
+              onClick={onClose}
+              className="px-6 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              Abbrechen
+            </button>
+            <button 
+              onClick={submitAnswers}
+              disabled={loading || !allAnswersProvided}
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Einreichen...' : `Alle Antworten Einreichen (${Object.keys(answers).length}/${challenge.problems.length})`}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-blue-800 mb-6">Verdiene Extra-Sterne mit Deutsch!</h2>
+          <p className="text-gray-600 mb-6">Wähle deine Deutsch-Klassenstufe:</p>
+          <div className="space-y-4">
+            <button 
+              onClick={() => startChallenge(2)}
+              disabled={loading}
+              className="w-full p-4 bg-gradient-to-r from-blue-400 to-cyan-400 text-white rounded-xl hover:from-blue-500 hover:to-cyan-500 transition-all disabled:opacity-50"
+            >
+              📖 Deutsch Klasse 2
+            </button>
+            <button 
+              onClick={() => startChallenge(3)}
+              disabled={loading}
+              className="w-full p-4 bg-gradient-to-r from-indigo-400 to-blue-400 text-white rounded-xl hover:from-indigo-500 hover:to-blue-500 transition-all disabled:opacity-50"
+            >
+              📚 Deutsch Klasse 3
+            </button>
+          </div>
+          <button 
+            onClick={onClose}
+            className="mt-4 text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            Vielleicht Später
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Enhanced Math Challenge Component
 const MathChallenge = ({ onClose, onComplete }) => {
   const [grade, setGrade] = useState(null);
