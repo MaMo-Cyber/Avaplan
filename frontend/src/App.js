@@ -2717,7 +2717,7 @@ function App() {
           starsInSafe={progress.stars_in_safe}
           onOpenSafe={() => setShowSafe(true)}
           onAddToSafe={addStarsToSafe}
-          onResetWeek={resetWeek}
+          onOpenAdminSettings={() => setShowAdminSettings(true)}
         />
 
         {/* Task Management */}
