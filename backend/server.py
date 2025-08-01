@@ -291,6 +291,26 @@ async def generate_spelling_problems(count: int, grade: int, settings: GermanSet
         else:
             from german_grade3_content import GRADE3_SPELLING_COMPLETE
             word_list = GRADE3_SPELLING_COMPLETE
+        
+        # Shuffle and select random subset to ensure variety
+        import random
+        shuffled_words = random.sample(word_list, min(count * 3, len(word_list)))
+        
+        for i in range(min(count, len(shuffled_words))):
+            word_data = shuffled_words[i]
+            options = [word_data["correct"]] + word_data["wrong"]
+            random.shuffle(options)
+            
+            problem = GermanProblem(
+                question=f"Welches Wort ist richtig geschrieben?",
+                question_type="spelling",
+                options=options,
+                correct_answer=word_data["correct"]
+            )
+            problems.append(problem)
+        
+        return problems
+        
     except ImportError:
         # Fallback to original smaller list if imports fail
         grade2_words = [
