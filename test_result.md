@@ -258,6 +258,18 @@ backend:
         agent: "testing"
         comment: "✅ ENGLISH INTEGRATION WORKING SEAMLESSLY! Comprehensive testing verified: 1) English challenges successfully add earned stars to weekly progress, 2) Stars integrated with existing reward system, 3) Database operations working correctly for English challenges, 4) No conflicts with existing math and German challenge systems, 5) All three challenge systems (math, German, English) can coexist and function independently, 6) Complete workflow functional (English Challenge → Stars → Weekly Progress → Rewards), 7) Statistics tracking separate from math and German statistics. The English challenge system is fully integrated with the existing Weekly Star Tracker infrastructure."
 
+  - task: "Reset-Safe API (New Feature)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎉 RESET-SAFE API TESTING COMPLETED SUCCESSFULLY! Comprehensive testing of the new reset system with precise control over reset behavior confirmed all requested functionality working perfectly: ✅ NEW RESET-SAFE API: POST /api/progress/reset-safe only resets safe stars (8→0), keeps task stars (5→5) and available stars (3→3) unchanged as requested. ✅ EXISTING RESET APIs: POST /api/progress/reset resets task/available stars but preserves safe stars, POST /api/progress/reset-all-stars resets everything to 0. ✅ DETAILED TEST SCENARIO: Successfully tested with task stars (5), available stars (3), safe stars (8) - Reset-Safe only empties safe (0), Reset clears task+available but keeps safe, Reset-All clears everything. ✅ ERROR HANDLING: Properly handles non-existent progress documents gracefully. ✅ RESPONSE MESSAGES: All three reset APIs return clear, descriptive German messages explaining what was reset and what was preserved. The new Reset-Safe functionality provides the precise control over reset behavior as requested by the user, allowing selective reset of only safe stars while preserving all other star data."
+
 backend:
   - task: "API Health Check"
     implemented: true
