@@ -634,6 +634,25 @@ async def generate_word_type_problems(count: int, grade: int, settings: GermanSe
         else:
             from german_grade3_content import GRADE3_WORD_TYPES_COMPLETE
             examples = GRADE3_WORD_TYPES_COMPLETE
+        
+        # Shuffle and select random subset to ensure variety
+        import random
+        shuffled_examples = random.sample(examples, min(count * 3, len(examples)))
+        
+        for i in range(min(count, len(shuffled_examples))):
+            example = shuffled_examples[i]
+            
+            problem = GermanProblem(
+                question=f'Welche Wortart ist das unterstrichene Wort?\n\nSatz: "{example["sentence"]}"\nWort: "{example["word"]}"',
+                question_type="word_types",
+                options=example["options"],
+                correct_answer=example["type"],
+                problem_data={"sentence": example["sentence"], "target_word": example["word"]}
+            )
+            problems.append(problem)
+        
+        return problems
+        
     except ImportError:
         # Fallback to smaller dataset if imports fail
         grade2_examples = [
