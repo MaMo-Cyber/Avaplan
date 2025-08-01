@@ -2015,6 +2015,12 @@ function App() {
               >
                 ⚙️ Mathe-Einstellungen
               </button>
+              <button 
+                onClick={() => setShowGermanSettings(true)}
+                className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
+              >
+                📚 Deutsch-Einstellungen
+              </button>
             </div>
           </div>
           
