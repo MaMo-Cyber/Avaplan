@@ -2398,6 +2398,7 @@ function App() {
   const [showMathSettings, setShowMathSettings] = useState(false);
   const [showGermanSettings, setShowGermanSettings] = useState(false);
   const [showEnglishSettings, setShowEnglishSettings] = useState(false);
+  const [showAdminSettings, setShowAdminSettings] = useState(false);
   const [rewardClaimError, setRewardClaimError] = useState(null);
   const [loading, setLoading] = useState(true);
 
