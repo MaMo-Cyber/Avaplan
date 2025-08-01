@@ -2985,6 +2985,7 @@ class BackendTester:
             ("Mixed Problem Types Distribution", self.test_mixed_problem_types),
             ("Word Problem Error Handling", self.test_word_problem_error_handling),
             ("Stars System Fixes (Sternen-System-Fixes)", self.test_stars_system_fixes),
+            ("Reset-Safe API (New Feature)", self.test_reset_safe_api),
             ("German Challenge Creation", self.test_german_challenge_creation),
             ("German Settings API", self.test_german_settings_api),
             ("German Statistics API", self.test_german_statistics_api),
