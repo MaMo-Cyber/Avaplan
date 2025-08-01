@@ -121,6 +121,57 @@ class MathStatistics(BaseModel):
     total_stars_earned: int = Field(default=0)
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
+# German Challenge Models
+class GermanProblem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    question: str
+    question_type: str  # "spelling", "word_types", "fill_blank", "grammar"
+    problem_data: Optional[Dict] = None  # Additional data for complex problems
+    options: Optional[List[str]] = None  # For multiple choice questions
+    correct_answer: str
+    user_answer: Optional[str] = None
+    is_correct: Optional[bool] = None
+
+class GermanChallenge(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    grade: int  # 2 or 3
+    problems: List[GermanProblem]
+    completed: bool = Field(default=False)
+    score: int = Field(default=0)
+    stars_earned: int = Field(default=0)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class GermanSettings(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    problem_count: int = Field(default=20)  # Default number of German problems
+    star_tiers: Dict[str, int] = Field(default={"90": 3, "80": 2, "70": 1})
+    problem_types: Dict[str, bool] = Field(default={
+        "spelling": True,
+        "word_types": True,
+        "fill_blank": True,
+        "grammar": False,
+        "articles": False,
+        "sentence_order": False
+    })
+    difficulty_settings: Dict[str, Any] = Field(default={
+        "spelling_difficulty": "medium",  # easy, medium, hard
+        "word_types_include_adjectives": True,
+        "fill_blank_context_length": "short"  # short, medium, long
+    })
+
+class GermanStatistics(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    total_attempts: int = Field(default=0)
+    grade_2_attempts: int = Field(default=0)
+    grade_3_attempts: int = Field(default=0)
+    total_correct: int = Field(default=0)
+    total_wrong: int = Field(default=0)
+    average_score: float = Field(default=0.0)
+    best_score: float = Field(default=0.0)
+    total_stars_earned: int = Field(default=0)
+    problem_type_stats: Dict[str, Dict] = Field(default={})  # Stats per problem type
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+
 # Helper functions
 def get_current_week_start():
     today = datetime.now()
