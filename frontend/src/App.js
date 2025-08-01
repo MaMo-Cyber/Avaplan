@@ -2931,6 +2931,27 @@ function App() {
             availableStars={rewardClaimError.availableStars}
           />
         )}
+
+        {showAdminSettings && (
+          <AdminSettingsModal
+            isOpen={showAdminSettings}
+            onClose={() => setShowAdminSettings(false)}
+            onResetWeek={resetWeek}
+            onResetSafe={resetSafe}
+            onResetAllStars={resetAllStars}
+            onDeleteAllRewards={deleteAllRewards}
+            onManageTasks={() => {
+              setShowAdminSettings(false);
+              // Optional: Scroll zu Task-Management Sektion
+              document.querySelector('.task-management')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            onManageRewards={() => {
+              setShowAdminSettings(false);
+              // Optional: Scroll zu Rewards Sektion
+              document.querySelector('.rewards-section')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+        )}
       </div>
     </div>
   );
