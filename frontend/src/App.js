@@ -2152,6 +2152,13 @@ function App() {
             onComplete={loadData}
           />
         )}
+
+        {showGermanChallenge && (
+          <GermanChallenge 
+            onClose={() => setShowGermanChallenge(false)}
+            onComplete={loadData}
+          />
+        )}
         
         {showSafe && (
           <SafeModal
@@ -2166,6 +2173,14 @@ function App() {
           <MathSettingsModal
             isOpen={showMathSettings}
             onClose={() => setShowMathSettings(false)}
+            onComplete={loadData}
+          />
+        )}
+
+        {showGermanSettings && (
+          <GermanSettingsModal
+            isOpen={showGermanSettings}
+            onClose={() => setShowGermanSettings(false)}
             onComplete={loadData}
           />
         )}
