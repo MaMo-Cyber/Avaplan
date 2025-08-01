@@ -2724,26 +2724,6 @@ function App() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-purple-800">Meine Aufgaben</h2>
-            <div className="flex space-x-2">
-              <button 
-                onClick={() => setShowMathSettings(true)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                ⚙️ Mathe-Einstellungen
-              </button>
-              <button 
-                onClick={() => setShowGermanSettings(true)}
-                className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
-              >
-                📚 Deutsch-Einstellungen
-              </button>
-              <button 
-                onClick={() => setShowEnglishSettings(true)}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-              >
-                🇬🇧 Englisch-Einstellungen
-              </button>
-            </div>
           </div>
           
           <div className="grid grid-cols-8 gap-4 p-4 bg-purple-100 rounded-xl font-semibold text-purple-800 mb-4">
