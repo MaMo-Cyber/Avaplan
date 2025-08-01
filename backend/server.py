@@ -172,6 +172,433 @@ class GermanStatistics(BaseModel):
     problem_type_stats: Dict[str, Dict] = Field(default={})  # Stats per problem type
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
+async def generate_german_problems(grade: int, count: int = None) -> List[GermanProblem]:
+    """Generate AI-powered German language problems"""
+    
+    # Get German settings
+    settings_doc = await db.german_settings.find_one()
+    if not settings_doc:
+        settings = GermanSettings()
+        await db.german_settings.insert_one(settings.dict())
+    else:
+        settings = GermanSettings(**settings_doc)
+    
+    # Use configured problem count if not specified
+    if count is None:
+        count = settings.problem_count
+    
+    # Generate mix of problems based on enabled types
+    problems = []
+    enabled_types = [k for k, v in settings.problem_types.items() if v]
+    
+    if not enabled_types:
+        enabled_types = ["spelling", "word_types", "fill_blank"]  # fallback
+    
+    problems_per_type = count // len(enabled_types)
+    remaining = count % len(enabled_types)
+    
+    for problem_type in enabled_types:
+        type_count = problems_per_type + (1 if remaining > 0 else 0)
+        remaining -= 1
+        
+        if problem_type == "spelling":
+            problems.extend(await generate_spelling_problems(type_count, grade, settings))
+        elif problem_type == "word_types":
+            problems.extend(await generate_word_type_problems(type_count, grade, settings))
+        elif problem_type == "fill_blank":
+            problems.extend(await generate_fill_blank_problems(type_count, grade, settings))
+        elif problem_type == "grammar":
+            problems.extend(await generate_grammar_problems(type_count, grade, settings))
+        elif problem_type == "articles":
+            problems.extend(await generate_article_problems(type_count, grade, settings))
+        elif problem_type == "sentence_order":
+            problems.extend(await generate_sentence_order_problems(type_count, grade, settings))
+    
+    # Shuffle the problems
+    random.shuffle(problems)
+    return problems[:count]
+
+async def generate_spelling_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate German spelling problems using AI with fallback templates"""
+    problems = []
+    
+    # Try AI generation first
+    try:
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        if openai_key:
+            ai_problems = await generate_ai_spelling_problems(count, grade, settings)
+            if ai_problems:
+                return ai_problems
+    except Exception as e:
+        logging.error(f"AI spelling generation failed: {e}")
+    
+    # Fallback to predefined spelling problems
+    grade2_words = [
+        {"correct": "Hund", "wrong": ["Hunt", "Hundt", "Huhnd"]},
+        {"correct": "Haus", "wrong": ["Hauss", "Heus", "Hous"]},
+        {"correct": "Ball", "wrong": ["Bal", "Bahl", "Balle"]},
+        {"correct": "Auto", "wrong": ["Autto", "Outo", "Autho"]},
+        {"correct": "Baum", "wrong": ["Boum", "Bauhm", "Baumb"]},
+        {"correct": "Buch", "wrong": ["Buuch", "Buhch", "Booch"]},
+        {"correct": "Tisch", "wrong": ["Tish", "Tishch", "Tiisch"]},
+        {"correct": "Stuhl", "wrong": ["Stul", "Sthuhl", "Stuuhl"]},
+        {"correct": "Kind", "wrong": ["Kint", "Kindt", "Kihnd"]},
+        {"correct": "Mama", "wrong": ["Mamma", "Mahma", "Mema"]}
+    ]
+    
+    grade3_words = [
+        {"correct": "Freundin", "wrong": ["Freundhin", "Freundihn", "Freindin"]},
+        {"correct": "Schule", "wrong": ["Schuhle", "Schuele", "Schuhle"]},
+        {"correct": "Lehrer", "wrong": ["Lerer", "Lehhrer", "Lehrrer"]},
+        {"correct": "Aufgabe", "wrong": ["Aufgaabe", "Aufkabe", "Aufgahbe"]},
+        {"correct": "Geschichte", "wrong": ["Geschicte", "Geschischte", "Geschiechte"]},
+        {"correct": "Mathematik", "wrong": ["Mathmatik", "Matematik", "Mahtematik"]},
+        {"correct": "Spielplatz", "wrong": ["Spilplatz", "Spielplaz", "Spieplatz"]},
+        {"correct": "Geburtstag", "wrong": ["Geburtztag", "Geburstag", "Geburtstaag"]},
+        {"correct": "Wochenende", "wrong": ["Wochenehende", "Wochenente", "Wohchenende"]},
+        {"correct": "Nachmittag", "wrong": ["Nachhmittag", "Nachmitag", "Nachmittagg"]}
+    ]
+    
+    word_list = grade2_words if grade == 2 else grade3_words
+    
+    for i in range(min(count, len(word_list))):
+        word_data = random.choice(word_list)
+        options = [word_data["correct"]] + word_data["wrong"]
+        random.shuffle(options)
+        
+        problem = GermanProblem(
+            question=f"Welches Wort ist richtig geschrieben?",
+            question_type="spelling",
+            options=options,
+            correct_answer=word_data["correct"]
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_word_type_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate word type identification problems"""
+    problems = []
+    
+    # Try AI generation first
+    try:
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        if openai_key:
+            ai_problems = await generate_ai_word_type_problems(count, grade, settings)
+            if ai_problems:
+                return ai_problems
+    except Exception as e:
+        logging.error(f"AI word type generation failed: {e}")
+    
+    # Fallback templates
+    grade2_examples = [
+        {"sentence": "Der Hund bellt laut.", "word": "Hund", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Auto fährt schnell.", "word": "fährt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Blume ist schön.", "word": "schön", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Mama kocht Suppe.", "word": "kocht", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Ball ist rund.", "word": "Ball", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Papa liest ein Buch.", "word": "liest", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Haus ist groß.", "word": "groß", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Katze schläft.", "word": "Katze", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]}
+    ]
+    
+    grade3_examples = [
+        {"sentence": "Die Lehrerin erklärt die Aufgabe sehr deutlich.", "word": "erklärt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das neue Fahrrad steht im Garten.", "word": "neue", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Mein Bruder spielt gerne Fußball.", "word": "Bruder", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Kinder laufen schnell zum Spielplatz.", "word": "laufen", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der schwierige Test ist endlich vorbei.", "word": "schwierige", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Unsere Nachbarin hat einen kleinen Hund.", "word": "Nachbarin", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Wetter wird morgen hoffentlich besser.", "word": "wird", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die alte Kirche steht mitten im Dorf.", "word": "alte", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]}
+    ]
+    
+    examples = grade2_examples if grade == 2 else grade3_examples
+    
+    for i in range(min(count, len(examples))):
+        example = random.choice(examples)
+        
+        problem = GermanProblem(
+            question=f'Welche Wortart ist das unterstrichene Wort?\n\nSatz: "{example["sentence"]}"\nWort: "{example["word"]}"',
+            question_type="word_types",
+            options=example["options"],
+            correct_answer=example["type"],
+            problem_data={"sentence": example["sentence"], "target_word": example["word"]}
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_fill_blank_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate fill-in-the-blank problems"""
+    problems = []
+    
+    # Try AI generation first
+    try:
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        if openai_key:
+            ai_problems = await generate_ai_fill_blank_problems(count, grade, settings)
+            if ai_problems:
+                return ai_problems
+    except Exception as e:
+        logging.error(f"AI fill blank generation failed: {e}")
+    
+    # Fallback templates
+    grade2_blanks = [
+        {"text": "Der ___ bellt laut.", "answer": "Hund", "options": ["Hund", "Katze", "Vogel"]},
+        {"text": "Mama ___ in der Küche.", "answer": "kocht", "options": ["kocht", "singt", "tanzt"]},
+        {"text": "Das Auto ist ___.", "answer": "rot", "options": ["rot", "groß", "neu"]},
+        {"text": "Wir gehen in die ___.", "answer": "Schule", "options": ["Schule", "Kirche", "Bank"]},
+        {"text": "Der Ball ist ___.", "answer": "rund", "options": ["rund", "eckig", "spitz"]},
+        {"text": "Papa ___ die Zeitung.", "answer": "liest", "options": ["liest", "kauft", "wirft"]},
+        {"text": "Die Sonne ___ hell.", "answer": "scheint", "options": ["scheint", "regnet", "schneit"]},
+        {"text": "Im Garten wachsen ___.", "answer": "Blumen", "options": ["Blumen", "Steine", "Autos"]}
+    ]
+    
+    grade3_blanks = [
+        {"text": "Die Schüler ___ ihre Hausaufgaben sehr sorgfältig.", "answer": "machen", "options": ["machen", "vergessen", "kaufen"]},
+        {"text": "Nach dem Regen bildete sich ein ___ am Himmel.", "answer": "Regenbogen", "options": ["Regenbogen", "Flugzeug", "Stern"]},
+        {"text": "Der ___ Lehrer erklärt die Aufgabe noch einmal.", "answer": "geduldige", "options": ["geduldige", "müde", "schnelle"]},
+        {"text": "Meine Schwester ___ jeden Tag Klavier.", "answer": "übt", "options": ["übt", "verkauft", "repariert"]},
+        {"text": "Im Winter ___ es oft und die Straßen werden glatt.", "answer": "schneit", "options": ["schneit", "blüht", "schwimmt"]},
+        {"text": "Die ___ Geschichte hat mir sehr gut gefallen.", "answer": "spannende", "options": ["spannende", "langweilige", "kurze"]},
+        {"text": "Opa ___ uns oft von früher.", "answer": "erzählt", "options": ["erzählt", "fragt", "vergisst"]},
+        {"text": "Das ___ Buch liegt auf dem Tisch.", "answer": "dicke", "options": ["dicke", "kleine", "alte"]}
+    ]
+    
+    blanks = grade2_blanks if grade == 2 else grade3_blanks
+    
+    for i in range(min(count, len(blanks))):
+        blank = random.choice(blanks)
+        
+        problem = GermanProblem(
+            question=f"Setze das richtige Wort ein:\n\n{blank['text']}",
+            question_type="fill_blank",
+            options=blank["options"],
+            correct_answer=blank["answer"],
+            problem_data={"original_text": blank["text"]}
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_grammar_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate basic grammar problems"""
+    problems = []
+    
+    grade2_grammar = [
+        {"question": "Wie lautet die Mehrzahl von 'Hund'?", "answer": "Hunde", "options": ["Hunde", "Hunds", "Hunden"]},
+        {"question": "Welcher Artikel gehört zu 'Haus'?", "answer": "das", "options": ["der", "die", "das"]},
+        {"question": "Wie lautet die Mehrzahl von 'Kind'?", "answer": "Kinder", "options": ["Kinder", "Kinds", "Kindern"]},
+        {"question": "Welcher Artikel gehört zu 'Schule'?", "answer": "die", "options": ["der", "die", "das"]}
+    ]
+    
+    grade3_grammar = [
+        {"question": "Welche Zeitform ist das: 'Ich bin gelaufen'?", "answer": "Perfekt", "options": ["Präsens", "Perfekt", "Präteritum"]},
+        {"question": "Wie lautet die erste Person Singular von 'gehen' im Präteritum?", "answer": "ging", "options": ["gehe", "ging", "gegangen"]},
+        {"question": "Welcher Fall ist 'dem Hund' (dem Hund geben)?", "answer": "Dativ", "options": ["Nominativ", "Akkusativ", "Dativ"]},
+        {"question": "Wie lautet die Steigerung von 'gut'?", "answer": "besser", "options": ["guter", "besser", "gutster"]}
+    ]
+    
+    grammar_list = grade2_grammar if grade == 2 else grade3_grammar
+    
+    for i in range(min(count, len(grammar_list))):
+        grammar = random.choice(grammar_list)
+        
+        problem = GermanProblem(
+            question=grammar["question"],
+            question_type="grammar",
+            options=grammar["options"],
+            correct_answer=grammar["answer"]
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_article_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate article identification problems"""
+    problems = []
+    
+    article_words = [
+        {"word": "Baum", "article": "der"},
+        {"word": "Blume", "article": "die"},
+        {"word": "Haus", "article": "das"},
+        {"word": "Auto", "article": "das"},
+        {"word": "Katze", "article": "die"},
+        {"word": "Hund", "article": "der"},
+        {"word": "Schule", "article": "die"},
+        {"word": "Buch", "article": "das"}
+    ]
+    
+    for i in range(min(count, len(article_words))):
+        word_data = random.choice(article_words)
+        
+        problem = GermanProblem(
+            question=f"Welcher Artikel gehört zu '{word_data['word']}'?",
+            question_type="articles",
+            options=["der", "die", "das"],
+            correct_answer=word_data["article"]
+        )
+        problems.append(problem)
+    
+    return problems
+
+async def generate_sentence_order_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate sentence ordering problems"""
+    problems = []
+    
+    sentence_parts = [
+        {"correct": "Der Hund bellt laut.", "scrambled": ["bellt", "Der", "laut", "Hund"]},
+        {"correct": "Mama kocht das Essen.", "scrambled": ["kocht", "Essen", "Mama", "das"]},
+        {"correct": "Wir gehen zur Schule.", "scrambled": ["gehen", "Schule", "Wir", "zur"]},
+        {"correct": "Das Auto fährt schnell.", "scrambled": ["fährt", "Auto", "Das", "schnell"]}
+    ]
+    
+    for i in range(min(count, len(sentence_parts))):
+        sentence = random.choice(sentence_parts)
+        
+        problem = GermanProblem(
+            question=f"Bringe die Wörter in die richtige Reihenfolge:\n{' - '.join(sentence['scrambled'])}",
+            question_type="sentence_order",
+            correct_answer=sentence["correct"],
+            problem_data={"scrambled_words": sentence["scrambled"]}
+        )
+        problems.append(problem)
+    
+    return problems
+
+# AI-powered German problem generation functions
+async def generate_ai_spelling_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate spelling problems using AI"""
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    
+    system_message = f"""Du bist ein Deutsch-Lehrer für Kinder. Erstelle genau {count} Rechtschreibaufgaben für Klasse {grade}.
+
+AUFGABENFORMAT:
+- Multiple Choice Fragen zur richtigen Schreibweise
+- Eine richtige Antwort und 2-3 falsche Alternativen
+- Altersgerechte Wörter für Klasse {grade}
+- Typische Rechtschreibfehler als falsche Optionen
+
+Gib NUR ein JSON-Array zurück in genau diesem Format:
+[{{"question": "Welches Wort ist richtig geschrieben?", "options": ["Hund", "Hunt", "Hundt"], "correct_answer": "Hund"}}]
+
+Fokussiere auf häufige Rechtschreibfehler und verwende bekannte Wörter."""
+
+    try:
+        chat = LlmChat(
+            api_key=openai_key,
+            session_id=f"german-spelling-{uuid.uuid4()}",
+            system_message=system_message
+        ).with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(text=f"Generiere {count} Rechtschreibaufgaben für Klasse {grade}")
+        response = await chat.send_message(user_message)
+        
+        problems_data = json.loads(response.strip())
+        problems = []
+        
+        for problem_data in problems_data[:count]:
+            problem = GermanProblem(
+                question=problem_data["question"],
+                question_type="spelling",
+                options=problem_data["options"],
+                correct_answer=problem_data["correct_answer"]
+            )
+            problems.append(problem)
+        
+        return problems
+        
+    except Exception as e:
+        logging.error(f"Error generating AI spelling problems: {e}")
+        return []
+
+async def generate_ai_word_type_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate word type problems using AI"""
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    
+    system_message = f"""Du bist ein Deutsch-Lehrer für Kinder. Erstelle genau {count} Wortarten-Aufgaben für Klasse {grade}.
+
+AUFGABENFORMAT:
+- Identifikation von Nomen, Verben, Adjektiven in Sätzen
+- Einfache, altersgerechte Sätze
+- Klare Markierung des zu identifizierenden Wortes
+- Multiple Choice mit den drei Hauptwortarten
+
+Gib NUR ein JSON-Array zurück:
+[{{"question": "Welche Wortart ist das unterstrichene Wort?\\n\\nSatz: \\"Der Hund bellt laut.\\"\\nWort: \\"Hund\\"", "options": ["Nomen", "Verb", "Adjektiv"], "correct_answer": "Nomen"}}]"""
+
+    try:
+        chat = LlmChat(
+            api_key=openai_key,
+            session_id=f"german-wordtype-{uuid.uuid4()}",
+            system_message=system_message
+        ).with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(text=f"Generiere {count} Wortarten-Aufgaben für Klasse {grade}")
+        response = await chat.send_message(user_message)
+        
+        problems_data = json.loads(response.strip())
+        problems = []
+        
+        for problem_data in problems_data[:count]:
+            problem = GermanProblem(
+                question=problem_data["question"],
+                question_type="word_types",
+                options=problem_data["options"],
+                correct_answer=problem_data["correct_answer"]
+            )
+            problems.append(problem)
+        
+        return problems
+        
+    except Exception as e:
+        logging.error(f"Error generating AI word type problems: {e}")
+        return []
+
+async def generate_ai_fill_blank_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
+    """Generate fill-in-the-blank problems using AI"""
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    
+    system_message = f"""Du bist ein Deutsch-Lehrer für Kinder. Erstelle genau {count} Lückentext-Aufgaben für Klasse {grade}.
+
+AUFGABENFORMAT:
+- Einfache Sätze mit einer Lücke
+- Das fehlende Wort soll logisch und eindeutig sein
+- Multiple Choice mit einer richtigen und 2 falschen Antworten
+- Altersgerechte Themen und Wörter
+
+Gib NUR ein JSON-Array zurück:
+[{{"question": "Setze das richtige Wort ein:\\n\\nDer ___ bellt laut.", "options": ["Hund", "Katze", "Vogel"], "correct_answer": "Hund"}}]"""
+
+    try:
+        chat = LlmChat(
+            api_key=openai_key,
+            session_id=f"german-fillblank-{uuid.uuid4()}",
+            system_message=system_message
+        ).with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(text=f"Generiere {count} Lückentext-Aufgaben für Klasse {grade}")
+        response = await chat.send_message(user_message)
+        
+        problems_data = json.loads(response.strip())
+        problems = []
+        
+        for problem_data in problems_data[:count]:
+            problem = GermanProblem(
+                question=problem_data["question"],
+                question_type="fill_blank",
+                options=problem_data["options"],
+                correct_answer=problem_data["correct_answer"]
+            )
+            problems.append(problem)
+        
+        return problems
+        
+    except Exception as e:
+        logging.error(f"Error generating AI fill blank problems: {e}")
+        return []
+
 # Helper functions
 def get_current_week_start():
     today = datetime.now()
