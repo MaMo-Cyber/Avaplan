@@ -2690,20 +2690,27 @@ function App() {
           onAddTaskStarsToAvailable={addTaskStarsToAvailable}
         />
 
-        {/* Math Challenge Button - Large and Prominent */}
-        <div className="flex justify-center space-x-6 mb-6">
+        {/* Challenge Buttons - Three Side by Side */}
+        <div className="flex justify-center space-x-4 mb-6">
           <button 
             onClick={() => setShowMathChallenge(true)}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-12 py-6 rounded-2xl text-xl font-bold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-6 rounded-2xl text-lg font-bold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            🧮 Mathe-Herausforderung Starten
+            🧮 Mathe-Herausforderung
           </button>
           
           <button 
             onClick={() => setShowGermanChallenge(true)}
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-12 py-6 rounded-2xl text-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-8 py-6 rounded-2xl text-lg font-bold hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            📖 Deutsch-Herausforderung Starten
+            📖 Deutsch-Herausforderung
+          </button>
+          
+          <button 
+            onClick={() => setShowEnglishChallenge(true)}
+            className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-8 py-6 rounded-2xl text-lg font-bold hover:from-green-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            🇬🇧 Englisch-Herausforderung
           </button>
         </div>
 
