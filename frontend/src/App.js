@@ -2778,16 +2778,9 @@ function App() {
         </div>
 
         {/* Rewards Section */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100 rewards-section">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-purple-800">🎁 Belohnungen</h2>
-            <button
-              onClick={deleteAllRewards}
-              className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
-              title="Alle Belohnungen löschen"
-            >
-              🗑️ Alle Löschen
-            </button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
