@@ -270,7 +270,7 @@ async def generate_german_problems(grade: int, count: int = None) -> List[German
     return problems[:count]
 
 async def generate_spelling_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
-    """Generate German spelling problems using AI with fallback templates"""
+    """Generate German spelling problems using massively expanded content"""
     problems = []
     
     # Try AI generation first
@@ -283,29 +283,19 @@ async def generate_spelling_problems(count: int, grade: int, settings: GermanSet
     except Exception as e:
         logging.error(f"AI spelling generation failed: {e}")
     
-    # Massively expanded fallback spelling problems
-    grade2_words = [
-        # Animals Extended (50 words)
-        {"correct": "Hund", "wrong": ["Hunt", "Hundt", "Huhnd"]},
-        {"correct": "Katze", "wrong": ["Kaze", "Katse", "Kazte"]},
-        {"correct": "Maus", "wrong": ["Mauss", "Mous", "Mauß"]},
-        {"correct": "Vogel", "wrong": ["Fogel", "Vohgel", "Vogol"]},
-        {"correct": "Fisch", "wrong": ["Fish", "Fischh", "Visch"]},
-        {"correct": "Pferd", "wrong": ["Pfehrd", "Pferdt", "Bferd"]},
-        {"correct": "Kuh", "wrong": ["Kue", "Kuuh", "Guh"]},
-        {"correct": "Schwein", "wrong": ["Schwain", "Schwien", "Schwein"]},
-        {"correct": "Schaf", "wrong": ["Schaaf", "Schahf", "Schaf"]},
-        {"correct": "Ziege", "wrong": ["Siege", "Zieke", "Ziehe"]},
-        {"correct": "Hase", "wrong": ["Haase", "Hahse", "Gase"]},
-        {"correct": "Kaninchen", "wrong": ["Kanienchen", "Kaninchhen", "Ganinchen"]},
-        {"correct": "Hamster", "wrong": ["Hamsder", "Hampster", "Gamster"]},
-        {"correct": "Meerschweinchen", "wrong": ["Mehrschweinchen", "Meerschwienchen", "Meeerschweinchen"]},
-        {"correct": "Frosch", "wrong": ["Vrogsch", "Froschh", "Froshc"]},
-        {"correct": "Kröte", "wrong": ["Gröte", "Kröhte", "Krötte"]},
-        {"correct": "Schnecke", "wrong": ["Schnegke", "Schncke", "Schneckke"]},
-        {"correct": "Käfer", "wrong": ["Gäfer", "Käfher", "Käffer"]},
-        {"correct": "Biene", "wrong": ["Biehne", "Bienee", "Piene"]},
-        {"correct": "Fliege", "wrong": ["Vliege", "Flieke", "Fliehe"]},
+    # Import massively expanded content
+    try:
+        if grade == 2:
+            from german_content_complete import GRADE2_SPELLING_COMPLETE
+            word_list = GRADE2_SPELLING_COMPLETE
+        else:
+            from german_grade3_content import GRADE3_SPELLING_COMPLETE
+            word_list = GRADE3_SPELLING_COMPLETE
+    except ImportError:
+        # Fallback to original smaller list if imports fail
+        grade2_words = [
+            {"correct": "Hund", "wrong": ["Hunt", "Hundt", "Huhnd"]},
+            {"correct": "Katze", "wrong": ["Kaze", "Katse", "Kazte"]},
         {"correct": "Spinne", "wrong": ["Sbinne", "Spinnee", "Zbinne"]},
         {"correct": "Ameise", "wrong": ["Ahmeise", "Ameihse", "Amaise"]},
         {"correct": "Wurm", "wrong": ["Wuhrm", "Wurmm", "Vurm"]},
