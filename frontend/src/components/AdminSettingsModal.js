@@ -281,6 +281,5 @@ const AdminSettingsModal = ({
     </div>
   );
 };
-};
 
 export default AdminSettingsModal;
