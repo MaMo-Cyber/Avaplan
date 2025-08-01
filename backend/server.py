@@ -484,7 +484,7 @@ async def generate_word_type_problems(count: int, grade: int, settings: GermanSe
     except Exception as e:
         logging.error(f"AI word type generation failed: {e}")
     
-    # Fallback templates
+    # Massively expanded fallback templates
     grade2_examples = [
         {"sentence": "Der Hund bellt laut.", "word": "Hund", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
         {"sentence": "Das Auto fährt schnell.", "word": "fährt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
@@ -493,7 +493,51 @@ async def generate_word_type_problems(count: int, grade: int, settings: GermanSe
         {"sentence": "Der Ball ist rund.", "word": "Ball", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
         {"sentence": "Papa liest ein Buch.", "word": "liest", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
         {"sentence": "Das Haus ist groß.", "word": "groß", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
-        {"sentence": "Die Katze schläft.", "word": "Katze", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]}
+        {"sentence": "Die Katze schläft.", "word": "Katze", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Baum wächst hoch.", "word": "Baum", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Wir spielen gern.", "word": "spielen", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Wetter ist warm.", "word": "warm", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Sonne scheint hell.", "word": "Sonne", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Vogel singt.", "word": "singt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Brot schmeckt gut.", "word": "gut", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Maus ist klein.", "word": "Maus", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Oma backt Kuchen.", "word": "backt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Apfel ist süß.", "word": "süß", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Kind lacht.", "word": "Kind", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Fisch schwimmt.", "word": "schwimmt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Milch ist weiß.", "word": "weiß", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Papa arbeitet viel.", "word": "arbeitet", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Stuhl ist alt.", "word": "alt", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Lampe leuchtet.", "word": "Lampe", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Wir tanzen zusammen.", "word": "tanzen", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Eis ist kalt.", "word": "kalt", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Tisch steht hier.", "word": "Tisch", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Mama singt schön.", "word": "singt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Blume duftet süß.", "word": "süß", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Hase hüpft.", "word": "Hase", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Opa erzählt Geschichten.", "word": "erzählt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Gras ist grün.", "word": "grün", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Uhr tickt.", "word": "Uhr", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Hund rennt schnell.", "word": "rennt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Meer ist blau.", "word": "blau", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Banane ist gelb.", "word": "Banane", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Wir malen Bilder.", "word": "malen", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Himmel ist blau.", "word": "blau", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Pferd galoppiert.", "word": "Pferd", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Kinder lachen.", "word": "lachen", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Rose ist rot.", "word": "rot", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Zug fährt.", "word": "Zug", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Oma kocht gerne.", "word": "kocht", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Buch ist dick.", "word": "dick", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Schule ist nah.", "word": "Schule", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Papa schreibt einen Brief.", "word": "schreibt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Wasser ist klar.", "word": "klar", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Löwe brüllt.", "word": "Löwe", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Wir kaufen ein.", "word": "kaufen", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Suppe ist heiß.", "word": "heiß", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Baby weint.", "word": "Baby", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Wind weht.", "word": "weht", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das Fell ist weich.", "word": "weich", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]}
     ]
     
     grade3_examples = [
@@ -504,13 +548,62 @@ async def generate_word_type_problems(count: int, grade: int, settings: GermanSe
         {"sentence": "Der schwierige Test ist endlich vorbei.", "word": "schwierige", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
         {"sentence": "Unsere Nachbarin hat einen kleinen Hund.", "word": "Nachbarin", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
         {"sentence": "Das Wetter wird morgen hoffentlich besser.", "word": "wird", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
-        {"sentence": "Die alte Kirche steht mitten im Dorf.", "word": "alte", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]}
+        {"sentence": "Die alte Kirche steht mitten im Dorf.", "word": "alte", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Wissenschaftler forscht an neuen Medikamenten.", "word": "Wissenschaftler", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Schüler diskutieren über das interessante Thema.", "word": "diskutieren", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das komplizierte Problem wurde endlich gelöst.", "word": "komplizierte", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Bibliothekarin hilft beim Suchen der Bücher.", "word": "Bibliothekarin", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Meine Schwester studiert Medizin an der Universität.", "word": "studiert", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der wichtige Brief kam heute an.", "word": "wichtige", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Bürgermeister eröffnet das neue Schwimmbad.", "word": "Bürgermeister", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Touristen fotografieren die berühmte Sehenswürdigkeit.", "word": "fotografieren", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das moderne Museum zeigt zeitgenössische Kunst.", "word": "moderne", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Feuerwehrmann rettet die Katze vom Baum.", "word": "Feuerwehrmann", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Astronauten erforschen das Weltall.", "word": "erforschen", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das geheimnisvolle Schloss fasziniert die Besucher.", "word": "geheimnisvolle", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Geologin untersucht die Gesteinsproben.", "word": "Geologin", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Pianist komponiert eine neue Symphonie.", "word": "komponiert", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das elegante Kleid gefällt mir sehr gut.", "word": "elegante", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Mechaniker repariert das defekte Auto.", "word": "Mechaniker", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Architektin entwirft ein neues Gebäude.", "word": "entwirft", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das kreative Projekt begeistert alle Teilnehmer.", "word": "kreative", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Umweltschützer kämpft für saubere Luft.", "word": "Umweltschützer", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Journalistin berichtet über aktuelle Ereignisse.", "word": "berichtet", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das spannende Buch hält mich gefesselt.", "word": "spannende", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Tierarzt behandelt verletzte Tiere liebevoll.", "word": "Tierarzt", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Gärtnerin pflanzt bunte Blumen.", "word": "pflanzt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das frische Gemüse kommt vom Markt.", "word": "frische", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Künstler malt ein wunderschönes Bild.", "word": "Künstler", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Forscherin entdeckt eine neue Pflanzenart.", "word": "entdeckt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das seltene Tier lebt nur in diesem Gebiet.", "word": "seltene", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Polizist regelt den Verkehr sicher.", "word": "Polizist", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Köchin bereitet das Essen sorgfältig vor.", "word": "bereitet vor", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das köstliche Menü schmeckt allen Gästen.", "word": "köstliche", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Pilot fliegt sicher durch die Wolken.", "word": "Pilot", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Sekretärin organisiert wichtige Termine.", "word": "organisiert", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das effiziente System arbeitet fehlerfrei.", "word": "effiziente", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Handwerker renoviert das alte Haus.", "word": "Handwerker", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Musiklehrerin unterrichtet talentierte Schüler.", "word": "unterrichtet", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das melodische Lied berührt die Herzen.", "word": "melodische", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Verkäufer berät die Kunden freundlich.", "word": "Verkäufer", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Designerin gestaltet moderne Möbel.", "word": "gestaltet", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das innovative Konzept überzeugt die Investoren.", "word": "innovative", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Psychologe hilft Menschen bei Problemen.", "word": "Psychologe", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Übersetzerin übersetzt schwierige Texte.", "word": "übersetzt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das ausländische Dokument braucht eine Übersetzung.", "word": "ausländische", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Der Anwalt verteidigt seinen Mandanten.", "word": "Anwalt", "type": "Nomen", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Die Richterin urteilt gerecht und fair.", "word": "urteilt", "type": "Verb", "options": ["Nomen", "Verb", "Adjektiv"]},
+        {"sentence": "Das faire Urteil überzeugt alle Beteiligten.", "word": "faire", "type": "Adjektiv", "options": ["Nomen", "Verb", "Adjektiv"]}
     ]
     
     examples = grade2_examples if grade == 2 else grade3_examples
     
-    for i in range(min(count, len(examples))):
-        example = random.choice(examples)
+    # Shuffle and select random subset to ensure variety
+    import random
+    shuffled_examples = random.sample(examples, min(count * 3, len(examples)))
+    
+    for i in range(min(count, len(shuffled_examples))):
+        example = shuffled_examples[i]
         
         problem = GermanProblem(
             question=f'Welche Wortart ist das unterstrichene Wort?\n\nSatz: "{example["sentence"]}"\nWort: "{example["word"]}"',
