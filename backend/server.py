@@ -1381,107 +1381,41 @@ async def generate_vocabulary_en_de_problems(count: int, grade: int, settings: E
     return problems
 
 async def generate_simple_sentence_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
-    """Generate simple sentence translation problems"""
+    """Generate simple sentence translation problems using massively expanded content"""
     problems = []
     
-    # Try AI generation first
+    # Import massively expanded content
     try:
-        openai_key = os.environ.get('OPENAI_API_KEY')
-        if openai_key:
-            ai_problems = await generate_ai_simple_sentence_problems(count, grade, settings)
-            if ai_problems:
-                return ai_problems
-    except Exception as e:
-        logging.error(f"AI simple sentence generation failed: {e}")
-    
-    # Fallback to predefined simple sentences
-    grade2_sentences = [
-        {"german": "Ich bin ein Kind.", "english": "I am a child.", "wrong": ["I have a child.", "I see a child.", "I like children."]},
-        {"german": "Das Auto ist rot.", "english": "The car is red.", "wrong": ["The car is blue.", "The car is big.", "The car is new."]},
-        {"german": "Ich habe einen Hund.", "english": "I have a dog.", "wrong": ["I see a dog.", "I am a dog.", "I like dogs."]},
-        {"german": "Die Katze schläft.", "english": "The cat sleeps.", "wrong": ["The cat eats.", "The cat runs.", "The cat plays."]},
-        {"german": "Wir gehen zur Schule.", "english": "We go to school.", "wrong": ["We are at school.", "We like school.", "We have school."]},
-        {"german": "Mama kocht Essen.", "english": "Mom cooks food.", "wrong": ["Mom eats food.", "Mom buys food.", "Mom likes food."]},
-        {"german": "Papa arbeitet viel.", "english": "Dad works a lot.", "wrong": ["Dad sleeps a lot.", "Dad plays a lot.", "Dad eats a lot."]},
-        {"german": "Das Haus ist groß.", "english": "The house is big.", "wrong": ["The house is small.", "The house is new.", "The house is old."]},
-        {"german": "Ich mag Äpfel.", "english": "I like apples.", "wrong": ["I eat apples.", "I have apples.", "I see apples."]},
-        {"german": "Der Ball ist rund.", "english": "The ball is round.", "wrong": ["The ball is big.", "The ball is red.", "The ball is new."]},
-        {"german": "Wir spielen im Park.", "english": "We play in the park.", "wrong": ["We walk in the park.", "We sit in the park.", "We run in the park."]},
-        {"german": "Die Sonne scheint.", "english": "The sun shines.", "wrong": ["The sun sleeps.", "The sun runs.", "The sun eats."]},
-        {"german": "Ich trinke Wasser.", "english": "I drink water.", "wrong": ["I see water.", "I have water.", "I like water."]},
-        {"german": "Das Buch ist interessant.", "english": "The book is interesting.", "wrong": ["The book is big.", "The book is new.", "The book is red."]},
-        {"german": "Mein Freund ist nett.", "english": "My friend is nice.", "wrong": ["My friend is big.", "My friend is new.", "My friend is old."]},
-        {"german": "Die Blume duftet.", "english": "The flower smells good.", "wrong": ["The flower looks good.", "The flower is good.", "The flower feels good."]},
-        {"german": "Ich lese gerne.", "english": "I like to read.", "wrong": ["I have to read.", "I can read.", "I will read."]},
-        {"german": "Der Vogel singt.", "english": "The bird sings.", "wrong": ["The bird flies.", "The bird eats.", "The bird sleeps."]},
-        {"german": "Es regnet heute.", "english": "It rains today.", "wrong": ["It snows today.", "It's sunny today.", "It's windy today."]},
-        {"german": "Ich bin müde.", "english": "I am tired.", "wrong": ["I am happy.", "I am sad.", "I am hungry."]},
-        {"german": "Das Wetter ist schön.", "english": "The weather is nice.", "wrong": ["The weather is bad.", "The weather is cold.", "The weather is hot."]},
-        {"german": "Wir haben Hunger.", "english": "We are hungry.", "wrong": ["We are thirsty.", "We are tired.", "We are happy."]},
-        {"german": "Die Kinder lachen.", "english": "The children laugh.", "wrong": ["The children cry.", "The children sleep.", "The children run."]},
-        {"german": "Ich helfe Mama.", "english": "I help Mom.", "wrong": ["I see Mom.", "I call Mom.", "I love Mom."]},
-        {"german": "Der Fisch schwimmt.", "english": "The fish swims.", "wrong": ["The fish flies.", "The fish runs.", "The fish jumps."]},
-        {"german": "Wir lernen Deutsch.", "english": "We learn German.", "wrong": ["We speak German.", "We read German.", "We write German."]},
-        {"german": "Das Baby weint.", "english": "The baby cries.", "wrong": ["The baby laughs.", "The baby sleeps.", "The baby eats."]},
-        {"german": "Ich wasche meine Hände.", "english": "I wash my hands.", "wrong": ["I see my hands.", "I have my hands.", "I use my hands."]},
-        {"german": "Die Uhr tickt.", "english": "The clock ticks.", "wrong": ["The clock rings.", "The clock shows.", "The clock runs."]},
-        {"german": "Wir kaufen Brot.", "english": "We buy bread.", "wrong": ["We eat bread.", "We make bread.", "We see bread."]},
-        {"german": "Ich höre Musik.", "english": "I listen to music.", "wrong": ["I make music.", "I see music.", "I have music."]},
-        {"german": "Der Hund läuft.", "english": "The dog runs.", "wrong": ["The dog sleeps.", "The dog eats.", "The dog barks."]},
-        {"german": "Wir malen Bilder.", "english": "We paint pictures.", "wrong": ["We see pictures.", "We have pictures.", "We like pictures."]},
-        {"german": "Das Eis ist kalt.", "english": "The ice cream is cold.", "wrong": ["The ice cream is hot.", "The ice cream is sweet.", "The ice cream is big."]},
-        {"german": "Ich putze Zähne.", "english": "I brush teeth.", "wrong": ["I see teeth.", "I have teeth.", "I count teeth."]},
-        {"german": "Die Tür ist offen.", "english": "The door is open.", "wrong": ["The door is closed.", "The door is big.", "The door is new."]},
-        {"german": "Wir singen Lieder.", "english": "We sing songs.", "wrong": ["We hear songs.", "We write songs.", "We like songs."]},
-        {"german": "Ich ziehe mich an.", "english": "I get dressed.", "wrong": ["I go to bed.", "I wake up.", "I take a shower."]},
-        {"german": "Der Baum ist hoch.", "english": "The tree is tall.", "wrong": ["The tree is short.", "The tree is wide.", "The tree is old."]},
-        {"german": "Wir essen Gemüse.", "english": "We eat vegetables.", "wrong": ["We grow vegetables.", "We buy vegetables.", "We like vegetables."]},
-        {"german": "Ich spiele Ball.", "english": "I play ball.", "wrong": ["I throw ball.", "I catch ball.", "I see ball."]},
-        {"german": "Die Milch ist weiß.", "english": "The milk is white.", "wrong": ["The milk is cold.", "The milk is fresh.", "The milk is good."]},
-        {"german": "Wir gehen schlafen.", "english": "We go to sleep.", "wrong": ["We go home.", "We go outside.", "We go shopping."]},
-        {"german": "Ich kämme mein Haar.", "english": "I comb my hair.", "wrong": ["I wash my hair.", "I cut my hair.", "I see my hair."]},
-        {"german": "Das Fenster ist groß.", "english": "The window is big.", "wrong": ["The window is small.", "The window is clean.", "The window is open."]},
-        {"german": "Wir fahren Bus.", "english": "We take the bus.", "wrong": ["We see the bus.", "We wait for the bus.", "We like the bus."]},
-        {"german": "Ich füttre die Katze.", "english": "I feed the cat.", "wrong": ["I pet the cat.", "I see the cat.", "I call the cat."]},
-        {"german": "Der Käse schmeckt gut.", "english": "The cheese tastes good.", "wrong": ["The cheese looks good.", "The cheese smells good.", "The cheese is good."]},
-        {"german": "Wir besuchen Oma.", "english": "We visit Grandma.", "wrong": ["We call Grandma.", "We see Grandma.", "We help Grandma."]},
-        {"german": "Ich räume auf.", "english": "I clean up.", "wrong": ["I wake up.", "I get up.", "I give up."]}
-    ]
-    
-    grade3_sentences = [
-        {"german": "Ich interessiere mich für Wissenschaft.", "english": "I am interested in science.", "wrong": ["I study science.", "I like science.", "I need science."]},
-        {"german": "Der Computer funktioniert nicht.", "english": "The computer doesn't work.", "wrong": ["The computer is broken.", "The computer is old.", "The computer is slow."]},
-        {"german": "Wir experimentieren im Labor.", "english": "We experiment in the laboratory.", "wrong": ["We work in the laboratory.", "We study in the laboratory.", "We learn in the laboratory."]},
-        {"german": "Die Technologie entwickelt sich schnell.", "english": "Technology develops quickly.", "wrong": ["Technology works quickly.", "Technology changes quickly.", "Technology grows quickly."]},
-        {"german": "Ich programmiere einen Roboter.", "english": "I program a robot.", "wrong": ["I build a robot.", "I repair a robot.", "I control a robot."]},
-        {"german": "Das Internet verbindet Menschen.", "english": "The internet connects people.", "wrong": ["The internet helps people.", "The internet teaches people.", "The internet shows people."]},
-        {"german": "Wir erforschen die Natur.", "english": "We explore nature.", "wrong": ["We protect nature.", "We study nature.", "We love nature."]},
-        {"german": "Die Erfindung verändert das Leben.", "english": "The invention changes life.", "wrong": ["The invention improves life.", "The invention helps life.", "The invention makes life."]},
-        {"german": "Ich analysiere die Daten.", "english": "I analyze the data.", "wrong": ["I collect the data.", "I save the data.", "I use the data."]},
-        {"german": "Der Wissenschaftler macht Entdeckungen.", "english": "The scientist makes discoveries.", "wrong": ["The scientist finds discoveries.", "The scientist has discoveries.", "The scientist shows discoveries."]},
-        {"german": "Wir benutzen moderne Geräte.", "english": "We use modern devices.", "wrong": ["We buy modern devices.", "We repair modern devices.", "We need modern devices."]},
-        {"german": "Die Maschine arbeitet automatisch.", "english": "The machine works automatically.", "wrong": ["The machine runs automatically.", "The machine starts automatically.", "The machine stops automatically."]},
-        {"german": "Ich löse komplizierte Probleme.", "english": "I solve complicated problems.", "wrong": ["I find complicated problems.", "I have complicated problems.", "I see complicated problems."]},
-        {"german": "Das System ist sehr effizient.", "english": "The system is very efficient.", "wrong": ["The system is very fast.", "The system is very good.", "The system is very new."]},
-        {"german": "Wir entwickeln neue Software.", "english": "We develop new software.", "wrong": ["We use new software.", "We buy new software.", "We test new software."]},
-        {"german": "Die Energie kommt von der Sonne.", "english": "The energy comes from the sun.", "wrong": ["The energy needs the sun.", "The energy uses the sun.", "The energy makes the sun."]},
-        {"german": "Ich konstruiere eine Brücke.", "english": "I construct a bridge.", "wrong": ["I design a bridge.", "I build a bridge.", "I plan a bridge."]},
-        {"german": "Der Motor verbraucht wenig Benzin.", "english": "The engine uses little gasoline.", "wrong": ["The engine needs little gasoline.", "The engine has little gasoline.", "The engine makes little gasoline."]},
-        {"german": "Wir kommunizieren über das Internet.", "english": "We communicate via the internet.", "wrong": ["We work via the internet.", "We learn via the internet.", "We play via the internet."]},
-        {"german": "Die Batterie speichert Elektrizität.", "english": "The battery stores electricity.", "wrong": ["The battery makes electricity.", "The battery uses electricity.", "The battery needs electricity."]},
-        {"german": "Ich repariere defekte Geräte.", "english": "I repair broken devices.", "wrong": ["I find broken devices.", "I buy broken devices.", "I throw broken devices."]},
-        {"german": "Das Mikroskop vergrößert kleine Objekte.", "english": "The microscope magnifies small objects.", "wrong": ["The microscope finds small objects.", "The microscope makes small objects.", "The microscope shows small objects."]},
-        {"german": "Wir dokumentieren unsere Experimente.", "english": "We document our experiments.", "wrong": ["We plan our experiments.", "We finish our experiments.", "We start our experiments."]},
-        {"german": "Die Forschung bringt neue Erkenntnisse.", "english": "Research brings new insights.", "wrong": ["Research finds new insights.", "Research makes new insights.", "Research needs new insights."]},
-        {"german": "Ich installiere ein neues Programm.", "english": "I install a new program.", "wrong": ["I buy a new program.", "I use a new program.", "I test a new program."]},
-        {"german": "Der Satellit umkreist die Erde.", "english": "The satellite orbits the Earth.", "wrong": ["The satellite flies around the Earth.", "The satellite watches the Earth.", "The satellite protects the Earth."]},
-        {"german": "Wir messen die Temperatur.", "english": "We measure the temperature.", "wrong": ["We check the temperature.", "We change the temperature.", "We control the temperature."]},
-        {"german": "Die Innovation revolutioniert die Industrie.", "english": "The innovation revolutionizes the industry.", "wrong": ["The innovation helps the industry.", "The innovation changes the industry.", "The innovation improves the industry."]},
-        {"german": "Ich kalibriere das Instrument.", "english": "I calibrate the instrument.", "wrong": ["I use the instrument.", "I repair the instrument.", "I test the instrument."]},
-        {"german": "Das Labor ist steril und sauber.", "english": "The laboratory is sterile and clean.", "wrong": ["The laboratory is big and clean.", "The laboratory is new and clean.", "The laboratory is modern and clean."]}
-    ]
-    
-    sentences = grade2_sentences if grade == 2 else grade3_sentences
+        from english_content_expanded import ENGLISH_SENTENCES_BASIC, ENGLISH_SENTENCES_INTERMEDIATE
+        
+        if grade == 2 or settings.difficulty_settings.get("sentence_level") == "basic":
+            sentences = ENGLISH_SENTENCES_BASIC
+        else:
+            sentences = ENGLISH_SENTENCES_BASIC + ENGLISH_SENTENCES_INTERMEDIATE
+    except ImportError:
+        # Fallback to basic sentences if imports fail
+        sentences = [
+            {"german": "Ich gehe zur Schule.", "english": "I go to school.", "category": "daily_life", "wrong": ["I walk to school.", "I come to school.", "I run to school."]},
+            {"german": "Das ist mein Haus.", "english": "This is my house.", "category": "family", "wrong": ["That is my house.", "This is my home.", "This is our house."]},
+            {"german": "Die Katze ist klein.", "english": "The cat is small.", "category": "animals", "wrong": ["The cat is little.", "The cat is tiny.", "The cat is young."]},
+            {"german": "Ich esse einen Apfel.", "english": "I eat an apple.", "category": "food", "wrong": ["I have an apple.", "I like an apple.", "I want an apple."]},
+            {"german": "Meine Mutter kocht.", "english": "My mother cooks.", "category": "family", "wrong": ["My mother works.", "My mother helps.", "My mother cleans."]},
+            {"german": "Der Hund ist braun.", "english": "The dog is brown.", "category": "animals", "wrong": ["The dog is big.", "The dog is nice.", "The dog is old."]},
+            {"german": "Ich trinke Wasser.", "english": "I drink water.", "category": "food", "wrong": ["I need water.", "I like water.", "I want water."]},
+            {"german": "Das Auto ist rot.", "english": "The car is red.", "category": "transport", "wrong": ["The car is new.", "The car is fast.", "The car is big."]},
+            {"german": "Wir spielen zusammen.", "english": "We play together.", "category": "activities", "wrong": ["We work together.", "We learn together.", "We eat together."]},
+            {"german": "Die Sonne scheint.", "english": "The sun shines.", "category": "weather", "wrong": ["The sun is hot.", "The sun is bright.", "The sun is yellow."]},
+            {"german": "Ich lese ein Buch.", "english": "I read a book.", "category": "activities", "wrong": ["I have a book.", "I want a book.", "I like a book."]},
+            {"german": "Der Ball ist rund.", "english": "The ball is round.", "category": "toys", "wrong": ["The ball is big.", "The ball is red.", "The ball is new."]},
+            {"german": "Mama singt ein Lied.", "english": "Mom sings a song.", "category": "family", "wrong": ["Mom knows a song.", "Mom likes a song.", "Mom hears a song."]},
+            {"german": "Es regnet heute.", "english": "It rains today.", "category": "weather", "wrong": ["It's wet today.", "It's cold today.", "It's cloudy today."]},
+            {"german": "Ich bin müde.", "english": "I am tired.", "category": "feelings", "wrong": ["I am sleepy.", "I am sad.", "I am sick."]},
+            {"german": "Der Baum ist hoch.", "english": "The tree is tall.", "category": "nature", "wrong": ["The tree is big.", "The tree is old.", "The tree is green."]},
+            {"german": "Wir haben Hunger.", "english": "We are hungry.", "category": "feelings", "wrong": ["We need food.", "We want food.", "We like food."]},
+            {"german": "Das Wetter ist schön.", "english": "The weather is nice.", "category": "weather", "wrong": ["The weather is good.", "The weather is warm.", "The weather is sunny."]},
+            {"german": "Ich helfe Papa.", "english": "I help Dad.", "category": "family", "wrong": ["I like Dad.", "I see Dad.", "I call Dad."]},
+            {"german": "Die Blumen sind bunt.", "english": "The flowers are colorful.", "category": "nature", "wrong": ["The flowers are pretty.", "The flowers are nice.", "The flowers are small."]}
+        ]
     
     # Shuffle and select random subset to ensure variety
     import random
@@ -1489,7 +1423,19 @@ async def generate_simple_sentence_problems(count: int, grade: int, settings: En
     
     for i in range(min(count, len(shuffled_sentences))):
         sentence = shuffled_sentences[i]
-        options = [sentence["english"]] + sentence["wrong"]
+        
+        # Handle both old format (with "wrong" key) and new format (without "wrong" key)
+        if "wrong" in sentence:
+            options = [sentence["english"]] + sentence["wrong"]
+        else:
+            # Generate wrong options based on category or use generic ones
+            wrong_options = [
+                f"I {sentence['english'].split(' ', 1)[1] if ' ' in sentence['english'] else 'do something'}",
+                f"We {sentence['english'].split(' ', 1)[1] if ' ' in sentence['english'] else 'do something'}",
+                f"They {sentence['english'].split(' ', 1)[1] if ' ' in sentence['english'] else 'do something'}"
+            ]
+            options = [sentence["english"]] + wrong_options[:2]
+        
         random.shuffle(options)
         
         problem = EnglishProblem(
@@ -1497,7 +1443,7 @@ async def generate_simple_sentence_problems(count: int, grade: int, settings: En
             question_type="simple_sentences",
             options=options,
             correct_answer=sentence["english"],
-            problem_data={"german_sentence": sentence["german"]}
+            problem_data={"german_sentence": sentence["german"], "category": sentence.get("category", "general")}
         )
         problems.append(problem)
     
