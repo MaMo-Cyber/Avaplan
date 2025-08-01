@@ -2629,23 +2629,13 @@ function App() {
   };
 
   const resetAllStars = async () => {
-    const confirmMessage = 'Bist du sicher, dass du ALLE Sterne zurücksetzen möchtest?\n\n' +
-                          'Das wird löschen:\n' +
-                          '• Alle Aufgaben-Sterne\n' +
-                          '• Alle verfügbaren Sterne\n' +
-                          '• Alle Sterne im Tresor\n' +
-                          '• Alle beanspruchten Belohnungen\n\n' +
-                          'Diese Aktion kann nicht rückgängig gemacht werden!';
-    
-    if (confirm(confirmMessage)) {
-      try {
-        await axios.post(`${API}/progress/reset-all-stars`);
-        loadData();
-        alert('Alle Sterne wurden erfolgreich zurückgesetzt!');
-      } catch (error) {
-        console.error('Fehler beim Zurücksetzen aller Sterne:', error);
-        alert('Fehler beim Zurücksetzen der Sterne!');
-      }
+    try {
+      await axios.post(`${API}/progress/reset-all-stars`);
+      loadData();
+      alert('Alle Sterne wurden erfolgreich zurückgesetzt!');
+    } catch (error) {
+      console.error('Fehler beim Zurücksetzen aller Sterne:', error);
+      alert('Fehler beim Zurücksetzen der Sterne!');
     }
   };
 
