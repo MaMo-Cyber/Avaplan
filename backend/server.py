@@ -2802,6 +2802,173 @@ async def reset_german_statistics():
     await db.german_statistics.replace_one({}, stats.dict(), upsert=True)
     return {"message": "German statistics reset successfully"}
 
+# English Challenge Endpoints
+@api_router.post("/english/challenge/{grade}")
+async def create_english_challenge(grade: int):
+    if grade not in [2, 3]:
+        raise HTTPException(status_code=400, detail="Grade must be 2 or 3")
+    
+    # Get settings to use configured problem count
+    settings_doc = await db.english_settings.find_one()
+    problem_count = settings_doc.get("problem_count", 15) if settings_doc else 15
+    
+    problems = await generate_english_problems(grade, problem_count)
+    challenge = EnglishChallenge(grade=grade, problems=problems)
+    
+    await db.english_challenges.insert_one(challenge.dict())
+    return challenge
+
+@api_router.post("/english/challenge/{challenge_id}/submit")
+async def submit_english_answers(challenge_id: str, answers: Dict[int, str]):
+    challenge = await db.english_challenges.find_one({"id": challenge_id})
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    challenge_obj = EnglishChallenge(**challenge)
+    
+    correct_count = 0
+    total_problems = len(challenge_obj.problems)
+    
+    # Grade the answers
+    for i, problem in enumerate(challenge_obj.problems):
+        if i in answers:
+            user_answer = str(answers[i]).strip()
+            problem.user_answer = user_answer
+            
+            # Direct string comparison for English problems
+            problem.is_correct = problem.correct_answer.lower().strip() == user_answer.lower().strip()
+            
+            if problem.is_correct:
+                correct_count += 1
+    
+    # Calculate percentage and stars earned
+    percentage = (correct_count / total_problems) * 100
+    challenge_obj.score = percentage
+    challenge_obj.completed = True
+    
+    # Get star tiers from settings
+    settings = await db.english_settings.find_one()
+    if settings:
+        star_tiers = settings.get("star_tiers", {"90": 3, "80": 2, "70": 1})
+    else:
+        star_tiers = {"90": 3, "80": 2, "70": 1}
+    
+    # Calculate stars based on performance
+    stars_earned = 0
+    for threshold, stars in sorted([(int(k), v) for k, v in star_tiers.items()], reverse=True):
+        if percentage >= threshold:
+            stars_earned = stars
+            break
+    
+    challenge_obj.stars_earned = stars_earned
+    
+    # Update English statistics
+    await update_english_statistics(challenge_obj.grade, correct_count, total_problems, percentage, stars_earned, challenge_obj.problems)
+    
+    # Add earned stars to weekly progress (as available stars for rewards)
+    week_start = get_current_week_start()
+    progress = await db.weekly_progress.find_one({"week_start": week_start})
+    if not progress:
+        progress = {
+            "week_start": week_start, 
+            "total_stars_earned": 0,
+            "total_stars_used": 0,
+            "available_stars": stars_earned,
+            "stars_in_safe": 0
+        }
+    else:
+        if "available_stars" not in progress:
+            progress["available_stars"] = 0
+        progress["available_stars"] += stars_earned
+    
+    await db.weekly_progress.replace_one({"week_start": week_start}, progress, upsert=True)
+    await db.english_challenges.replace_one({"id": challenge_id}, challenge_obj.dict())
+    
+    return {
+        "challenge": challenge_obj,
+        "correct_answers": correct_count,
+        "total_problems": total_problems,
+        "percentage": percentage,
+        "stars_earned": stars_earned
+    }
+
+async def update_english_statistics(grade: int, correct: int, total: int, percentage: float, stars_earned: int, problems: List[EnglishProblem]):
+    """Update English challenge statistics"""
+    stats = await db.english_statistics.find_one()
+    
+    if not stats:
+        stats = EnglishStatistics().dict()
+    
+    stats["total_attempts"] += 1
+    if grade == 2:
+        stats["grade_2_attempts"] += 1
+    else:
+        stats["grade_3_attempts"] += 1
+    
+    stats["total_correct"] += correct
+    stats["total_wrong"] += (total - correct)
+    stats["total_stars_earned"] += stars_earned
+    
+    # Calculate new average
+    stats["average_score"] = (stats["average_score"] * (stats["total_attempts"] - 1) + percentage) / stats["total_attempts"]
+    
+    # Update best score
+    if percentage > stats["best_score"]:
+        stats["best_score"] = percentage
+    
+    # Update problem type stats
+    if "problem_type_stats" not in stats:
+        stats["problem_type_stats"] = {}
+    
+    for problem in problems:
+        problem_type = problem.question_type
+        if problem_type not in stats["problem_type_stats"]:
+            stats["problem_type_stats"][problem_type] = {
+                "total_attempts": 0,
+                "correct": 0,
+                "wrong": 0
+            }
+        
+        stats["problem_type_stats"][problem_type]["total_attempts"] += 1
+        if problem.is_correct:
+            stats["problem_type_stats"][problem_type]["correct"] += 1
+        else:
+            stats["problem_type_stats"][problem_type]["wrong"] += 1
+    
+    stats["last_updated"] = datetime.utcnow()
+    
+    await db.english_statistics.replace_one({}, stats, upsert=True)
+
+@api_router.get("/english/settings")
+async def get_english_settings():
+    settings = await db.english_settings.find_one()
+    if not settings:
+        settings = EnglishSettings()
+        await db.english_settings.insert_one(settings.dict())
+        return settings
+    return EnglishSettings(**settings)
+
+@api_router.put("/english/settings")
+async def update_english_settings(settings: EnglishSettings):
+    await db.english_settings.replace_one({}, settings.dict(), upsert=True)
+    return settings
+
+@api_router.get("/english/statistics")
+async def get_english_statistics():
+    stats = await db.english_statistics.find_one()
+    if not stats:
+        stats = EnglishStatistics()
+        await db.english_statistics.insert_one(stats.dict())
+        return stats
+    return EnglishStatistics(**stats)
+
+@api_router.post("/english/statistics/reset")
+async def reset_english_statistics():
+    """Reset English statistics"""
+    stats = EnglishStatistics()
+    await db.english_statistics.replace_one({}, stats.dict(), upsert=True)
+    return {"message": "English statistics reset successfully"}
+
 # Basic status endpoints
 @api_router.get("/")
 async def root():
