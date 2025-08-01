@@ -7,7 +7,7 @@ Tests the specific scenarios requested for Sternen-System-Fixes validation
 import requests
 import json
 
-BASE_URL = "https://6a0c011f-6a04-4a55-b265-9576b5fe4d64.preview.emergentagent.com/api"
+BASE_URL = "https://55210a40-898b-4bb1-a2c1-85e6670f3763.preview.emergentagent.com/api"
 
 def log_test(test_name, success, details=""):
     status = "✅ PASS" if success else "❌ FAIL"
