@@ -1676,6 +1676,12 @@ class BackendTester:
             ("Mixed Problem Types Distribution", self.test_mixed_problem_types),
             ("Word Problem Error Handling", self.test_word_problem_error_handling),
             ("Stars System Fixes (Sternen-System-Fixes)", self.test_stars_system_fixes),
+            ("German Challenge Creation", self.test_german_challenge_creation),
+            ("German Settings API", self.test_german_settings_api),
+            ("German Statistics API", self.test_german_statistics_api),
+            ("German Challenge Submission", self.test_german_challenge_submission),
+            ("German Problem Generation", self.test_german_problem_generation),
+            ("German Integration with Existing System", self.test_german_integration_with_existing_system),
         ]
         
         passed_tests = 0
