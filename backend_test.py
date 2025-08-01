@@ -1635,6 +1635,354 @@ class BackendTester:
             self.log_test("No Conflicts with Math System", False, f"Exception: {str(e)}")
         
         return success_count >= 2
+
+    def test_german_challenge_variety_expansion(self):
+        """Test expanded German Challenge variety to ensure massive content expansion worked correctly
+        
+        This test addresses the specific review request:
+        1. Test German Challenge Creation with Expanded Content (5-10 challenges for Grade 2 and 3)
+        2. Content Variety Verification (different words from expanded lists)
+        3. Template Pool Size Verification (100+ spelling words, 50+ word types, 80+ fill-blank)
+        4. Randomization Testing (generate same number multiple times, confirm different selections)
+        """
+        success_count = 0
+        
+        print("\n🎯 Testing German Challenge Variety Expansion - Review Request")
+        print("Testing massive content expansion to resolve repetition issues after 2-3 tests")
+        
+        # 1. TEST GERMAN CHALLENGE CREATION WITH EXPANDED CONTENT
+        print("\n1. Testing German Challenge Creation with Expanded Content")
+        
+        # Create multiple German challenges for Grade 2 (5 challenges)
+        grade2_challenges = []
+        for i in range(5):
+            try:
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    grade2_challenges.append(challenge)
+                    self.created_resources['challenges'].append(challenge["id"])
+                else:
+                    self.log_test(f"Grade 2 Challenge Creation #{i+1}", False, f"Status code: {response.status_code}")
+            except Exception as e:
+                self.log_test(f"Grade 2 Challenge Creation #{i+1}", False, f"Exception: {str(e)}")
+        
+        if len(grade2_challenges) >= 4:
+            self.log_test("Grade 2 Multiple Challenge Creation", True, f"Successfully created {len(grade2_challenges)} Grade 2 challenges")
+            success_count += 1
+        else:
+            self.log_test("Grade 2 Multiple Challenge Creation", False, f"Only created {len(grade2_challenges)} out of 5 challenges")
+        
+        # Create multiple German challenges for Grade 3 (5 challenges)
+        grade3_challenges = []
+        for i in range(5):
+            try:
+                response = self.session.post(f"{BASE_URL}/german/challenge/3")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    grade3_challenges.append(challenge)
+                    self.created_resources['challenges'].append(challenge["id"])
+                else:
+                    self.log_test(f"Grade 3 Challenge Creation #{i+1}", False, f"Status code: {response.status_code}")
+            except Exception as e:
+                self.log_test(f"Grade 3 Challenge Creation #{i+1}", False, f"Exception: {str(e)}")
+        
+        if len(grade3_challenges) >= 4:
+            self.log_test("Grade 3 Multiple Challenge Creation", True, f"Successfully created {len(grade3_challenges)} Grade 3 challenges")
+            success_count += 1
+        else:
+            self.log_test("Grade 3 Multiple Challenge Creation", False, f"Only created {len(grade3_challenges)} out of 5 challenges")
+        
+        # 2. CONTENT VARIETY VERIFICATION
+        print("\n2. Content Variety Verification")
+        
+        # Analyze Grade 2 spelling problems for variety
+        grade2_spelling_words = set()
+        grade2_word_type_sentences = set()
+        grade2_fill_blank_texts = set()
+        
+        for challenge in grade2_challenges:
+            for problem in challenge.get("problems", []):
+                question_type = problem.get("question_type", "")
+                question = problem.get("question", "")
+                
+                if question_type == "spelling":
+                    # Extract the correct answer (the word being tested)
+                    correct_answer = problem.get("correct_answer", "")
+                    if correct_answer:
+                        grade2_spelling_words.add(correct_answer)
+                
+                elif question_type == "word_types":
+                    # Extract the sentence from problem_data
+                    problem_data = problem.get("problem_data", {})
+                    sentence = problem_data.get("sentence", "")
+                    if sentence:
+                        grade2_word_type_sentences.add(sentence)
+                
+                elif question_type == "fill_blank":
+                    # Extract the original text from problem_data
+                    problem_data = problem.get("problem_data", {})
+                    original_text = problem_data.get("original_text", "")
+                    if original_text:
+                        grade2_fill_blank_texts.add(original_text)
+        
+        # Verify Grade 2 variety
+        if len(grade2_spelling_words) >= 15:  # Expect at least 15 different spelling words across 5 challenges
+            self.log_test("Grade 2 Spelling Word Variety", True, f"Found {len(grade2_spelling_words)} different spelling words")
+            success_count += 1
+        else:
+            self.log_test("Grade 2 Spelling Word Variety", False, f"Only found {len(grade2_spelling_words)} different spelling words (expected ≥15)")
+        
+        if len(grade2_word_type_sentences) >= 10:  # Expect at least 10 different sentences
+            self.log_test("Grade 2 Word Type Sentence Variety", True, f"Found {len(grade2_word_type_sentences)} different word type sentences")
+            success_count += 1
+        else:
+            self.log_test("Grade 2 Word Type Sentence Variety", False, f"Only found {len(grade2_word_type_sentences)} different sentences (expected ≥10)")
+        
+        if len(grade2_fill_blank_texts) >= 10:  # Expect at least 10 different fill-blank texts
+            self.log_test("Grade 2 Fill-Blank Text Variety", True, f"Found {len(grade2_fill_blank_texts)} different fill-blank texts")
+            success_count += 1
+        else:
+            self.log_test("Grade 2 Fill-Blank Text Variety", False, f"Only found {len(grade2_fill_blank_texts)} different fill-blank texts (expected ≥10)")
+        
+        # Analyze Grade 3 content for variety
+        grade3_spelling_words = set()
+        grade3_word_type_sentences = set()
+        grade3_fill_blank_texts = set()
+        
+        for challenge in grade3_challenges:
+            for problem in challenge.get("problems", []):
+                question_type = problem.get("question_type", "")
+                
+                if question_type == "spelling":
+                    correct_answer = problem.get("correct_answer", "")
+                    if correct_answer:
+                        grade3_spelling_words.add(correct_answer)
+                
+                elif question_type == "word_types":
+                    problem_data = problem.get("problem_data", {})
+                    sentence = problem_data.get("sentence", "")
+                    if sentence:
+                        grade3_word_type_sentences.add(sentence)
+                
+                elif question_type == "fill_blank":
+                    problem_data = problem.get("problem_data", {})
+                    original_text = problem_data.get("original_text", "")
+                    if original_text:
+                        grade3_fill_blank_texts.add(original_text)
+        
+        # Verify Grade 3 variety
+        if len(grade3_spelling_words) >= 15:
+            self.log_test("Grade 3 Spelling Word Variety", True, f"Found {len(grade3_spelling_words)} different spelling words")
+            success_count += 1
+        else:
+            self.log_test("Grade 3 Spelling Word Variety", False, f"Only found {len(grade3_spelling_words)} different spelling words (expected ≥15)")
+        
+        if len(grade3_word_type_sentences) >= 10:
+            self.log_test("Grade 3 Word Type Sentence Variety", True, f"Found {len(grade3_word_type_sentences)} different word type sentences")
+            success_count += 1
+        else:
+            self.log_test("Grade 3 Word Type Sentence Variety", False, f"Only found {len(grade3_word_type_sentences)} different sentences (expected ≥10)")
+        
+        if len(grade3_fill_blank_texts) >= 10:
+            self.log_test("Grade 3 Fill-Blank Text Variety", True, f"Found {len(grade3_fill_blank_texts)} different fill-blank texts")
+            success_count += 1
+        else:
+            self.log_test("Grade 3 Fill-Blank Text Variety", False, f"Only found {len(grade3_fill_blank_texts)} different fill-blank texts (expected ≥10)")
+        
+        # 3. TEMPLATE POOL SIZE VERIFICATION
+        print("\n3. Template Pool Size Verification")
+        
+        # Test by creating larger challenges to see more of the template pool
+        try:
+            # Update German settings to request more problems
+            large_settings = {
+                "problem_count": 60,  # Large number to test template pool
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "spelling": True,
+                    "word_types": True,
+                    "fill_blank": True,
+                    "grammar": False,
+                    "articles": False,
+                    "sentence_order": False
+                },
+                "difficulty_settings": {
+                    "spelling_difficulty": "medium",
+                    "word_types_include_adjectives": True,
+                    "fill_blank_context_length": "short"
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=large_settings)
+            if response.status_code == 200:
+                # Create large Grade 2 challenge to test template pool
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    large_challenge = response.json()
+                    self.created_resources['challenges'].append(large_challenge["id"])
+                    
+                    # Count unique templates in large challenge
+                    large_spelling_words = set()
+                    large_word_type_sentences = set()
+                    large_fill_blank_texts = set()
+                    
+                    for problem in large_challenge.get("problems", []):
+                        question_type = problem.get("question_type", "")
+                        
+                        if question_type == "spelling":
+                            correct_answer = problem.get("correct_answer", "")
+                            if correct_answer:
+                                large_spelling_words.add(correct_answer)
+                        
+                        elif question_type == "word_types":
+                            problem_data = problem.get("problem_data", {})
+                            sentence = problem_data.get("sentence", "")
+                            if sentence:
+                                large_word_type_sentences.add(sentence)
+                        
+                        elif question_type == "fill_blank":
+                            problem_data = problem.get("problem_data", {})
+                            original_text = problem_data.get("original_text", "")
+                            if original_text:
+                                large_fill_blank_texts.add(original_text)
+                    
+                    # Verify template pool sizes
+                    if len(large_spelling_words) >= 30:  # Should see significant variety in large challenge
+                        self.log_test("Template Pool - Spelling Words", True, f"Large challenge shows {len(large_spelling_words)} unique spelling words (indicates large template pool)")
+                        success_count += 1
+                    else:
+                        self.log_test("Template Pool - Spelling Words", False, f"Large challenge only shows {len(large_spelling_words)} unique spelling words (may indicate small template pool)")
+                    
+                    if len(large_word_type_sentences) >= 15:
+                        self.log_test("Template Pool - Word Type Sentences", True, f"Large challenge shows {len(large_word_type_sentences)} unique word type sentences")
+                        success_count += 1
+                    else:
+                        self.log_test("Template Pool - Word Type Sentences", False, f"Large challenge only shows {len(large_word_type_sentences)} unique word type sentences")
+                    
+                    if len(large_fill_blank_texts) >= 15:
+                        self.log_test("Template Pool - Fill-Blank Texts", True, f"Large challenge shows {len(large_fill_blank_texts)} unique fill-blank texts")
+                        success_count += 1
+                    else:
+                        self.log_test("Template Pool - Fill-Blank Texts", False, f"Large challenge only shows {len(large_fill_blank_texts)} unique fill-blank texts")
+                
+                else:
+                    self.log_test("Template Pool Verification", False, f"Large challenge creation failed: {response.status_code}")
+            else:
+                self.log_test("Template Pool Settings Update", False, f"Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Template Pool Verification", False, f"Exception: {str(e)}")
+        
+        # 4. RANDOMIZATION TESTING
+        print("\n4. Randomization Testing")
+        
+        # Generate the same number of problems multiple times and confirm different selections
+        randomization_challenges = []
+        for i in range(3):
+            try:
+                # Reset to standard settings
+                standard_settings = {
+                    "problem_count": 20,
+                    "star_tiers": {"90": 3, "80": 2, "70": 1},
+                    "problem_types": {
+                        "spelling": True,
+                        "word_types": True,
+                        "fill_blank": True,
+                        "grammar": False,
+                        "articles": False,
+                        "sentence_order": False
+                    }
+                }
+                
+                response = self.session.put(f"{BASE_URL}/german/settings", json=standard_settings)
+                if response.status_code == 200:
+                    response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                    if response.status_code == 200:
+                        challenge = response.json()
+                        randomization_challenges.append(challenge)
+                        self.created_resources['challenges'].append(challenge["id"])
+            except Exception as e:
+                self.log_test(f"Randomization Test Challenge #{i+1}", False, f"Exception: {str(e)}")
+        
+        if len(randomization_challenges) >= 3:
+            # Compare the challenges to ensure they're different
+            challenge1_problems = set()
+            challenge2_problems = set()
+            challenge3_problems = set()
+            
+            for problem in randomization_challenges[0].get("problems", []):
+                challenge1_problems.add(problem.get("correct_answer", "") + "|" + problem.get("question_type", ""))
+            
+            for problem in randomization_challenges[1].get("problems", []):
+                challenge2_problems.add(problem.get("correct_answer", "") + "|" + problem.get("question_type", ""))
+            
+            for problem in randomization_challenges[2].get("problems", []):
+                challenge3_problems.add(problem.get("correct_answer", "") + "|" + problem.get("question_type", ""))
+            
+            # Calculate overlap between challenges
+            overlap_1_2 = len(challenge1_problems.intersection(challenge2_problems))
+            overlap_1_3 = len(challenge1_problems.intersection(challenge3_problems))
+            overlap_2_3 = len(challenge2_problems.intersection(challenge3_problems))
+            
+            total_problems = len(challenge1_problems)
+            max_overlap = max(overlap_1_2, overlap_1_3, overlap_2_3)
+            overlap_percentage = (max_overlap / total_problems) * 100 if total_problems > 0 else 100
+            
+            if overlap_percentage < 70:  # Less than 70% overlap indicates good randomization
+                self.log_test("Randomization Testing", True, f"Good randomization: max overlap {max_overlap}/{total_problems} ({overlap_percentage:.1f}%)")
+                success_count += 1
+            else:
+                self.log_test("Randomization Testing", False, f"Poor randomization: max overlap {max_overlap}/{total_problems} ({overlap_percentage:.1f}%)")
+        else:
+            self.log_test("Randomization Testing", False, f"Could not create enough challenges for randomization testing")
+        
+        # 5. NO REPETITION VERIFICATION
+        print("\n5. No Repetition Verification")
+        
+        # Check that within a single challenge, there are no duplicate problems
+        if grade2_challenges:
+            challenge = grade2_challenges[0]
+            problems = challenge.get("problems", [])
+            problem_signatures = []
+            
+            for problem in problems:
+                signature = f"{problem.get('question', '')}|{problem.get('correct_answer', '')}"
+                problem_signatures.append(signature)
+            
+            unique_problems = len(set(problem_signatures))
+            total_problems = len(problem_signatures)
+            
+            if unique_problems == total_problems:
+                self.log_test("No Repetition Within Challenge", True, f"All {total_problems} problems in challenge are unique")
+                success_count += 1
+            else:
+                self.log_test("No Repetition Within Challenge", False, f"Found {total_problems - unique_problems} duplicate problems in challenge")
+        
+        # 6. CONTENT SHORTAGE VERIFICATION
+        print("\n6. Content Shortage Verification")
+        
+        # Test creating many challenges to ensure no "shortage" errors
+        shortage_test_success = True
+        for i in range(10):  # Try to create 10 more challenges
+            try:
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code != 200:
+                    shortage_test_success = False
+                    break
+                else:
+                    challenge = response.json()
+                    self.created_resources['challenges'].append(challenge["id"])
+            except Exception as e:
+                shortage_test_success = False
+                break
+        
+        if shortage_test_success:
+            self.log_test("Content Shortage Test", True, "Successfully created 10 additional challenges without shortage errors")
+            success_count += 1
+        else:
+            self.log_test("Content Shortage Test", False, "Encountered errors when creating multiple challenges (possible content shortage)")
+        
+        return success_count >= 8  # Expect at least 8 out of 12 tests to pass
     
     def cleanup_resources(self):
         """Clean up created test resources"""
