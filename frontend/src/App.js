@@ -2885,6 +2885,13 @@ function App() {
             onComplete={loadData}
           />
         )}
+
+        {showEnglishChallenge && (
+          <EnglishChallenge 
+            onClose={() => setShowEnglishChallenge(false)}
+            onComplete={loadData}
+          />
+        )}
         
         {showSafe && (
           <SafeModal
@@ -2907,6 +2914,14 @@ function App() {
           <GermanSettingsModal
             isOpen={showGermanSettings}
             onClose={() => setShowGermanSettings(false)}
+            onComplete={loadData}
+          />
+        )}
+
+        {showEnglishSettings && (
+          <EnglishSettingsModal
+            isOpen={showEnglishSettings}
+            onClose={() => setShowEnglishSettings(false)}
             onComplete={loadData}
           />
         )}
