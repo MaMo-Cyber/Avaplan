@@ -2708,7 +2708,7 @@ function App() {
           
           <button 
             onClick={() => setShowEnglishChallenge(true)}
-            className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-8 py-6 rounded-2xl text-lg font-bold hover:from-green-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="bg-gradient-to-r from-purple-500 to-violet-600 text-white px-8 py-6 rounded-2xl text-lg font-bold hover:from-purple-600 hover:to-violet-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             🇬🇧 Englisch-Herausforderung
           </button>
