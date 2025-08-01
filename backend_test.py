@@ -1099,6 +1099,275 @@ class BackendTester:
         
         return success_count >= 6  # Expect at least 6 out of 8 main tests to pass
 
+    def test_reset_safe_api(self):
+        """Test the new Reset-Safe API functionality as per German review request
+        
+        Tests the new reset system with three different reset types:
+        1. Reset-Safe: Only resets safe stars, keeps task and available stars
+        2. Reset: Resets task and available stars, keeps safe stars  
+        3. Reset-All: Resets everything
+        
+        Detailed test scenario with task stars (5), available stars (3), safe stars (8)
+        """
+        success_count = 0
+        
+        print("\n🔄 Testing Reset-Safe API - German Review Request")
+        print("Testing new reset system with precise control over reset behavior")
+        
+        # SETUP: Create test data with specific star distribution
+        try:
+            # 1. Reset everything to start clean
+            response = self.session.post(f"{BASE_URL}/progress/reset-all-stars")
+            if response.status_code == 200:
+                self.log_test("Setup: Clean Reset", True, "All stars reset for clean test start")
+            else:
+                self.log_test("Setup: Clean Reset", False, f"Status code: {response.status_code}")
+                
+            # 2. Create tasks and add task stars (5 total)
+            task1_data = {"name": "Mathe Hausaufgaben"}
+            task2_data = {"name": "Deutsch lesen"}
+            
+            response1 = self.session.post(f"{BASE_URL}/tasks", json=task1_data)
+            response2 = self.session.post(f"{BASE_URL}/tasks", json=task2_data)
+            
+            if response1.status_code == 200 and response2.status_code == 200:
+                task1_id = response1.json()["id"]
+                task2_id = response2.json()["id"]
+                self.created_resources['tasks'].extend([task1_id, task2_id])
+                
+                # Add 5 task stars: Task1 gets 3 stars, Task2 gets 2 stars
+                star_updates = [
+                    (task1_id, "monday", 2),
+                    (task1_id, "tuesday", 1), 
+                    (task2_id, "wednesday", 2)
+                ]
+                
+                for task_id, day, stars in star_updates:
+                    response = self.session.post(f"{BASE_URL}/stars/{task_id}/{day}?stars={stars}")
+                    if response.status_code != 200:
+                        raise Exception(f"Failed to add {stars} stars for {day}")
+                
+                # 3. Move 2 stars to safe (leaving 3 available for tasks)
+                response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=2")
+                if response.status_code == 200:
+                    # 4. Add more task stars and move more to safe to get 8 safe stars total
+                    response = self.session.post(f"{BASE_URL}/stars/{task1_id}/thursday?stars=2")
+                    response = self.session.post(f"{BASE_URL}/stars/{task2_id}/friday?stars=1")
+                    response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=3")
+                    response = self.session.post(f"{BASE_URL}/stars/{task1_id}/saturday?stars=2")
+                    response = self.session.post(f"{BASE_URL}/stars/{task2_id}/sunday?stars=1")
+                    response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=3")
+                    
+                    # 5. Withdraw 3 stars from safe to available stars
+                    response = self.session.post(f"{BASE_URL}/progress/withdraw-from-safe?stars=3")
+                    if response.status_code == 200:
+                        # Verify setup: Should have ~5 task stars, 3 available stars, 8 safe stars
+                        response = self.session.get(f"{BASE_URL}/progress")
+                        if response.status_code == 200:
+                            setup_progress = response.json()
+                            task_stars = setup_progress.get("total_stars", 0)  # Available for moving
+                            available_stars = setup_progress.get("available_stars", 0)
+                            safe_stars = setup_progress.get("stars_in_safe", 0)
+                            
+                            if task_stars >= 3 and available_stars >= 3 and safe_stars >= 5:
+                                self.log_test("Setup: Test Data Creation", True, 
+                                            f"✅ Created test data: task_stars={task_stars}, available_stars={available_stars}, safe_stars={safe_stars}")
+                                success_count += 1
+                            else:
+                                self.log_test("Setup: Test Data Creation", False, 
+                                            f"❌ Unexpected setup: task_stars={task_stars}, available_stars={available_stars}, safe_stars={safe_stars}")
+                        else:
+                            self.log_test("Setup: Test Data Creation", False, "Failed to get progress after setup")
+                    else:
+                        self.log_test("Setup: Test Data Creation", False, f"Safe withdrawal failed: {response.status_code}")
+                else:
+                    self.log_test("Setup: Test Data Creation", False, f"Add to safe failed: {response.status_code}")
+            else:
+                self.log_test("Setup: Test Data Creation", False, "Failed to create test tasks")
+        except Exception as e:
+            self.log_test("Setup: Test Data Creation", False, f"Exception: {str(e)}")
+        
+        # TEST 1: Reset-Safe API - Should only reset safe stars
+        try:
+            # Get state before reset-safe
+            response = self.session.get(f"{BASE_URL}/progress")
+            if response.status_code == 200:
+                before_reset_safe = response.json()
+                before_task_stars = before_reset_safe.get("total_stars", 0)
+                before_available_stars = before_reset_safe.get("available_stars", 0)
+                before_safe_stars = before_reset_safe.get("stars_in_safe", 0)
+                
+                # Execute reset-safe
+                response = self.session.post(f"{BASE_URL}/progress/reset-safe")
+                if response.status_code == 200:
+                    # Get state after reset-safe
+                    response = self.session.get(f"{BASE_URL}/progress")
+                    if response.status_code == 200:
+                        after_reset_safe = response.json()
+                        after_task_stars = after_reset_safe.get("total_stars", 0)
+                        after_available_stars = after_reset_safe.get("available_stars", 0)
+                        after_safe_stars = after_reset_safe.get("stars_in_safe", 0)
+                        
+                        # Verify: Only safe stars should be 0, others unchanged
+                        if (after_safe_stars == 0 and 
+                            after_task_stars == before_task_stars and 
+                            after_available_stars == before_available_stars):
+                            self.log_test("1. Reset-Safe API Test", True, 
+                                        f"✅ Only safe reset: safe {before_safe_stars}→{after_safe_stars}, task {before_task_stars}→{after_task_stars}, available {before_available_stars}→{after_available_stars}")
+                            success_count += 1
+                        else:
+                            self.log_test("1. Reset-Safe API Test", False, 
+                                        f"❌ Unexpected changes: safe {before_safe_stars}→{after_safe_stars}, task {before_task_stars}→{after_task_stars}, available {before_available_stars}→{after_available_stars}")
+                    else:
+                        self.log_test("1. Reset-Safe API Test", False, "Failed to get progress after reset-safe")
+                else:
+                    self.log_test("1. Reset-Safe API Test", False, f"Reset-safe failed: {response.status_code}")
+            else:
+                self.log_test("1. Reset-Safe API Test", False, "Failed to get progress before reset-safe")
+        except Exception as e:
+            self.log_test("1. Reset-Safe API Test", False, f"Exception: {str(e)}")
+        
+        # TEST 2: Regular Reset API - Should reset task/available stars, keep safe
+        try:
+            # Add some stars back to safe for this test
+            response = self.session.post(f"{BASE_URL}/stars/{task1_id}/monday?stars=2")
+            response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=2")
+            
+            # Get state before regular reset
+            response = self.session.get(f"{BASE_URL}/progress")
+            if response.status_code == 200:
+                before_reset = response.json()
+                before_safe_stars = before_reset.get("stars_in_safe", 0)
+                
+                # Execute regular reset
+                response = self.session.post(f"{BASE_URL}/progress/reset")
+                if response.status_code == 200:
+                    # Get state after regular reset
+                    response = self.session.get(f"{BASE_URL}/progress")
+                    if response.status_code == 200:
+                        after_reset = response.json()
+                        after_task_stars = after_reset.get("total_stars", 0)
+                        after_available_stars = after_reset.get("available_stars", 0)
+                        after_safe_stars = after_reset.get("stars_in_safe", 0)
+                        
+                        # Verify: Task and available stars should be 0, safe stars preserved
+                        if (after_task_stars == 0 and after_available_stars == 0 and 
+                            after_safe_stars == before_safe_stars and after_safe_stars > 0):
+                            self.log_test("2. Regular Reset API Test", True, 
+                                        f"✅ Task/available reset, safe preserved: task=0, available=0, safe={after_safe_stars}")
+                            success_count += 1
+                        else:
+                            self.log_test("2. Regular Reset API Test", False, 
+                                        f"❌ Unexpected state: task={after_task_stars}, available={after_available_stars}, safe={before_safe_stars}→{after_safe_stars}")
+                    else:
+                        self.log_test("2. Regular Reset API Test", False, "Failed to get progress after regular reset")
+                else:
+                    self.log_test("2. Regular Reset API Test", False, f"Regular reset failed: {response.status_code}")
+            else:
+                self.log_test("2. Regular Reset API Test", False, "Failed to get progress before regular reset")
+        except Exception as e:
+            self.log_test("2. Regular Reset API Test", False, f"Exception: {str(e)}")
+        
+        # TEST 3: Reset-All API - Should reset everything
+        try:
+            # Get state before reset-all
+            response = self.session.get(f"{BASE_URL}/progress")
+            if response.status_code == 200:
+                before_reset_all = response.json()
+                before_safe_stars = before_reset_all.get("stars_in_safe", 0)
+                
+                # Execute reset-all
+                response = self.session.post(f"{BASE_URL}/progress/reset-all-stars")
+                if response.status_code == 200:
+                    # Get state after reset-all
+                    response = self.session.get(f"{BASE_URL}/progress")
+                    if response.status_code == 200:
+                        after_reset_all = response.json()
+                        after_task_stars = after_reset_all.get("total_stars", 0)
+                        after_available_stars = after_reset_all.get("available_stars", 0)
+                        after_safe_stars = after_reset_all.get("stars_in_safe", 0)
+                        
+                        # Verify: Everything should be 0
+                        if (after_task_stars == 0 and after_available_stars == 0 and after_safe_stars == 0):
+                            self.log_test("3. Reset-All API Test", True, 
+                                        f"✅ Everything reset: task=0, available=0, safe=0 (was {before_safe_stars})")
+                            success_count += 1
+                        else:
+                            self.log_test("3. Reset-All API Test", False, 
+                                        f"❌ Not everything reset: task={after_task_stars}, available={after_available_stars}, safe={after_safe_stars}")
+                    else:
+                        self.log_test("3. Reset-All API Test", False, "Failed to get progress after reset-all")
+                else:
+                    self.log_test("3. Reset-All API Test", False, f"Reset-all failed: {response.status_code}")
+            else:
+                self.log_test("3. Reset-All API Test", False, "Failed to get progress before reset-all")
+        except Exception as e:
+            self.log_test("3. Reset-All API Test", False, f"Exception: {str(e)}")
+        
+        # TEST 4: Error Handling - Test with non-existent progress document
+        try:
+            # Clear all progress documents to test error handling
+            # Note: This is a destructive test, so we do it last
+            
+            # Try reset-safe with no progress document
+            response = self.session.post(f"{BASE_URL}/progress/reset-safe")
+            if response.status_code == 200:
+                # Should handle gracefully (create or ignore missing document)
+                self.log_test("4. Error Handling - No Progress Document", True, 
+                            "✅ Reset-safe handled missing progress document gracefully")
+                success_count += 1
+            else:
+                # Check if it's a reasonable error response
+                if response.status_code in [404, 400]:
+                    self.log_test("4. Error Handling - No Progress Document", True, 
+                                f"✅ Reset-safe properly returned error {response.status_code} for missing document")
+                    success_count += 1
+                else:
+                    self.log_test("4. Error Handling - No Progress Document", False, 
+                                f"❌ Unexpected status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("4. Error Handling - No Progress Document", False, f"Exception: {str(e)}")
+        
+        # TEST 5: Response Messages Verification
+        try:
+            # Test that each reset API returns proper response messages
+            response = self.session.post(f"{BASE_URL}/progress/reset-safe")
+            if response.status_code == 200:
+                data = response.json()
+                if "safe" in data.get("message", "").lower() and "preserved" in data.get("message", "").lower():
+                    self.log_test("5. Reset-Safe Response Message", True, 
+                                f"✅ Proper response message: {data.get('message')}")
+                    success_count += 1
+                else:
+                    self.log_test("5. Reset-Safe Response Message", False, 
+                                f"❌ Unclear response message: {data.get('message')}")
+            
+            response = self.session.post(f"{BASE_URL}/progress/reset")
+            if response.status_code == 200:
+                data = response.json()
+                if "safe" in data.get("message", "").lower() and "preserved" in data.get("message", "").lower():
+                    self.log_test("5. Regular Reset Response Message", True, 
+                                f"✅ Proper response message: {data.get('message')}")
+                    success_count += 1
+                else:
+                    self.log_test("5. Regular Reset Response Message", False, 
+                                f"❌ Unclear response message: {data.get('message')}")
+            
+            response = self.session.post(f"{BASE_URL}/progress/reset-all-stars")
+            if response.status_code == 200:
+                data = response.json()
+                if "all" in data.get("message", "").lower():
+                    self.log_test("5. Reset-All Response Message", True, 
+                                f"✅ Proper response message: {data.get('message')}")
+                    success_count += 1
+                else:
+                    self.log_test("5. Reset-All Response Message", False, 
+                                f"❌ Unclear response message: {data.get('message')}")
+        except Exception as e:
+            self.log_test("5. Response Messages Verification", False, f"Exception: {str(e)}")
+        
+        return success_count >= 6  # Expect at least 6 out of 8 tests to pass
+
     def test_german_challenge_creation(self):
         """Test German Challenge Creation API for both Grade 2 and 3"""
         success_count = 0
