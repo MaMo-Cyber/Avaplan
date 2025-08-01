@@ -2640,18 +2640,13 @@ function App() {
   };
 
   const deleteAllRewards = async () => {
-    const confirmMessage = 'Bist du sicher, dass du ALLE Belohnungen löschen möchtest?\n\n' +
-                          'Diese Aktion kann nicht rückgängig gemacht werden!';
-    
-    if (confirm(confirmMessage)) {
-      try {
-        await axios.delete(`${API}/rewards/all`);
-        loadData();
-        alert('Alle Belohnungen wurden erfolgreich gelöscht!');
-      } catch (error) {
-        console.error('Fehler beim Löschen aller Belohnungen:', error);
-        alert('Fehler beim Löschen der Belohnungen!');
-      }
+    try {
+      await axios.delete(`${API}/rewards/all`);
+      loadData();
+      alert('Alle Belohnungen wurden erfolgreich gelöscht!');
+    } catch (error) {
+      console.error('Fehler beim Löschen aller Belohnungen:', error);
+      alert('Fehler beim Löschen der Belohnungen!');
     }
   };
 
