@@ -172,6 +172,57 @@ class GermanStatistics(BaseModel):
     problem_type_stats: Dict[str, Dict] = Field(default={})  # Stats per problem type
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
+# English Challenge Models
+class EnglishProblem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    question: str
+    question_type: str  # "vocabulary_de_en", "vocabulary_en_de", "simple_sentences", "basic_grammar"
+    problem_data: Optional[Dict] = None  # Additional data for complex problems
+    options: Optional[List[str]] = None  # For multiple choice questions
+    correct_answer: str
+    user_answer: Optional[str] = None
+    is_correct: Optional[bool] = None
+
+class EnglishChallenge(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    grade: int  # 2 or 3
+    problems: List[EnglishProblem]
+    completed: bool = Field(default=False)
+    score: int = Field(default=0)
+    stars_earned: int = Field(default=0)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class EnglishSettings(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    problem_count: int = Field(default=15)  # Default number of English problems
+    star_tiers: Dict[str, int] = Field(default={"90": 3, "80": 2, "70": 1})
+    problem_types: Dict[str, bool] = Field(default={
+        "vocabulary_de_en": True,  # German to English vocabulary
+        "vocabulary_en_de": True,  # English to German vocabulary
+        "simple_sentences": True,  # Simple sentence translation
+        "basic_grammar": False,    # Basic English grammar
+        "colors_numbers": True,    # Colors and numbers
+        "animals_objects": True    # Animals and everyday objects
+    })
+    difficulty_settings: Dict[str, Any] = Field(default={
+        "vocabulary_level": "basic",  # basic, intermediate
+        "include_articles": False,    # Include "der/die/das" with German words
+        "sentence_complexity": "simple"  # simple, medium
+    })
+
+class EnglishStatistics(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    total_attempts: int = Field(default=0)
+    grade_2_attempts: int = Field(default=0)
+    grade_3_attempts: int = Field(default=0)
+    total_correct: int = Field(default=0)
+    total_wrong: int = Field(default=0)
+    average_score: float = Field(default=0.0)
+    best_score: float = Field(default=0.0)
+    total_stars_earned: int = Field(default=0)
+    problem_type_stats: Dict[str, Dict] = Field(default={})  # Stats per problem type
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+
 async def generate_german_problems(grade: int, count: int = None) -> List[GermanProblem]:
     """Generate AI-powered German language problems"""
     
