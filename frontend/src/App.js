@@ -166,7 +166,7 @@ const StarsSummary = ({ taskStars, availableStars, onAddTaskStarsToAvailable }) 
 };
 
 // Progress Bar Component
-const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onResetWeek }) => {
+const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onOpenAdminSettings }) => {
   const percentage = total > 0 ? (current / total) * 100 : 0;
   
   return (
@@ -200,10 +200,10 @@ const ProgressBar = ({ current, total, starsInSafe, onOpenSafe, onAddToSafe, onR
           </button>
         </div>
         <button 
-          className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-          onClick={onResetWeek}
+          className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+          onClick={onOpenAdminSettings}
         >
-          Woche Zurücksetzen
+          ⚙️ Verwaltung
         </button>
       </div>
     </div>
