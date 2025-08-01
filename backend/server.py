@@ -1010,7 +1010,7 @@ async def generate_english_problems(grade: int, count: int = None) -> List[Engli
     return problems[:count]
 
 async def generate_vocabulary_de_en_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
-    """Generate German to English vocabulary problems"""
+    """Generate German to English vocabulary problems using massively expanded content"""
     problems = []
     
     # Try AI generation first
@@ -1023,182 +1023,215 @@ async def generate_vocabulary_de_en_problems(count: int, grade: int, settings: E
     except Exception as e:
         logging.error(f"AI vocabulary DE->EN generation failed: {e}")
     
-    # Fallback to predefined vocabulary problems
-    grade2_vocabulary = [
-        {"german": "Hund", "english": "dog", "wrong": ["cat", "bird", "fish"]},
-        {"german": "Katze", "english": "cat", "wrong": ["dog", "mouse", "bird"]},
-        {"german": "Auto", "english": "car", "wrong": ["bus", "train", "bike"]},
-        {"german": "Haus", "english": "house", "wrong": ["tree", "car", "book"]},
-        {"german": "Baum", "english": "tree", "wrong": ["flower", "grass", "house"]},
-        {"german": "Wasser", "english": "water", "wrong": ["milk", "juice", "tea"]},
-        {"german": "Brot", "english": "bread", "wrong": ["cake", "apple", "cheese"]},
-        {"german": "Apfel", "english": "apple", "wrong": ["banana", "orange", "grape"]},
-        {"german": "Schule", "english": "school", "wrong": ["home", "park", "shop"]},
-        {"german": "Buch", "english": "book", "wrong": ["pen", "paper", "table"]},
-        {"german": "rot", "english": "red", "wrong": ["blue", "green", "yellow"]},
-        {"german": "blau", "english": "blue", "wrong": ["red", "green", "black"]},
-        {"german": "groß", "english": "big", "wrong": ["small", "long", "fast"]},
-        {"german": "klein", "english": "small", "wrong": ["big", "tall", "wide"]},
-        {"german": "gut", "english": "good", "wrong": ["bad", "fast", "slow"]},
-        {"german": "Ball", "english": "ball", "wrong": ["toy", "game", "stick"]},
-        {"german": "Mama", "english": "mom", "wrong": ["dad", "sister", "brother"]},
-        {"german": "Papa", "english": "dad", "wrong": ["mom", "uncle", "grandpa"]},
-        {"german": "Kind", "english": "child", "wrong": ["adult", "baby", "parent"]},
-        {"german": "Freund", "english": "friend", "wrong": ["enemy", "teacher", "doctor"]},
-        {"german": "Sonne", "english": "sun", "wrong": ["moon", "star", "cloud"]},
-        {"german": "Mond", "english": "moon", "wrong": ["sun", "star", "planet"]},
-        {"german": "Blume", "english": "flower", "wrong": ["tree", "grass", "leaf"]},
-        {"german": "Vogel", "english": "bird", "wrong": ["fish", "cat", "dog"]},
-        {"german": "Fisch", "english": "fish", "wrong": ["bird", "cat", "mouse"]},
-        {"german": "Maus", "english": "mouse", "wrong": ["cat", "dog", "bird"]},
-        {"german": "Tür", "english": "door", "wrong": ["window", "wall", "roof"]},
-        {"german": "Fenster", "english": "window", "wrong": ["door", "wall", "floor"]},
-        {"german": "Tisch", "english": "table", "wrong": ["chair", "bed", "sofa"]},
-        {"german": "Stuhl", "english": "chair", "wrong": ["table", "bed", "lamp"]},
-        {"german": "warm", "english": "warm", "wrong": ["cold", "hot", "cool"]},
-        {"german": "kalt", "english": "cold", "wrong": ["warm", "hot", "cool"]},
-        {"german": "schnell", "english": "fast", "wrong": ["slow", "big", "small"]},
-        {"german": "langsam", "english": "slow", "wrong": ["fast", "quick", "rapid"]},
-        {"german": "neu", "english": "new", "wrong": ["old", "used", "broken"]},
-        {"german": "alt", "english": "old", "wrong": ["new", "young", "fresh"]},
-        {"german": "glücklich", "english": "happy", "wrong": ["sad", "angry", "tired"]},
-        {"german": "traurig", "english": "sad", "wrong": ["happy", "glad", "joyful"]},
-        {"german": "Milch", "english": "milk", "wrong": ["water", "juice", "tea"]},
-        {"german": "Käse", "english": "cheese", "wrong": ["bread", "butter", "meat"]},
-        {"german": "Ei", "english": "egg", "wrong": ["chicken", "milk", "bread"]},
-        {"german": "Fleisch", "english": "meat", "wrong": ["bread", "fruit", "vegetable"]},
-        {"german": "Gemüse", "english": "vegetable", "wrong": ["fruit", "meat", "bread"]},
-        {"german": "Obst", "english": "fruit", "wrong": ["vegetable", "meat", "bread"]},
-        {"german": "Banane", "english": "banana", "wrong": ["apple", "orange", "grape"]},
-        {"german": "Orange", "english": "orange", "wrong": ["apple", "banana", "lemon"]},
-        {"german": "Zitrone", "english": "lemon", "wrong": ["orange", "apple", "lime"]},
-        {"german": "Traube", "english": "grape", "wrong": ["berry", "cherry", "plum"]},
-        {"german": "Kirsche", "english": "cherry", "wrong": ["grape", "berry", "plum"]},
-        {"german": "Erdbeere", "english": "strawberry", "wrong": ["cherry", "grape", "berry"]},
-        {"german": "Familie", "english": "family", "wrong": ["friends", "people", "group"]},
-        {"german": "Bruder", "english": "brother", "wrong": ["sister", "cousin", "friend"]},
-        {"german": "Schwester", "english": "sister", "wrong": ["brother", "cousin", "friend"]},
-        {"german": "Oma", "english": "grandma", "wrong": ["mom", "aunt", "sister"]},
-        {"german": "Opa", "english": "grandpa", "wrong": ["dad", "uncle", "brother"]},
-        {"german": "Tante", "english": "aunt", "wrong": ["mom", "sister", "cousin"]},
-        {"german": "Onkel", "english": "uncle", "wrong": ["dad", "brother", "cousin"]},
-        {"german": "Baby", "english": "baby", "wrong": ["child", "adult", "teenager"]},
-        {"german": "Junge", "english": "boy", "wrong": ["girl", "man", "child"]},
-        {"german": "Mädchen", "english": "girl", "wrong": ["boy", "woman", "child"]},
-        {"german": "Mann", "english": "man", "wrong": ["woman", "boy", "person"]},
-        {"german": "Frau", "english": "woman", "wrong": ["man", "girl", "person"]},
-        {"german": "Tier", "english": "animal", "wrong": ["plant", "person", "thing"]},
-        {"german": "Pferd", "english": "horse", "wrong": ["cow", "pig", "sheep"]},
-        {"german": "Kuh", "english": "cow", "wrong": ["horse", "pig", "goat"]},
-        {"german": "Schwein", "english": "pig", "wrong": ["cow", "horse", "sheep"]},
-        {"german": "Schaf", "english": "sheep", "wrong": ["goat", "cow", "pig"]},
-        {"german": "Ziege", "english": "goat", "wrong": ["sheep", "cow", "horse"]},
-        {"german": "Hase", "english": "rabbit", "wrong": ["mouse", "cat", "hamster"]},
-        {"german": "Hamster", "english": "hamster", "wrong": ["mouse", "rabbit", "rat"]},
-        {"german": "spielen", "english": "to play", "wrong": ["to work", "to sleep", "to eat"]},
-        {"german": "laufen", "english": "to run", "wrong": ["to walk", "to jump", "to sit"]},
-        {"german": "gehen", "english": "to go", "wrong": ["to come", "to stay", "to stop"]},
-        {"german": "kommen", "english": "to come", "wrong": ["to go", "to leave", "to stay"]},
-        {"german": "essen", "english": "to eat", "wrong": ["to drink", "to sleep", "to play"]},
-        {"german": "trinken", "english": "to drink", "wrong": ["to eat", "to sleep", "to walk"]},
-        {"german": "schlafen", "english": "to sleep", "wrong": ["to wake", "to eat", "to play"]},
-        {"german": "sehen", "english": "to see", "wrong": ["to hear", "to feel", "to smell"]},
-        {"german": "hören", "english": "to hear", "wrong": ["to see", "to feel", "to taste"]},
-        {"german": "sprechen", "english": "to speak", "wrong": ["to listen", "to write", "to read"]},
-        {"german": "lesen", "english": "to read", "wrong": ["to write", "to speak", "to listen"]},
-        {"german": "schreiben", "english": "to write", "wrong": ["to read", "to draw", "to paint"]},
-        {"german": "malen", "english": "to paint", "wrong": ["to draw", "to write", "to color"]},
-        {"german": "singen", "english": "to sing", "wrong": ["to dance", "to play", "to listen"]},
-        {"german": "tanzen", "english": "to dance", "wrong": ["to sing", "to jump", "to run"]},
-        {"german": "springen", "english": "to jump", "wrong": ["to run", "to walk", "to dance"]},
-        {"german": "schwimmen", "english": "to swim", "wrong": ["to run", "to fly", "to walk"]},
-        {"german": "fliegen", "english": "to fly", "wrong": ["to swim", "to run", "to jump"]},
-        {"german": "fahren", "english": "to drive", "wrong": ["to walk", "to fly", "to swim"]},
-        {"german": "arbeiten", "english": "to work", "wrong": ["to play", "to rest", "to sleep"]},
-        {"german": "lernen", "english": "to learn", "wrong": ["to teach", "to forget", "to play"]},
-        {"german": "lehren", "english": "to teach", "wrong": ["to learn", "to study", "to play"]},
-        {"german": "helfen", "english": "to help", "wrong": ["to hurt", "to ignore", "to leave"]},
-        {"german": "kaufen", "english": "to buy", "wrong": ["to sell", "to give", "to take"]},
-        {"german": "verkaufen", "english": "to sell", "wrong": ["to buy", "to give", "to keep"]},
-        {"german": "geben", "english": "to give", "wrong": ["to take", "to keep", "to sell"]},
-        {"german": "nehmen", "english": "to take", "wrong": ["to give", "to leave", "to put"]},
-        {"german": "haben", "english": "to have", "wrong": ["to be", "to get", "to lose"]},
-        {"german": "sein", "english": "to be", "wrong": ["to have", "to do", "to go"]},
-        {"german": "werden", "english": "to become", "wrong": ["to be", "to have", "to stay"]},
-        {"german": "machen", "english": "to make", "wrong": ["to break", "to fix", "to buy"]},
-        {"german": "tun", "english": "to do", "wrong": ["to make", "to be", "to have"]},
-        {"german": "können", "english": "can", "wrong": ["must", "should", "will"]},
-        {"german": "müssen", "english": "must", "wrong": ["can", "may", "should"]},
-        {"german": "wollen", "english": "want", "wrong": ["need", "must", "can"]},
-        {"german": "mögen", "english": "like", "wrong": ["hate", "love", "need"]},
-        {"german": "lieben", "english": "love", "wrong": ["like", "hate", "need"]},
-        {"german": "hassen", "english": "hate", "wrong": ["love", "like", "enjoy"]},
-        {"german": "brauchen", "english": "need", "wrong": ["want", "have", "get"]},
-        {"german": "bekommen", "english": "get", "wrong": ["give", "take", "have"]},
-        {"german": "verlieren", "english": "lose", "wrong": ["find", "win", "get"]},
-        {"german": "finden", "english": "find", "wrong": ["lose", "search", "look"]},
-        {"german": "suchen", "english": "search", "wrong": ["find", "lose", "get"]},
-        {"german": "warten", "english": "wait", "wrong": ["go", "run", "leave"]},
-        {"german": "bleiben", "english": "stay", "wrong": ["go", "leave", "come"]},
-        {"german": "verlassen", "english": "leave", "wrong": ["stay", "come", "arrive"]},
-        {"german": "ankommen", "english": "arrive", "wrong": ["leave", "go", "stay"]},
-        {"german": "beginnen", "english": "begin", "wrong": ["end", "stop", "finish"]},
-        {"german": "aufhören", "english": "stop", "wrong": ["start", "begin", "continue"]},
-        {"german": "weitermachen", "english": "continue", "wrong": ["stop", "end", "pause"]},
-        {"german": "Nummer", "english": "number", "wrong": ["letter", "word", "name"]},
-        {"german": "eins", "english": "one", "wrong": ["two", "three", "four"]},
-        {"german": "zwei", "english": "two", "wrong": ["one", "three", "four"]},
-        {"german": "drei", "english": "three", "wrong": ["two", "four", "five"]},
-        {"german": "vier", "english": "four", "wrong": ["three", "five", "six"]},
-        {"german": "fünf", "english": "five", "wrong": ["four", "six", "seven"]},
-        {"german": "sechs", "english": "six", "wrong": ["five", "seven", "eight"]},
-        {"german": "sieben", "english": "seven", "wrong": ["six", "eight", "nine"]},
-        {"german": "acht", "english": "eight", "wrong": ["seven", "nine", "ten"]},
-        {"german": "neun", "english": "nine", "wrong": ["eight", "ten", "eleven"]},
-        {"german": "zehn", "english": "ten", "wrong": ["nine", "eleven", "twelve"]}
-    ]
+    # Import massively expanded content
+    try:
+        from english_content_expanded import ENGLISH_VOCABULARY_BASIC, ENGLISH_VOCABULARY_INTERMEDIATE
+        
+        if grade == 2 or settings.difficulty_settings.get("vocabulary_level") == "basic":
+            vocab_list = ENGLISH_VOCABULARY_BASIC
+        else:
+            vocab_list = ENGLISH_VOCABULARY_BASIC + ENGLISH_VOCABULARY_INTERMEDIATE
+    except ImportError:
+        # Fallback to basic vocabulary if imports fail
+        vocab_list = [
+            {"english": "dog", "german": "Hund", "category": "animals"},
+            {"english": "cat", "german": "Katze", "category": "animals"},
+            {"english": "house", "german": "Haus", "category": "household"},
+            {"english": "car", "german": "Auto", "category": "transport"},
+            {"english": "tree", "german": "Baum", "category": "nature"},
+            {"english": "water", "german": "Wasser", "category": "food"},
+            {"english": "bread", "german": "Brot", "category": "food"},
+            {"english": "apple", "german": "Apfel", "category": "food"},
+            {"english": "school", "german": "Schule", "category": "places"},
+            {"english": "book", "german": "Buch", "category": "objects"},
+            {"english": "red", "german": "rot", "category": "colors"},
+            {"english": "blue", "german": "blau", "category": "colors"},
+            {"english": "big", "german": "groß", "category": "adjectives"},
+            {"english": "small", "german": "klein", "category": "adjectives"},
+            {"english": "good", "german": "gut", "category": "adjectives"},
+            {"english": "ball", "german": "Ball", "category": "toys"},
+            {"english": "mom", "german": "Mama", "category": "family"},
+            {"english": "dad", "german": "Papa", "category": "family"},
+            {"english": "child", "german": "Kind", "category": "family"},
+            {"english": "friend", "german": "Freund", "category": "people"},
+            {"english": "sun", "german": "Sonne", "category": "nature"},
+            {"english": "moon", "german": "Mond", "category": "nature"},
+            {"english": "flower", "german": "Blume", "category": "nature"},
+            {"english": "bird", "german": "Vogel", "category": "animals"},
+            {"english": "fish", "german": "Fisch", "category": "animals"},
+            {"english": "mouse", "german": "Maus", "category": "animals"},
+            {"english": "door", "german": "Tür", "category": "household"},
+            {"english": "window", "german": "Fenster", "category": "household"},
+            {"english": "table", "german": "Tisch", "category": "household"},
+            {"english": "chair", "german": "Stuhl", "category": "household"},
+            {"english": "warm", "german": "warm", "category": "adjectives"},
+            {"english": "cold", "german": "kalt", "category": "adjectives"},
+            {"english": "fast", "german": "schnell", "category": "adjectives"},
+            {"english": "slow", "german": "langsam", "category": "adjectives"},
+            {"english": "new", "german": "neu", "category": "adjectives"},
+            {"english": "old", "german": "alt", "category": "adjectives"},
+            {"english": "happy", "german": "glücklich", "category": "emotions"},
+            {"english": "sad", "german": "traurig", "category": "emotions"},
+            {"english": "milk", "german": "Milch", "category": "food"},
+            {"english": "cheese", "german": "Käse", "category": "food"},
+            {"english": "egg", "german": "Ei", "category": "food"},
+            {"english": "meat", "german": "Fleisch", "category": "food"},
+            {"english": "vegetable", "german": "Gemüse", "category": "food"},
+            {"english": "fruit", "german": "Obst", "category": "food"},
+            {"english": "banana", "german": "Banane", "category": "food"},
+            {"english": "orange", "german": "Orange", "category": "food"},
+            {"english": "lemon", "german": "Zitrone", "category": "food"},
+            {"english": "grape", "german": "Traube", "category": "food"},
+            {"english": "cherry", "german": "Kirsche", "category": "food"},
+            {"english": "strawberry", "german": "Erdbeere", "category": "food"},
+            {"english": "family", "german": "Familie", "category": "family"},
+            {"english": "brother", "german": "Bruder", "category": "family"},
+            {"english": "sister", "german": "Schwester", "category": "family"},
+            {"english": "grandma", "german": "Oma", "category": "family"},
+            {"english": "grandpa", "german": "Opa", "category": "family"},
+            {"english": "aunt", "german": "Tante", "category": "family"},
+            {"english": "uncle", "german": "Onkel", "category": "family"},
+            {"english": "baby", "german": "Baby", "category": "family"},
+            {"english": "boy", "german": "Junge", "category": "people"},
+            {"english": "girl", "german": "Mädchen", "category": "people"},
+            {"english": "man", "german": "Mann", "category": "people"},
+            {"english": "woman", "german": "Frau", "category": "people"},
+            {"english": "animal", "german": "Tier", "category": "animals"},
+            {"english": "horse", "german": "Pferd", "category": "animals"},
+            {"english": "cow", "german": "Kuh", "category": "animals"},
+            {"english": "pig", "german": "Schwein", "category": "animals"},
+            {"english": "sheep", "german": "Schaf", "category": "animals"},
+            {"english": "goat", "german": "Ziege", "category": "animals"},
+            {"english": "rabbit", "german": "Hase", "category": "animals"},
+            {"english": "hamster", "german": "Hamster", "category": "animals"},
+            {"english": "to play", "german": "spielen", "category": "verbs"},
+            {"english": "to run", "german": "laufen", "category": "verbs"},
+            {"english": "to go", "german": "gehen", "category": "verbs"},
+            {"english": "to come", "german": "kommen", "category": "verbs"},
+            {"english": "to eat", "german": "essen", "category": "verbs"},
+            {"english": "to drink", "german": "trinken", "category": "verbs"},
+            {"english": "to sleep", "german": "schlafen", "category": "verbs"},
+            {"english": "to see", "german": "sehen", "category": "verbs"},
+            {"english": "to hear", "german": "hören", "category": "verbs"},
+            {"english": "to speak", "german": "sprechen", "category": "verbs"},
+            {"english": "to read", "german": "lesen", "category": "verbs"},
+            {"english": "to write", "german": "schreiben", "category": "verbs"},
+            {"english": "to paint", "german": "malen", "category": "verbs"},
+            {"english": "to sing", "german": "singen", "category": "verbs"},
+            {"english": "to dance", "german": "tanzen", "category": "verbs"},
+            {"english": "to jump", "german": "springen", "category": "verbs"},
+            {"english": "to swim", "german": "schwimmen", "category": "verbs"},
+            {"english": "to fly", "german": "fliegen", "category": "verbs"},
+            {"english": "to drive", "german": "fahren", "category": "verbs"},
+            {"english": "to work", "german": "arbeiten", "category": "verbs"},
+            {"english": "to learn", "german": "lernen", "category": "verbs"},
+            {"english": "to teach", "german": "lehren", "category": "verbs"},
+            {"english": "to help", "german": "helfen", "category": "verbs"},
+            {"english": "to buy", "german": "kaufen", "category": "verbs"},
+            {"english": "to sell", "german": "verkaufen", "category": "verbs"},
+            {"english": "to give", "german": "geben", "category": "verbs"},
+            {"english": "to take", "german": "nehmen", "category": "verbs"},
+            {"english": "to have", "german": "haben", "category": "verbs"},
+            {"english": "to be", "german": "sein", "category": "verbs"},
+            {"english": "to become", "german": "werden", "category": "verbs"},
+            {"english": "to make", "german": "machen", "category": "verbs"},
+            {"english": "to do", "german": "tun", "category": "verbs"},
+            {"english": "can", "german": "können", "category": "modal_verbs"},
+            {"english": "must", "german": "müssen", "category": "modal_verbs"},
+            {"english": "want", "german": "wollen", "category": "modal_verbs"},
+            {"english": "like", "german": "mögen", "category": "verbs"},
+            {"english": "love", "german": "lieben", "category": "verbs"},
+            {"english": "hate", "german": "hassen", "category": "verbs"},
+            {"english": "need", "german": "brauchen", "category": "verbs"},
+            {"english": "get", "german": "bekommen", "category": "verbs"},
+            {"english": "lose", "german": "verlieren", "category": "verbs"},
+            {"english": "find", "german": "finden", "category": "verbs"},
+            {"english": "search", "german": "suchen", "category": "verbs"},
+            {"english": "wait", "german": "warten", "category": "verbs"},
+            {"english": "stay", "german": "bleiben", "category": "verbs"},
+            {"english": "leave", "german": "verlassen", "category": "verbs"},
+            {"english": "arrive", "german": "ankommen", "category": "verbs"},
+            {"english": "begin", "german": "beginnen", "category": "verbs"},
+            {"english": "stop", "german": "aufhören", "category": "verbs"},
+            {"english": "continue", "german": "weitermachen", "category": "verbs"},
+            {"english": "number", "german": "Nummer", "category": "numbers"},
+            {"english": "one", "german": "eins", "category": "numbers"},
+            {"english": "two", "german": "zwei", "category": "numbers"},
+            {"english": "three", "german": "drei", "category": "numbers"},
+            {"english": "four", "german": "vier", "category": "numbers"},
+            {"english": "five", "german": "fünf", "category": "numbers"},
+            {"english": "six", "german": "sechs", "category": "numbers"},
+            {"english": "seven", "german": "sieben", "category": "numbers"},
+            {"english": "eight", "german": "acht", "category": "numbers"},
+            {"english": "nine", "german": "neun", "category": "numbers"},
+            {"english": "ten", "german": "zehn", "category": "numbers"}
+        ]
     
-    grade3_vocabulary = [
-        {"german": "Wissenschaft", "english": "science", "wrong": ["art", "history", "music"]},
-        {"german": "Experiment", "english": "experiment", "wrong": ["test", "game", "lesson"]},
-        {"german": "Forschung", "english": "research", "wrong": ["study", "homework", "project"]},
-        {"german": "Entdeckung", "english": "discovery", "wrong": ["invention", "creation", "finding"]},
-        {"german": "Erfindung", "english": "invention", "wrong": ["discovery", "creation", "idea"]},
-        {"german": "Technologie", "english": "technology", "wrong": ["science", "computer", "machine"]},
-        {"german": "Computer", "english": "computer", "wrong": ["television", "radio", "phone"]},
-        {"german": "Internet", "english": "internet", "wrong": ["computer", "website", "email"]},
-        {"german": "Programm", "english": "program", "wrong": ["computer", "software", "game"]},
-        {"german": "Software", "english": "software", "wrong": ["hardware", "computer", "program"]},
-        {"german": "Roboter", "english": "robot", "wrong": ["machine", "computer", "android"]},
-        {"german": "Maschine", "english": "machine", "wrong": ["robot", "tool", "device"]},
-        {"german": "Werkzeug", "english": "tool", "wrong": ["machine", "instrument", "device"]},
-        {"german": "Instrument", "english": "instrument", "wrong": ["tool", "device", "machine"]},
-        {"german": "Gerät", "english": "device", "wrong": ["machine", "tool", "gadget"]},
-        {"german": "Energie", "english": "energy", "wrong": ["power", "electricity", "fuel"]},
-        {"german": "Elektrizität", "english": "electricity", "wrong": ["energy", "power", "battery"]},
-        {"german": "Batterie", "english": "battery", "wrong": ["electricity", "power", "energy"]},
-        {"german": "Motor", "english": "engine", "wrong": ["machine", "motor", "device"]},
-        {"german": "Fahrzeug", "english": "vehicle", "wrong": ["car", "transport", "machine"]},
-        # ... continue with more grade 3 vocabulary
-    ]
-    
-    vocabulary_list = grade2_vocabulary if grade == 2 else grade3_vocabulary
+    # Generate wrong answers based on category and common mistakes
+    def generate_wrong_answers(correct_word, category, vocab_list):
+        """Generate plausible wrong answers for vocabulary questions"""
+        wrong_answers = []
+        
+        # Get words from same category
+        same_category = [item["english"] for item in vocab_list 
+                        if item.get("category") == category and item["english"] != correct_word]
+        
+        # Add 2-3 words from same category if available
+        if same_category:
+            wrong_answers.extend(random.sample(same_category, min(2, len(same_category))))
+        
+        # Add some common distractors based on category
+        common_distractors = {
+            "animals": ["cat", "dog", "bird", "fish", "mouse", "horse", "cow"],
+            "food": ["bread", "milk", "apple", "water", "cheese", "meat"],
+            "colors": ["red", "blue", "green", "yellow", "black", "white"],
+            "family": ["mom", "dad", "brother", "sister", "child", "baby"],
+            "household": ["house", "door", "window", "table", "chair", "bed"],
+            "verbs": ["go", "come", "eat", "drink", "sleep", "play", "work"],
+            "numbers": ["one", "two", "three", "four", "five", "six", "seven"],
+            "adjectives": ["big", "small", "good", "bad", "new", "old", "fast"]
+        }
+        
+        if category in common_distractors:
+            category_distractors = [word for word in common_distractors[category] 
+                                  if word != correct_word and word not in wrong_answers]
+            wrong_answers.extend(random.sample(category_distractors, 
+                                             min(2, len(category_distractors))))
+        
+        # Ensure we have exactly 3 wrong answers
+        while len(wrong_answers) < 3:
+            # Add random words from other categories
+            random_word = random.choice(vocab_list)["english"]
+            if random_word != correct_word and random_word not in wrong_answers:
+                wrong_answers.append(random_word)
+        
+        return wrong_answers[:3]
     
     # Shuffle and select random subset to ensure variety
-    import random
-    shuffled_vocab = random.sample(vocabulary_list, min(count * 3, len(vocabulary_list)))
+    shuffled_vocab = random.sample(vocab_list, min(count * 2, len(vocab_list)))
     
     for i in range(min(count, len(shuffled_vocab))):
-        vocab = shuffled_vocab[i]
-        options = [vocab["english"]] + vocab["wrong"]
+        vocab_item = shuffled_vocab[i]
+        
+        # Generate wrong answers
+        wrong_answers = generate_wrong_answers(
+            vocab_item["english"], 
+            vocab_item.get("category", "general"), 
+            vocab_list
+        )
+        
+        options = [vocab_item["english"]] + wrong_answers
         random.shuffle(options)
         
         problem = EnglishProblem(
-            question=f"Was bedeutet '{vocab['german']}' auf Englisch?",
+            question=f"Was bedeutet '{vocab_item['german']}' auf Englisch?",
             question_type="vocabulary_de_en",
             options=options,
-            correct_answer=vocab["english"],
-            problem_data={"german_word": vocab["german"]}
+            correct_answer=vocab_item["english"],
+            problem_data={
+                "german_word": vocab_item["german"],
+                "category": vocab_item.get("category", "general")
+            }
         )
         problems.append(problem)
     
