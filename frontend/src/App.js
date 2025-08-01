@@ -2607,15 +2607,24 @@ function App() {
   };
 
   const resetWeek = async () => {
-    if (confirm('Bist du sicher, dass du die Woche zurücksetzen möchtest?\n\nDies löscht:\n• Alle Aufgaben-Sterne der aktuellen Woche\n• Alle verfügbaren Sterne\n\nDer Tresor bleibt unverändert!')) {
-      try {
-        await axios.post(`${API}/progress/reset`);
-        loadData();
-        alert('Woche wurde zurückgesetzt. Tresor-Sterne wurden beibehalten!');
-      } catch (error) {
-        console.error('Fehler beim Zurücksetzen der Woche:', error);
-        alert('Fehler beim Zurücksetzen der Woche!');
-      }
+    try {
+      await axios.post(`${API}/progress/reset`);
+      loadData();
+      alert('Woche wurde zurückgesetzt. Tresor-Sterne wurden beibehalten!');
+    } catch (error) {
+      console.error('Fehler beim Zurücksetzen der Woche:', error);
+      alert('Fehler beim Zurücksetzen der Woche!');
+    }
+  };
+
+  const resetSafe = async () => {
+    try {
+      await axios.post(`${API}/progress/reset-safe`);
+      loadData();
+      alert('Tresor wurde zurückgesetzt. Alle anderen Sterne wurden beibehalten!');
+    } catch (error) {
+      console.error('Fehler beim Zurücksetzen des Tresors:', error);
+      alert('Fehler beim Zurücksetzen des Tresors!');
     }
   };
 
