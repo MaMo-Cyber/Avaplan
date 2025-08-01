@@ -8,7 +8,10 @@ const AdminSettingsModal = ({
   onResetAllStars,
   onDeleteAllRewards,
   onManageTasks,
-  onManageRewards 
+  onManageRewards,
+  onOpenMathSettings,
+  onOpenGermanSettings,
+  onOpenEnglishSettings
 }) => {
   const [showConfirmations, setShowConfirmations] = useState({
     resetWeek: false,
@@ -78,6 +81,40 @@ const AdminSettingsModal = ({
                 className="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors text-left"
               >
                 🎁 Belohnungen verwalten
+              </button>
+            </div>
+          </div>
+
+          {/* Challenge Settings Section */}
+          <div className="border-b border-gray-200 pb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">🎯 Challenge-Einstellungen</h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenMathSettings();
+                }}
+                className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors text-left"
+              >
+                ⚙️ Mathe-Einstellungen
+              </button>
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenGermanSettings();
+                }}
+                className="w-full bg-indigo-500 text-white py-3 px-4 rounded-lg hover:bg-indigo-600 transition-colors text-left"
+              >
+                📚 Deutsch-Einstellungen
+              </button>
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenEnglishSettings();
+                }}
+                className="w-full bg-purple-500 text-white py-3 px-4 rounded-lg hover:bg-purple-600 transition-colors text-left"
+              >
+                🇬🇧 Englisch-Einstellungen
               </button>
             </div>
           </div>
@@ -243,6 +280,7 @@ const AdminSettingsModal = ({
       </div>
     </div>
   );
+};
 };
 
 export default AdminSettingsModal;
