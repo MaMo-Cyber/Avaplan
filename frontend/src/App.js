@@ -308,6 +308,438 @@ const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
   );
 };
 
+// German Settings Modal Component
+const GermanSettingsModal = ({ isOpen, onClose, onComplete }) => {
+  const [activeTab, setActiveTab] = useState('settings');
+  const [settings, setSettings] = useState({
+    problem_count: 20,
+    star_tiers: {"90": 3, "80": 2, "70": 1},
+    problem_types: {
+      spelling: true,
+      word_types: true,
+      fill_blank: true,
+      grammar: false,
+      articles: false,
+      sentence_order: false
+    },
+    difficulty_settings: {
+      spelling_difficulty: "medium",
+      word_types_include_adjectives: true,
+      fill_blank_context_length: "short"
+    }
+  });
+  const [statistics, setStatistics] = useState({
+    total_attempts: 0,
+    grade_2_attempts: 0,
+    grade_3_attempts: 0,
+    total_correct: 0,
+    total_wrong: 0,
+    average_score: 0.0,
+    best_score: 0.0,
+    total_stars_earned: 0,
+    problem_type_stats: {}
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadSettings();
+      loadStatistics();
+    }
+  }, [isOpen]);
+
+  const loadSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/german/settings`);
+      setSettings(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Deutsch-Einstellungen:', error);
+    }
+  };
+
+  const loadStatistics = async () => {
+    try {
+      const response = await axios.get(`${API}/german/statistics`);
+      setStatistics(response.data);
+    } catch (error) {
+      console.error('Fehler beim Laden der Deutsch-Statistiken:', error);
+    }
+  };
+
+  const updateSettings = async () => {
+    setLoading(true);
+    try {
+      await axios.put(`${API}/german/settings`, settings);
+      onComplete && onComplete();
+      alert('Deutsch-Einstellungen erfolgreich gespeichert!');
+    } catch (error) {
+      console.error('Fehler beim Speichern der Einstellungen:', error);
+      alert('Fehler beim Speichern der Einstellungen!');
+    }
+    setLoading(false);
+  };
+
+  const resetStatistics = async () => {
+    if (confirm('Bist du sicher, dass du alle Deutsch-Statistiken zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden!')) {
+      try {
+        await axios.post(`${API}/german/statistics/reset`);
+        await loadStatistics();
+        alert('Deutsch-Statistiken erfolgreich zurückgesetzt!');
+      } catch (error) {
+        console.error('Fehler beim Zurücksetzen der Statistiken:', error);
+        alert('Fehler beim Zurücksetzen der Statistiken!');
+      }
+    }
+  };
+
+  const updateStarTier = (percentage, stars) => {
+    const newTiers = { ...settings.star_tiers };
+    newTiers[percentage] = stars;
+    setSettings({ ...settings, star_tiers: newTiers });
+  };
+
+  const removeStarTier = (percentage) => {
+    const newTiers = { ...settings.star_tiers };
+    delete newTiers[percentage];
+    setSettings({ ...settings, star_tiers: newTiers });
+  };
+
+  const addStarTier = () => {
+    const percentage = prompt('Prozentsatz eingeben (z.B. 95):');
+    const stars = prompt('Anzahl Sterne eingeben:');
+    
+    if (percentage && stars) {
+      const newTiers = { ...settings.star_tiers };
+      newTiers[percentage] = parseInt(stars);
+      setSettings({ ...settings, star_tiers: newTiers });
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-blue-800">Deutsch-Herausforderung Einstellungen</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex space-x-4 mb-6 border-b">
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`pb-2 px-4 font-semibold ${
+              activeTab === 'settings' 
+                ? 'text-blue-600 border-b-2 border-blue-600' 
+                : 'text-gray-500 hover:text-blue-500'
+            }`}
+          >
+            ⚙️ Einstellungen
+          </button>
+          <button
+            onClick={() => setActiveTab('statistics')}
+            className={`pb-2 px-4 font-semibold ${
+              activeTab === 'statistics' 
+                ? 'text-blue-600 border-b-2 border-blue-600' 
+                : 'text-gray-500 hover:text-blue-500'
+            }`}
+          >
+            📊 Statistiken
+          </button>
+        </div>
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            {/* Problem Count */}
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">📝 Aufgaben-Anzahl</h3>
+              <div className="flex items-center space-x-3">
+                <label className="font-medium">Anzahl der Deutsch-Aufgaben pro Herausforderung:</label>
+                <input
+                  type="number"
+                  min="10"
+                  max="50"
+                  value={settings.problem_count}
+                  onChange={(e) => setSettings({...settings, problem_count: parseInt(e.target.value)})}
+                  className="w-20 p-2 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Problem Types */}
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">📚 Aufgaben-Typen</h3>
+              <p className="text-sm text-gray-600 mb-4">Wähle die Arten von Deutsch-Aufgaben aus:</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(settings.problem_types).map(([type, enabled]) => {
+                  const typeLabels = {
+                    spelling: "✏️ Rechtschreibung",
+                    word_types: "🔤 Wortarten (Nomen, Verben, Adjektive)",
+                    fill_blank: "📋 Lückentexte",
+                    grammar: "📐 Grammatik",
+                    articles: "📄 Artikel (der, die, das)",
+                    sentence_order: "🔢 Satzstellung"
+                  };
+                  
+                  return (
+                    <label key={type} className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          problem_types: {
+                            ...settings.problem_types,
+                            [type]: e.target.checked
+                          }
+                        })}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
+                      <span>{typeLabels[type] || type}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Difficulty Settings */}
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">⚖️ Schwierigkeitseinstellungen</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block font-medium mb-2">Rechtschreibung Schwierigkeit:</label>
+                  <select
+                    value={settings.difficulty_settings.spelling_difficulty}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      difficulty_settings: {
+                        ...settings.difficulty_settings,
+                        spelling_difficulty: e.target.value
+                      }
+                    })}
+                    className="p-2 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="easy">Einfach</option>
+                    <option value="medium">Mittel</option>
+                    <option value="hard">Schwer</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={settings.difficulty_settings.word_types_include_adjectives}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        difficulty_settings: {
+                          ...settings.difficulty_settings,
+                          word_types_include_adjectives: e.target.checked
+                        }
+                      })}
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <span>Adjektive in Wortarten-Aufgaben einschließen</span>
+                  </label>
+                </div>
+                
+                <div>
+                  <label className="block font-medium mb-2">Lückentext Kontext-Länge:</label>
+                  <select
+                    value={settings.difficulty_settings.fill_blank_context_length}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      difficulty_settings: {
+                        ...settings.difficulty_settings,
+                        fill_blank_context_length: e.target.value
+                      }
+                    })}
+                    className="p-2 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="short">Kurz</option>
+                    <option value="medium">Mittel</option>
+                    <option value="long">Lang</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Star Rewards */}
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">⭐ Sternen-Belohnungs-Stufen</h3>
+              <p className="text-sm text-gray-600 mb-4">Bestimme, wie viele Sterne basierend auf der Prozentscore vergeben werden</p>
+              
+              <div className="space-y-3">
+                {Object.entries(settings.star_tiers).map(([percentage, stars]) => (
+                  <div key={percentage} className="flex items-center space-x-3 bg-blue-50 p-3 rounded-lg">
+                    <span className="font-medium">{percentage}% oder höher:</span>
+                    <input
+                      type="number"
+                      value={stars}
+                      onChange={(e) => updateStarTier(percentage, parseInt(e.target.value))}
+                      className="w-20 p-2 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                    />
+                    <span>⭐ Sterne</span>
+                    <button
+                      onClick={() => removeStarTier(percentage)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              <button
+                onClick={addStarTier}
+                className="mt-3 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+              >
+                + Stufe Hinzufügen
+              </button>
+            </div>
+
+            <div className="flex justify-end space-x-4">
+              <button 
+                onClick={onClose}
+                className="px-6 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button 
+                onClick={updateSettings}
+                disabled={loading}
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Speichern...' : 'Einstellungen Speichern'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Statistics Tab */}
+        {activeTab === 'statistics' && (
+          <div className="space-y-6">
+            {/* Overview Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="stats-card stats-card-total">
+                <h3 className="font-semibold mb-2">Gesamt Versuche</h3>
+                <p className="text-3xl font-bold">{statistics.total_attempts}</p>
+              </div>
+              <div className="stats-card stats-card-completed">
+                <h3 className="font-semibold mb-2">Durchschnittsscore</h3>
+                <p className="text-3xl font-bold">{statistics.average_score.toFixed(1)}%</p>
+              </div>
+              <div className="stats-card stats-card-pending">
+                <h3 className="font-semibold mb-2">Bester Score</h3>
+                <p className="text-3xl font-bold">{statistics.best_score.toFixed(1)}%</p>
+              </div>
+              <div className="stats-card">
+                <h3 className="font-semibold mb-2">Verdiente Sterne</h3>
+                <p className="text-3xl font-bold">{statistics.total_stars_earned} ⭐</p>
+              </div>
+            </div>
+
+            {/* Detailed Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="card">
+                <h3 className="text-lg font-semibold text-blue-800 mb-4">📚 Klassen-Aufschlüsselung</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span>Klasse 2 Versuche:</span>
+                    <span className="font-semibold">{statistics.grade_2_attempts}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Klasse 3 Versuche:</span>
+                    <span className="font-semibold">{statistics.grade_3_attempts}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card">
+                <h3 className="text-lg font-semibold text-blue-800 mb-4">🎯 Antworten-Aufschlüsselung</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-green-600">✅ Richtige Antworten:</span>
+                    <span className="font-semibold text-green-600">{statistics.total_correct}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-red-600">❌ Falsche Antworten:</span>
+                    <span className="font-semibold text-red-600">{statistics.total_wrong}</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="flex justify-between items-center">
+                      <span>Genauigkeitsrate:</span>
+                      <span className="font-semibold">
+                        {statistics.total_correct + statistics.total_wrong > 0 
+                          ? ((statistics.total_correct / (statistics.total_correct + statistics.total_wrong)) * 100).toFixed(1)
+                          : 0}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Problem Type Stats */}
+            {Object.keys(statistics.problem_type_stats).length > 0 && (
+              <div className="card">
+                <h3 className="text-lg font-semibold text-blue-800 mb-4">📊 Aufgaben-Typ Statistiken</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(statistics.problem_type_stats).map(([type, stats]) => {
+                    const typeLabels = {
+                      spelling: "Rechtschreibung",
+                      word_types: "Wortarten",
+                      fill_blank: "Lückentexte",
+                      grammar: "Grammatik",
+                      articles: "Artikel",
+                      sentence_order: "Satzstellung"
+                    };
+                    
+                    const accuracy = stats.total_attempts > 0 
+                      ? ((stats.correct / stats.total_attempts) * 100).toFixed(1)
+                      : 0;
+                    
+                    return (
+                      <div key={type} className="bg-blue-50 p-3 rounded-lg">
+                        <h4 className="font-semibold text-blue-800">{typeLabels[type] || type}</h4>
+                        <div className="text-sm space-y-1">
+                          <div>Versuche: {stats.total_attempts}</div>
+                          <div className="text-green-600">Richtig: {stats.correct}</div>
+                          <div className="text-red-600">Falsch: {stats.wrong}</div>
+                          <div>Genauigkeit: {accuracy}%</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={resetStatistics}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Statistiken Zurücksetzen
+              </button>
+              <button 
+                onClick={onClose}
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Enhanced Math Settings Modal Component
 const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
   const [settings, setSettings] = useState(null);
