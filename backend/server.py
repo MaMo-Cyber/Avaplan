@@ -758,6 +758,25 @@ async def generate_fill_blank_problems(count: int, grade: int, settings: GermanS
         else:
             from german_grade3_content import GRADE3_FILL_BLANK_COMPLETE
             templates = GRADE3_FILL_BLANK_COMPLETE
+        
+        # Shuffle and select random subset to ensure massive variety
+        import random
+        shuffled_templates = random.sample(templates, min(count * 3, len(templates)))
+        
+        for i in range(min(count, len(shuffled_templates))):
+            template = shuffled_templates[i]
+            
+            problem = GermanProblem(
+                question=f"Setze das richtige Wort ein:\n\n{template['text']}",
+                question_type="fill_blank",
+                options=template["options"],
+                correct_answer=template["answer"],
+                problem_data={"original_text": template["text"]}
+            )
+            problems.append(problem)
+        
+        return problems
+        
     except ImportError:
         # Fallback to smaller dataset if imports fail
         templates = [
