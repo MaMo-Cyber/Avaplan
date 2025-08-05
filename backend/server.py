@@ -303,6 +303,30 @@ def apply_word_type_difficulty_filter(examples, difficulty, include_adjectives=T
         else:
             return [ex for ex in examples if ex["type"] != "Adjektiv"]
 
+def apply_fill_blank_difficulty_filter(templates, difficulty, context_length="short"):
+    """Filter fill-blank templates based on difficulty setting"""
+    if difficulty == "easy":
+        # Use shorter texts and simpler vocabulary
+        filtered = [t for t in templates if len(t["text"].split()) <= 8]
+        # Prefer templates where answer is a common word
+        common_words = ["ist", "hat", "geht", "kommt", "spielt", "läuft", "springt", "singt", "tanzt", "kocht"]
+        easy_templates = [t for t in filtered if t["answer"].lower() in common_words]
+        return easy_templates if easy_templates else filtered[:min(20, len(filtered))]
+    elif difficulty == "hard":
+        # Use longer texts and more complex vocabulary
+        if context_length == "long":
+            return [t for t in templates if len(t["text"].split()) >= 8]
+        else:
+            return templates
+    else:  # medium
+        # Standard behavior based on context length setting
+        if context_length == "short":
+            return [t for t in templates if len(t["text"].split()) <= 12]
+        elif context_length == "long":
+            return [t for t in templates if len(t["text"].split()) >= 6]
+        else:  # medium context
+            return templates
+
 async def generate_spelling_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
     """Generate German spelling problems using massively expanded content"""
     problems = []
