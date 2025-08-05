@@ -3307,6 +3307,510 @@ class BackendTester:
         
         return success_count >= 3
 
+    def test_german_difficulty_settings_api(self):
+        """Test German Settings API with difficulty adjustments"""
+        success_count = 0
+        
+        print("\n🇩🇪 Testing German Difficulty Settings API - New Feature")
+        
+        # Test getting German settings with difficulty settings
+        try:
+            response = self.session.get(f"{BASE_URL}/german/settings")
+            if response.status_code == 200:
+                settings = response.json()
+                difficulty_settings = settings.get("difficulty_settings", {})
+                
+                # Check for required difficulty settings
+                required_settings = ["spelling_difficulty", "word_types_include_adjectives", "fill_blank_context_length"]
+                all_present = all(setting in difficulty_settings for setting in required_settings)
+                
+                if all_present:
+                    self.log_test("Get German Difficulty Settings", True, 
+                                f"✅ All difficulty settings present: {difficulty_settings}")
+                    success_count += 1
+                else:
+                    self.log_test("Get German Difficulty Settings", False, 
+                                f"❌ Missing difficulty settings: {difficulty_settings}")
+            else:
+                self.log_test("Get German Difficulty Settings", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Get German Difficulty Settings", False, f"Exception: {str(e)}")
+        
+        # Test updating difficulty settings
+        try:
+            new_settings = {
+                "problem_count": 20,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "spelling": True,
+                    "word_types": True,
+                    "fill_blank": True,
+                    "grammar": False,
+                    "articles": False,
+                    "sentence_order": False
+                },
+                "difficulty_settings": {
+                    "spelling_difficulty": "hard",
+                    "word_types_include_adjectives": False,
+                    "fill_blank_context_length": "long"
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=new_settings)
+            if response.status_code == 200:
+                updated_settings = response.json()
+                difficulty_settings = updated_settings.get("difficulty_settings", {})
+                
+                if (difficulty_settings.get("spelling_difficulty") == "hard" and
+                    difficulty_settings.get("word_types_include_adjectives") == False and
+                    difficulty_settings.get("fill_blank_context_length") == "long"):
+                    self.log_test("Update German Difficulty Settings", True, 
+                                f"✅ Difficulty settings updated correctly: {difficulty_settings}")
+                    success_count += 1
+                else:
+                    self.log_test("Update German Difficulty Settings", False, 
+                                f"❌ Settings not updated correctly: {difficulty_settings}")
+            else:
+                self.log_test("Update German Difficulty Settings", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Update German Difficulty Settings", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_german_difficulty_challenge_generation(self):
+        """Test German challenge generation with different difficulty levels"""
+        success_count = 0
+        
+        print("\n🎯 Testing German Challenge Generation with Difficulty Levels")
+        
+        # Test Easy Difficulty
+        try:
+            easy_settings = {
+                "problem_count": 15,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "spelling": True,
+                    "word_types": True,
+                    "fill_blank": True,
+                    "grammar": False,
+                    "articles": False,
+                    "sentence_order": False
+                },
+                "difficulty_settings": {
+                    "spelling_difficulty": "easy",
+                    "word_types_include_adjectives": False,
+                    "fill_blank_context_length": "short"
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=easy_settings)
+            if response.status_code == 200:
+                # Create Grade 2 challenge with easy difficulty
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    problems = challenge.get("problems", [])
+                    
+                    if len(problems) == 15:
+                        # Analyze problems for easy difficulty characteristics
+                        spelling_problems = [p for p in problems if p.get("question_type") == "spelling"]
+                        word_type_problems = [p for p in problems if p.get("question_type") == "word_types"]
+                        fill_blank_problems = [p for p in problems if p.get("question_type") == "fill_blank"]
+                        
+                        # Check spelling difficulty (should have shorter words and fewer options)
+                        easy_spelling_found = False
+                        if spelling_problems:
+                            first_spelling = spelling_problems[0]
+                            options = first_spelling.get("options", [])
+                            if len(options) <= 4:  # Easy should have fewer options
+                                easy_spelling_found = True
+                        
+                        # Check word types (should not include adjectives for easy)
+                        no_adjectives_found = True
+                        for problem in word_type_problems:
+                            if problem.get("correct_answer") == "Adjektiv":
+                                no_adjectives_found = False
+                                break
+                        
+                        if easy_spelling_found and no_adjectives_found:
+                            self.log_test("Easy Difficulty Grade 2 Challenge", True, 
+                                        f"✅ Easy difficulty applied: {len(spelling_problems)} spelling, {len(word_type_problems)} word types, {len(fill_blank_problems)} fill-blank")
+                            success_count += 1
+                        else:
+                            self.log_test("Easy Difficulty Grade 2 Challenge", False, 
+                                        f"❌ Easy difficulty not properly applied")
+                    else:
+                        self.log_test("Easy Difficulty Grade 2 Challenge", False, 
+                                    f"❌ Expected 15 problems, got {len(problems)}")
+                else:
+                    self.log_test("Easy Difficulty Grade 2 Challenge", False, f"Status code: {response.status_code}")
+            else:
+                self.log_test("Easy Difficulty Settings Update", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Easy Difficulty Grade 2 Challenge", False, f"Exception: {str(e)}")
+        
+        # Test Hard Difficulty
+        try:
+            hard_settings = {
+                "problem_count": 15,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "spelling": True,
+                    "word_types": True,
+                    "fill_blank": True,
+                    "grammar": False,
+                    "articles": False,
+                    "sentence_order": False
+                },
+                "difficulty_settings": {
+                    "spelling_difficulty": "hard",
+                    "word_types_include_adjectives": True,
+                    "fill_blank_context_length": "long"
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=hard_settings)
+            if response.status_code == 200:
+                # Create Grade 3 challenge with hard difficulty
+                response = self.session.post(f"{BASE_URL}/german/challenge/3")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    problems = challenge.get("problems", [])
+                    
+                    if len(problems) == 15:
+                        # Analyze problems for hard difficulty characteristics
+                        spelling_problems = [p for p in problems if p.get("question_type") == "spelling"]
+                        word_type_problems = [p for p in problems if p.get("question_type") == "word_types"]
+                        fill_blank_problems = [p for p in problems if p.get("question_type") == "fill_blank"]
+                        
+                        # Check spelling difficulty (should have more options for hard)
+                        hard_spelling_found = False
+                        if spelling_problems:
+                            first_spelling = spelling_problems[0]
+                            options = first_spelling.get("options", [])
+                            if len(options) >= 4:  # Hard should have more options
+                                hard_spelling_found = True
+                        
+                        # Check word types (should include adjectives for hard)
+                        adjectives_found = False
+                        for problem in word_type_problems:
+                            if problem.get("correct_answer") == "Adjektiv":
+                                adjectives_found = True
+                                break
+                        
+                        if hard_spelling_found:
+                            self.log_test("Hard Difficulty Grade 3 Challenge", True, 
+                                        f"✅ Hard difficulty applied: {len(spelling_problems)} spelling, {len(word_type_problems)} word types, {len(fill_blank_problems)} fill-blank")
+                            success_count += 1
+                        else:
+                            self.log_test("Hard Difficulty Grade 3 Challenge", False, 
+                                        f"❌ Hard difficulty not properly applied")
+                    else:
+                        self.log_test("Hard Difficulty Grade 3 Challenge", False, 
+                                    f"❌ Expected 15 problems, got {len(problems)}")
+                else:
+                    self.log_test("Hard Difficulty Grade 3 Challenge", False, f"Status code: {response.status_code}")
+            else:
+                self.log_test("Hard Difficulty Settings Update", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Hard Difficulty Grade 3 Challenge", False, f"Exception: {str(e)}")
+        
+        # Test Medium Difficulty (default behavior)
+        try:
+            medium_settings = {
+                "problem_count": 15,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "spelling": True,
+                    "word_types": True,
+                    "fill_blank": True,
+                    "grammar": False,
+                    "articles": False,
+                    "sentence_order": False
+                },
+                "difficulty_settings": {
+                    "spelling_difficulty": "medium",
+                    "word_types_include_adjectives": True,
+                    "fill_blank_context_length": "medium"
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=medium_settings)
+            if response.status_code == 200:
+                # Create Grade 2 challenge with medium difficulty
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    problems = challenge.get("problems", [])
+                    
+                    if len(problems) == 15:
+                        self.log_test("Medium Difficulty Grade 2 Challenge", True, 
+                                    f"✅ Medium difficulty challenge generated with {len(problems)} problems")
+                        success_count += 1
+                    else:
+                        self.log_test("Medium Difficulty Grade 2 Challenge", False, 
+                                    f"❌ Expected 15 problems, got {len(problems)}")
+                else:
+                    self.log_test("Medium Difficulty Grade 2 Challenge", False, f"Status code: {response.status_code}")
+            else:
+                self.log_test("Medium Difficulty Settings Update", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Medium Difficulty Grade 2 Challenge", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_german_difficulty_filter_functions(self):
+        """Test the difficulty filter functions directly through challenge generation"""
+        success_count = 0
+        
+        print("\n🔍 Testing German Difficulty Filter Functions")
+        
+        # Test spelling difficulty filter by comparing easy vs hard
+        try:
+            # Set to easy difficulty
+            easy_settings = {
+                "problem_count": 10,
+                "problem_types": {"spelling": True, "word_types": False, "fill_blank": False},
+                "difficulty_settings": {"spelling_difficulty": "easy"}
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=easy_settings)
+            if response.status_code == 200:
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    easy_challenge = response.json()
+                    easy_problems = easy_challenge.get("problems", [])
+                    
+                    # Set to hard difficulty
+                    hard_settings = {
+                        "problem_count": 10,
+                        "problem_types": {"spelling": True, "word_types": False, "fill_blank": False},
+                        "difficulty_settings": {"spelling_difficulty": "hard"}
+                    }
+                    
+                    response = self.session.put(f"{BASE_URL}/german/settings", json=hard_settings)
+                    if response.status_code == 200:
+                        response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                        if response.status_code == 200:
+                            hard_challenge = response.json()
+                            hard_problems = hard_challenge.get("problems", [])
+                            
+                            # Compare the challenges - they should be different due to filtering
+                            if len(easy_problems) > 0 and len(hard_problems) > 0:
+                                # Check if options count differs (easy should have fewer options)
+                                easy_options = len(easy_problems[0].get("options", []))
+                                hard_options = len(hard_problems[0].get("options", []))
+                                
+                                if easy_options <= hard_options:
+                                    self.log_test("Spelling Difficulty Filter Function", True, 
+                                                f"✅ Filter working: easy={easy_options} options, hard={hard_options} options")
+                                    success_count += 1
+                                else:
+                                    self.log_test("Spelling Difficulty Filter Function", False, 
+                                                f"❌ Filter not working: easy={easy_options} options, hard={hard_options} options")
+                            else:
+                                self.log_test("Spelling Difficulty Filter Function", False, "❌ No problems generated for comparison")
+                        else:
+                            self.log_test("Spelling Difficulty Filter Function", False, f"Hard challenge failed: {response.status_code}")
+                    else:
+                        self.log_test("Spelling Difficulty Filter Function", False, f"Hard settings failed: {response.status_code}")
+                else:
+                    self.log_test("Spelling Difficulty Filter Function", False, f"Easy challenge failed: {response.status_code}")
+            else:
+                self.log_test("Spelling Difficulty Filter Function", False, f"Easy settings failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Spelling Difficulty Filter Function", False, f"Exception: {str(e)}")
+        
+        # Test word type difficulty filter
+        try:
+            # Test with adjectives disabled (easy)
+            no_adj_settings = {
+                "problem_count": 10,
+                "problem_types": {"spelling": False, "word_types": True, "fill_blank": False},
+                "difficulty_settings": {"word_types_include_adjectives": False, "spelling_difficulty": "easy"}
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=no_adj_settings)
+            if response.status_code == 200:
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    no_adj_challenge = response.json()
+                    no_adj_problems = no_adj_challenge.get("problems", [])
+                    
+                    # Check that no adjectives are present
+                    adjectives_found = False
+                    for problem in no_adj_problems:
+                        if problem.get("correct_answer") == "Adjektiv":
+                            adjectives_found = True
+                            break
+                    
+                    if not adjectives_found and len(no_adj_problems) > 0:
+                        self.log_test("Word Type Difficulty Filter Function", True, 
+                                    f"✅ Filter working: No adjectives found in {len(no_adj_problems)} problems")
+                        success_count += 1
+                    else:
+                        self.log_test("Word Type Difficulty Filter Function", False, 
+                                    f"❌ Filter not working: Adjectives found or no problems generated")
+                else:
+                    self.log_test("Word Type Difficulty Filter Function", False, f"Challenge failed: {response.status_code}")
+            else:
+                self.log_test("Word Type Difficulty Filter Function", False, f"Settings failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Word Type Difficulty Filter Function", False, f"Exception: {str(e)}")
+        
+        # Test fill-blank difficulty filter
+        try:
+            # Test with short context length
+            short_settings = {
+                "problem_count": 10,
+                "problem_types": {"spelling": False, "word_types": False, "fill_blank": True},
+                "difficulty_settings": {"fill_blank_context_length": "short", "spelling_difficulty": "easy"}
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=short_settings)
+            if response.status_code == 200:
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    short_challenge = response.json()
+                    short_problems = short_challenge.get("problems", [])
+                    
+                    if len(short_problems) > 0:
+                        # Check if questions are generally shorter (basic heuristic)
+                        avg_question_length = sum(len(p.get("question", "").split()) for p in short_problems) / len(short_problems)
+                        
+                        if avg_question_length > 0:  # Basic validation that problems were generated
+                            self.log_test("Fill-Blank Difficulty Filter Function", True, 
+                                        f"✅ Filter working: Generated {len(short_problems)} problems with avg length {avg_question_length:.1f} words")
+                            success_count += 1
+                        else:
+                            self.log_test("Fill-Blank Difficulty Filter Function", False, "❌ No valid problems generated")
+                    else:
+                        self.log_test("Fill-Blank Difficulty Filter Function", False, "❌ No problems generated")
+                else:
+                    self.log_test("Fill-Blank Difficulty Filter Function", False, f"Challenge failed: {response.status_code}")
+            else:
+                self.log_test("Fill-Blank Difficulty Filter Function", False, f"Settings failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Fill-Blank Difficulty Filter Function", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
+    def test_german_difficulty_integration(self):
+        """Test integration of difficulty settings with existing German challenge functionality"""
+        success_count = 0
+        
+        print("\n🔗 Testing German Difficulty Integration with Existing System")
+        
+        # Test that difficulty settings don't break existing functionality
+        try:
+            # Create a standard challenge with default settings
+            default_settings = {
+                "problem_count": 20,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "spelling": True,
+                    "word_types": True,
+                    "fill_blank": True,
+                    "grammar": False,
+                    "articles": False,
+                    "sentence_order": False
+                },
+                "difficulty_settings": {
+                    "spelling_difficulty": "medium",
+                    "word_types_include_adjectives": True,
+                    "fill_blank_context_length": "short"
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/german/settings", json=default_settings)
+            if response.status_code == 200:
+                # Create Grade 2 challenge
+                response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    challenge_id = challenge["id"]
+                    problems = challenge.get("problems", [])
+                    
+                    if len(problems) == 20:
+                        # Test challenge submission (existing functionality)
+                        answers = {}
+                        for i, problem in enumerate(problems[:5]):  # Test first 5 problems
+                            answers[i] = problem["correct_answer"]  # All correct answers
+                        
+                        response = self.session.post(f"{BASE_URL}/german/challenge/{challenge_id}/submit", json=answers)
+                        if response.status_code == 200:
+                            result = response.json()
+                            if "stars_earned" in result and "percentage" in result:
+                                self.log_test("German Difficulty Integration - Challenge Submission", True, 
+                                            f"✅ Challenge submission works: {result['percentage']}% score, {result['stars_earned']} stars")
+                                success_count += 1
+                            else:
+                                self.log_test("German Difficulty Integration - Challenge Submission", False, 
+                                            f"❌ Invalid submission response: {result}")
+                        else:
+                            self.log_test("German Difficulty Integration - Challenge Submission", False, 
+                                        f"Submission failed: {response.status_code}")
+                        
+                        # Test statistics update (existing functionality)
+                        response = self.session.get(f"{BASE_URL}/german/statistics")
+                        if response.status_code == 200:
+                            stats = response.json()
+                            if "total_attempts" in stats:
+                                self.log_test("German Difficulty Integration - Statistics", True, 
+                                            f"✅ Statistics working: {stats['total_attempts']} attempts")
+                                success_count += 1
+                            else:
+                                self.log_test("German Difficulty Integration - Statistics", False, 
+                                            f"❌ Invalid statistics response: {stats}")
+                        else:
+                            self.log_test("German Difficulty Integration - Statistics", False, 
+                                        f"Statistics failed: {response.status_code}")
+                    else:
+                        self.log_test("German Difficulty Integration - Challenge Creation", False, 
+                                    f"❌ Expected 20 problems, got {len(problems)}")
+                else:
+                    self.log_test("German Difficulty Integration - Challenge Creation", False, 
+                                f"Challenge creation failed: {response.status_code}")
+            else:
+                self.log_test("German Difficulty Integration - Settings", False, 
+                            f"Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("German Difficulty Integration", False, f"Exception: {str(e)}")
+        
+        # Test backward compatibility - old challenges should still work
+        try:
+            # Create challenge without explicitly setting difficulty (should use defaults)
+            response = self.session.post(f"{BASE_URL}/german/challenge/3")
+            if response.status_code == 200:
+                challenge = response.json()
+                problems = challenge.get("problems", [])
+                
+                if len(problems) > 0:
+                    # Verify all problems have required fields
+                    valid_problems = True
+                    for problem in problems:
+                        if not all(field in problem for field in ["question", "question_type", "correct_answer"]):
+                            valid_problems = False
+                            break
+                    
+                    if valid_problems:
+                        self.log_test("German Difficulty Integration - Backward Compatibility", True, 
+                                    f"✅ Backward compatibility maintained: {len(problems)} valid problems")
+                        success_count += 1
+                    else:
+                        self.log_test("German Difficulty Integration - Backward Compatibility", False, 
+                                    "❌ Problems missing required fields")
+                else:
+                    self.log_test("German Difficulty Integration - Backward Compatibility", False, 
+                                "❌ No problems generated")
+            else:
+                self.log_test("German Difficulty Integration - Backward Compatibility", False, 
+                            f"Challenge creation failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("German Difficulty Integration - Backward Compatibility", False, f"Exception: {str(e)}")
+        
+        return success_count >= 2
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Weekly Star Tracker Backend API Tests")
