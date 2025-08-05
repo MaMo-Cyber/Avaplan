@@ -980,47 +980,9 @@ async def generate_ai_spelling_problems(count: int, grade: int, settings: German
     return await generate_spelling_problems(count, grade, settings)
 
 async def generate_ai_word_type_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
-    """Generate word type problems using AI"""
-    openai_key = os.environ.get('OPENAI_API_KEY')
-    
-    system_message = f"""Du bist ein Deutsch-Lehrer für Kinder. Erstelle genau {count} Wortarten-Aufgaben für Klasse {grade}.
-
-AUFGABENFORMAT:
-- Identifikation von Nomen, Verben, Adjektiven in Sätzen
-- Einfache, altersgerechte Sätze
-- Klare Markierung des zu identifizierenden Wortes
-- Multiple Choice mit den drei Hauptwortarten
-
-Gib NUR ein JSON-Array zurück:
-[{{"question": "Welche Wortart ist das unterstrichene Wort?\\n\\nSatz: \\"Der Hund bellt laut.\\"\\nWort: \\"Hund\\"", "options": ["Nomen", "Verb", "Adjektiv"], "correct_answer": "Nomen"}}]"""
-
-    try:
-        chat = LlmChat(
-            api_key=openai_key,
-            session_id=f"german-wordtype-{uuid.uuid4()}",
-            system_message=system_message
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=f"Generiere {count} Wortarten-Aufgaben für Klasse {grade}")
-        response = await chat.send_message(user_message)
-        
-        problems_data = json.loads(response.strip())
-        problems = []
-        
-        for problem_data in problems_data[:count]:
-            problem = GermanProblem(
-                question=problem_data["question"],
-                question_type="word_types",
-                options=problem_data["options"],
-                correct_answer=problem_data["correct_answer"]
-            )
-            problems.append(problem)
-        
-        return problems
-        
-    except Exception as e:
-        logging.error(f"Error generating AI word type problems: {e}")
-        return []
+    """Generate AI word type problems using static fallback content"""
+    # For external deployment, use fallback content only
+    return await generate_word_type_problems(count, grade, settings)
 
 async def generate_ai_fill_blank_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
     """Generate fill-in-the-blank problems using AI"""
