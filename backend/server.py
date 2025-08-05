@@ -975,49 +975,9 @@ async def generate_sentence_order_problems(count: int, grade: int, settings: Ger
 
 # AI-powered German problem generation functions
 async def generate_ai_spelling_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
-    """Generate spelling problems using AI"""
-    openai_key = os.environ.get('OPENAI_API_KEY')
-    
-    system_message = f"""Du bist ein Deutsch-Lehrer für Kinder. Erstelle genau {count} Rechtschreibaufgaben für Klasse {grade}.
-
-AUFGABENFORMAT:
-- Multiple Choice Fragen zur richtigen Schreibweise
-- Eine richtige Antwort und 2-3 falsche Alternativen
-- Altersgerechte Wörter für Klasse {grade}
-- Typische Rechtschreibfehler als falsche Optionen
-
-Gib NUR ein JSON-Array zurück in genau diesem Format:
-[{{"question": "Welches Wort ist richtig geschrieben?", "options": ["Hund", "Hunt", "Hundt"], "correct_answer": "Hund"}}]
-
-Fokussiere auf häufige Rechtschreibfehler und verwende bekannte Wörter."""
-
-    try:
-        chat = LlmChat(
-            api_key=openai_key,
-            session_id=f"german-spelling-{uuid.uuid4()}",
-            system_message=system_message
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=f"Generiere {count} Rechtschreibaufgaben für Klasse {grade}")
-        response = await chat.send_message(user_message)
-        
-        problems_data = json.loads(response.strip())
-        problems = []
-        
-        for problem_data in problems_data[:count]:
-            problem = GermanProblem(
-                question=problem_data["question"],
-                question_type="spelling",
-                options=problem_data["options"],
-                correct_answer=problem_data["correct_answer"]
-            )
-            problems.append(problem)
-        
-        return problems
-        
-    except Exception as e:
-        logging.error(f"Error generating AI spelling problems: {e}")
-        return []
+    """Generate AI spelling problems using static fallback content"""
+    # For external deployment, use fallback content only
+    return await generate_spelling_problems(count, grade, settings)
 
 async def generate_ai_word_type_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
     """Generate word type problems using AI"""
