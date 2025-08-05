@@ -18,15 +18,29 @@ load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL')
+
 if not mongo_url:
-    raise ValueError("MONGO_URL environment variable is not set!")
+    print("❌ ERROR: MONGO_URL environment variable is not set!")
+    print("Please set MONGO_URL in Render environment variables.")
+    raise ValueError("MONGO_URL environment variable is required!")
+
+if not (mongo_url.startswith('mongodb://') or mongo_url.startswith('mongodb+srv://')):
+    print(f"❌ ERROR: Invalid MONGO_URL format: {mongo_url[:50]}...")
+    print("MONGO_URL must start with 'mongodb://' or 'mongodb+srv://'")
+    raise ValueError("Invalid MONGO_URL format!")
 
 print(f"🔗 Connecting to MongoDB: {mongo_url[:50]}...")  # Only show first 50 chars for security
-client = AsyncIOMotorClient(mongo_url)
-# Extract database name from connection string or use default
-db_name = os.environ.get('DB_NAME', 'weekly_star_tracker')
-db = client[db_name]
-print(f"📂 Using database: {db_name}")
+
+try:
+    client = AsyncIOMotorClient(mongo_url)
+    # Extract database name from connection string or use default
+    db_name = os.environ.get('DB_NAME', 'weekly_star_tracker')
+    db = client[db_name]
+    print(f"📂 Using database: {db_name}")
+    print("✅ MongoDB client created successfully!")
+except Exception as e:
+    print(f"❌ MongoDB connection error: {e}")
+    raise
 
 # Create the main app
 app = FastAPI()
