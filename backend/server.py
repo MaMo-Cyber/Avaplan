@@ -2278,6 +2278,165 @@ async def reset_safe_only():
     
     return {"message": "Safe stars reset successfully (all other stars preserved)"}
 
+@api_router.get("/backup/export")
+async def export_all_data():
+    """Export all app data as JSON backup"""
+    try:
+        # Get current week start
+        week_start = get_current_week_start()
+        
+        # Collect all data
+        backup_data = {
+            "export_date": datetime.now().isoformat(),
+            "app_version": "weekly_star_tracker_v1.0",
+            "data": {}
+        }
+        
+        # Export tasks
+        tasks = await db.tasks.find().to_list(length=None)
+        backup_data["data"]["tasks"] = tasks
+        
+        # Export weekly progress
+        progress = await db.weekly_progress.find().to_list(length=None)
+        backup_data["data"]["weekly_progress"] = progress
+        
+        # Export rewards
+        rewards = await db.rewards.find().to_list(length=None)
+        backup_data["data"]["rewards"] = rewards
+        
+        # Export settings
+        math_settings = await db.math_settings.find_one()
+        german_settings = await db.german_settings.find_one()
+        english_settings = await db.english_settings.find_one()
+        
+        backup_data["data"]["settings"] = {
+            "math": math_settings,
+            "german": german_settings,
+            "english": english_settings
+        }
+        
+        # Export statistics
+        math_stats = await db.math_statistics.find().to_list(length=None)
+        german_stats = await db.german_statistics.find().to_list(length=None)
+        english_stats = await db.english_statistics.find().to_list(length=None)
+        
+        backup_data["data"]["statistics"] = {
+            "math": math_stats,
+            "german": german_stats,
+            "english": english_stats
+        }
+        
+        return backup_data
+        
+    except Exception as e:
+        logging.error(f"Export failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+@api_router.post("/backup/import")
+async def import_all_data(backup_data: dict):
+    """Import data from JSON backup"""
+    try:
+        # Validate backup format
+        if "data" not in backup_data or "app_version" not in backup_data:
+            raise HTTPException(status_code=400, detail="Invalid backup format")
+        
+        data = backup_data["data"]
+        import_results = {
+            "tasks": 0,
+            "progress": 0, 
+            "rewards": 0,
+            "settings": 0,
+            "statistics": 0,
+            "errors": []
+        }
+        
+        # Import tasks
+        if "tasks" in data and data["tasks"]:
+            try:
+                # Clear existing tasks first
+                await db.tasks.delete_many({})
+                # Insert imported tasks
+                if data["tasks"]:
+                    await db.tasks.insert_many(data["tasks"])
+                    import_results["tasks"] = len(data["tasks"])
+            except Exception as e:
+                import_results["errors"].append(f"Tasks import failed: {str(e)}")
+        
+        # Import weekly progress
+        if "weekly_progress" in data and data["weekly_progress"]:
+            try:
+                await db.weekly_progress.delete_many({})
+                if data["weekly_progress"]:
+                    await db.weekly_progress.insert_many(data["weekly_progress"])
+                    import_results["progress"] = len(data["weekly_progress"])
+            except Exception as e:
+                import_results["errors"].append(f"Progress import failed: {str(e)}")
+        
+        # Import rewards
+        if "rewards" in data and data["rewards"]:
+            try:
+                await db.rewards.delete_many({})
+                if data["rewards"]:
+                    await db.rewards.insert_many(data["rewards"])
+                    import_results["rewards"] = len(data["rewards"])
+            except Exception as e:
+                import_results["errors"].append(f"Rewards import failed: {str(e)}")
+        
+        # Import settings
+        if "settings" in data and data["settings"]:
+            try:
+                settings_count = 0
+                if data["settings"].get("math"):
+                    await db.math_settings.delete_many({})
+                    await db.math_settings.insert_one(data["settings"]["math"])
+                    settings_count += 1
+                if data["settings"].get("german"):
+                    await db.german_settings.delete_many({})
+                    await db.german_settings.insert_one(data["settings"]["german"])
+                    settings_count += 1
+                if data["settings"].get("english"):
+                    await db.english_settings.delete_many({})
+                    await db.english_settings.insert_one(data["settings"]["english"])
+                    settings_count += 1
+                import_results["settings"] = settings_count
+            except Exception as e:
+                import_results["errors"].append(f"Settings import failed: {str(e)}")
+        
+        # Import statistics
+        if "statistics" in data and data["statistics"]:
+            try:
+                stats_count = 0
+                if data["statistics"].get("math"):
+                    await db.math_statistics.delete_many({})
+                    if data["statistics"]["math"]:
+                        await db.math_statistics.insert_many(data["statistics"]["math"])
+                        stats_count += len(data["statistics"]["math"])
+                if data["statistics"].get("german"):
+                    await db.german_statistics.delete_many({})
+                    if data["statistics"]["german"]:
+                        await db.german_statistics.insert_many(data["statistics"]["german"])
+                        stats_count += len(data["statistics"]["german"])
+                if data["statistics"].get("english"):
+                    await db.english_statistics.delete_many({}) 
+                    if data["statistics"]["english"]:
+                        await db.english_statistics.insert_many(data["statistics"]["english"])
+                        stats_count += len(data["statistics"]["english"])
+                import_results["statistics"] = stats_count
+            except Exception as e:
+                import_results["errors"].append(f"Statistics import failed: {str(e)}")
+        
+        return {
+            "message": "Import completed",
+            "results": import_results,
+            "import_date": datetime.now().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Import failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
 @api_router.post("/progress/reset-all-stars")
 async def reset_all_stars():
     """Reset all stars everywhere - tasks, safe, available, everything"""
