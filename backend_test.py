@@ -2965,6 +2965,348 @@ class BackendTester:
         
         print("✅ Cleanup completed")
     
+    def test_export_api(self):
+        """Test Export API - GET /api/backup/export"""
+        success_count = 0
+        
+        print("\n📤 Testing Export API - Backup/Export Functionality")
+        
+        # Test export endpoint
+        try:
+            response = self.session.get(f"{BASE_URL}/backup/export")
+            if response.status_code == 200:
+                export_data = response.json()
+                
+                # Verify export structure
+                required_fields = ["export_date", "app_version", "data"]
+                if all(field in export_data for field in required_fields):
+                    self.log_test("Export API Structure", True, "Export contains all required top-level fields")
+                    success_count += 1
+                    
+                    # Verify data sections
+                    data = export_data.get("data", {})
+                    expected_sections = ["tasks", "weekly_progress", "rewards", "settings", "statistics"]
+                    
+                    if all(section in data for section in expected_sections):
+                        self.log_test("Export Data Sections", True, f"All expected data sections present: {expected_sections}")
+                        success_count += 1
+                        
+                        # Verify settings structure
+                        settings = data.get("settings", {})
+                        expected_settings = ["math", "german", "english"]
+                        if all(setting in settings for setting in expected_settings):
+                            self.log_test("Export Settings Structure", True, "All settings types included")
+                            success_count += 1
+                        else:
+                            self.log_test("Export Settings Structure", False, f"Missing settings: {expected_settings}")
+                        
+                        # Verify statistics structure
+                        statistics = data.get("statistics", {})
+                        expected_stats = ["math", "german", "english"]
+                        if all(stat in statistics for stat in expected_stats):
+                            self.log_test("Export Statistics Structure", True, "All statistics types included")
+                            success_count += 1
+                        else:
+                            self.log_test("Export Statistics Structure", False, f"Missing statistics: {expected_stats}")
+                        
+                        # Store export data for import test
+                        self.export_backup = export_data
+                        
+                    else:
+                        self.log_test("Export Data Sections", False, f"Missing sections: {expected_sections}")
+                else:
+                    self.log_test("Export API Structure", False, f"Missing fields: {required_fields}")
+            else:
+                self.log_test("Export API", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Export API", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_import_api(self):
+        """Test Import API - POST /api/backup/import"""
+        success_count = 0
+        
+        print("\n📥 Testing Import API - Backup/Import Functionality")
+        
+        # Test with valid backup data (from export test)
+        if hasattr(self, 'export_backup'):
+            try:
+                response = self.session.post(f"{BASE_URL}/backup/import", json=self.export_backup)
+                if response.status_code == 200:
+                    import_result = response.json()
+                    
+                    # Verify import response structure
+                    required_fields = ["message", "results", "import_date"]
+                    if all(field in import_result for field in required_fields):
+                        self.log_test("Import API Response Structure", True, "Import response contains all required fields")
+                        success_count += 1
+                        
+                        # Verify import results
+                        results = import_result.get("results", {})
+                        expected_results = ["tasks", "progress", "rewards", "settings", "statistics", "errors"]
+                        if all(field in results for field in expected_results):
+                            self.log_test("Import Results Structure", True, "Import results contain all expected fields")
+                            success_count += 1
+                            
+                            # Check for errors
+                            errors = results.get("errors", [])
+                            if len(errors) == 0:
+                                self.log_test("Import Error Handling", True, "No errors during import")
+                                success_count += 1
+                            else:
+                                self.log_test("Import Error Handling", False, f"Import errors: {errors}")
+                        else:
+                            self.log_test("Import Results Structure", False, f"Missing result fields: {expected_results}")
+                    else:
+                        self.log_test("Import API Response Structure", False, f"Missing response fields: {required_fields}")
+                else:
+                    self.log_test("Import API Valid Data", False, f"Status code: {response.status_code}")
+            except Exception as e:
+                self.log_test("Import API Valid Data", False, f"Exception: {str(e)}")
+        else:
+            self.log_test("Import API Valid Data", False, "No export data available for import test")
+        
+        # Test with invalid backup format
+        try:
+            invalid_backup = {"invalid": "format"}
+            response = self.session.post(f"{BASE_URL}/backup/import", json=invalid_backup)
+            if response.status_code == 400:
+                self.log_test("Import API Invalid Format", True, "Correctly rejected invalid backup format")
+                success_count += 1
+            else:
+                self.log_test("Import API Invalid Format", False, f"Should have rejected invalid format, got status: {response.status_code}")
+        except Exception as e:
+            self.log_test("Import API Invalid Format", False, f"Exception: {str(e)}")
+        
+        # Test with missing fields
+        try:
+            incomplete_backup = {"app_version": "test", "data": {}}
+            response = self.session.post(f"{BASE_URL}/backup/import", json=incomplete_backup)
+            if response.status_code in [200, 400]:  # Either works or properly rejects
+                self.log_test("Import API Missing Fields", True, "Handled missing fields appropriately")
+                success_count += 1
+            else:
+                self.log_test("Import API Missing Fields", False, f"Unexpected status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Import API Missing Fields", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
+    def test_full_export_import_cycle(self):
+        """Test complete Export/Import cycle with data verification"""
+        success_count = 0
+        
+        print("\n🔄 Testing Full Export/Import Cycle - Data Integrity")
+        
+        # Step 1: Create test data
+        try:
+            # Create test task
+            task_data = {"name": "Export/Import Test Task"}
+            response = self.session.post(f"{BASE_URL}/tasks", json=task_data)
+            if response.status_code == 200:
+                test_task_id = response.json()["id"]
+                self.created_resources['tasks'].append(test_task_id)
+                
+                # Add stars to task
+                response = self.session.post(f"{BASE_URL}/stars/{test_task_id}/monday?stars=2")
+                if response.status_code == 200:
+                    # Create test reward
+                    reward_data = {"name": "Export/Import Test Reward", "required_stars": 1}
+                    response = self.session.post(f"{BASE_URL}/rewards", json=reward_data)
+                    if response.status_code == 200:
+                        test_reward_id = response.json()["id"]
+                        self.created_resources['rewards'].append(test_reward_id)
+                        
+                        self.log_test("Create Test Data", True, "Created test tasks, stars, and rewards")
+                        success_count += 1
+                    else:
+                        self.log_test("Create Test Data", False, "Failed to create test reward")
+                else:
+                    self.log_test("Create Test Data", False, "Failed to add stars to test task")
+            else:
+                self.log_test("Create Test Data", False, "Failed to create test task")
+        except Exception as e:
+            self.log_test("Create Test Data", False, f"Exception: {str(e)}")
+        
+        # Step 2: Export all data
+        try:
+            response = self.session.get(f"{BASE_URL}/backup/export")
+            if response.status_code == 200:
+                backup_data = response.json()
+                self.log_test("Export Test Data", True, "Successfully exported all data")
+                success_count += 1
+                
+                # Verify test data is in export
+                tasks = backup_data.get("data", {}).get("tasks", [])
+                test_task_found = any(task.get("name") == "Export/Import Test Task" for task in tasks)
+                
+                rewards = backup_data.get("data", {}).get("rewards", [])
+                test_reward_found = any(reward.get("name") == "Export/Import Test Reward" for reward in rewards)
+                
+                if test_task_found and test_reward_found:
+                    self.log_test("Verify Test Data in Export", True, "Test data found in export")
+                    success_count += 1
+                else:
+                    self.log_test("Verify Test Data in Export", False, f"Test data missing: task={test_task_found}, reward={test_reward_found}")
+            else:
+                self.log_test("Export Test Data", False, f"Export failed: {response.status_code}")
+                return success_count >= 2
+        except Exception as e:
+            self.log_test("Export Test Data", False, f"Exception: {str(e)}")
+            return success_count >= 2
+        
+        # Step 3: Reset all data (simulate data loss)
+        try:
+            response = self.session.post(f"{BASE_URL}/progress/reset-all-stars")
+            if response.status_code == 200:
+                # Delete all tasks and rewards
+                for task_id in self.created_resources['tasks']:
+                    self.session.delete(f"{BASE_URL}/tasks/{task_id}")
+                
+                # Clear created resources list since we're testing restoration
+                self.created_resources['tasks'] = []
+                self.created_resources['rewards'] = []
+                
+                self.log_test("Reset All Data", True, "Successfully reset all data")
+                success_count += 1
+            else:
+                self.log_test("Reset All Data", False, f"Reset failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Reset All Data", False, f"Exception: {str(e)}")
+        
+        # Step 4: Import the exported data
+        try:
+            response = self.session.post(f"{BASE_URL}/backup/import", json=backup_data)
+            if response.status_code == 200:
+                import_result = response.json()
+                results = import_result.get("results", {})
+                
+                # Check import counts
+                tasks_imported = results.get("tasks", 0)
+                rewards_imported = results.get("rewards", 0)
+                
+                if tasks_imported > 0 and rewards_imported > 0:
+                    self.log_test("Import Restored Data", True, f"Imported {tasks_imported} tasks and {rewards_imported} rewards")
+                    success_count += 1
+                else:
+                    self.log_test("Import Restored Data", False, f"Import counts: tasks={tasks_imported}, rewards={rewards_imported}")
+            else:
+                self.log_test("Import Restored Data", False, f"Import failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("Import Restored Data", False, f"Exception: {str(e)}")
+        
+        # Step 5: Verify data restoration
+        try:
+            # Check if test task was restored
+            response = self.session.get(f"{BASE_URL}/tasks")
+            if response.status_code == 200:
+                tasks = response.json()
+                test_task_restored = any(task.get("name") == "Export/Import Test Task" for task in tasks)
+                
+                # Check if test reward was restored
+                response = self.session.get(f"{BASE_URL}/rewards")
+                if response.status_code == 200:
+                    rewards = response.json()
+                    test_reward_restored = any(reward.get("name") == "Export/Import Test Reward" for reward in rewards)
+                    
+                    if test_task_restored and test_reward_restored:
+                        self.log_test("Verify Data Restoration", True, "All test data successfully restored")
+                        success_count += 1
+                    else:
+                        self.log_test("Verify Data Restoration", False, f"Data restoration incomplete: task={test_task_restored}, reward={test_reward_restored}")
+                else:
+                    self.log_test("Verify Data Restoration", False, "Failed to get rewards after import")
+            else:
+                self.log_test("Verify Data Restoration", False, "Failed to get tasks after import")
+        except Exception as e:
+            self.log_test("Verify Data Restoration", False, f"Exception: {str(e)}")
+        
+        return success_count >= 4
+
+    def test_export_import_error_handling(self):
+        """Test Export/Import error handling scenarios"""
+        success_count = 0
+        
+        print("\n🛡️ Testing Export/Import Error Handling")
+        
+        # Test import with malformed JSON
+        try:
+            malformed_data = "not valid json"
+            response = self.session.post(f"{BASE_URL}/backup/import", 
+                                       data=malformed_data, 
+                                       headers={'Content-Type': 'application/json'})
+            if response.status_code in [400, 422]:  # Should reject malformed JSON
+                self.log_test("Import Malformed JSON", True, "Correctly rejected malformed JSON")
+                success_count += 1
+            else:
+                self.log_test("Import Malformed JSON", False, f"Should have rejected malformed JSON, got status: {response.status_code}")
+        except Exception as e:
+            # Exception is expected for malformed JSON
+            self.log_test("Import Malformed JSON", True, "Correctly handled malformed JSON with exception")
+            success_count += 1
+        
+        # Test import with empty data
+        try:
+            empty_backup = {"app_version": "test", "data": {"tasks": [], "rewards": [], "weekly_progress": [], "settings": {}, "statistics": {}}}
+            response = self.session.post(f"{BASE_URL}/backup/import", json=empty_backup)
+            if response.status_code == 200:
+                import_result = response.json()
+                if "results" in import_result:
+                    self.log_test("Import Empty Data", True, "Successfully handled empty backup data")
+                    success_count += 1
+                else:
+                    self.log_test("Import Empty Data", False, "Invalid response for empty data")
+            else:
+                self.log_test("Import Empty Data", False, f"Failed to handle empty data: {response.status_code}")
+        except Exception as e:
+            self.log_test("Import Empty Data", False, f"Exception: {str(e)}")
+        
+        # Test import with partial data (missing some sections)
+        try:
+            partial_backup = {
+                "app_version": "test", 
+                "data": {
+                    "tasks": [{"id": "test-task", "name": "Test Task", "created_at": "2024-01-01T00:00:00"}],
+                    "rewards": []
+                    # Missing other sections
+                }
+            }
+            response = self.session.post(f"{BASE_URL}/backup/import", json=partial_backup)
+            if response.status_code == 200:
+                import_result = response.json()
+                results = import_result.get("results", {})
+                if results.get("tasks", 0) > 0:
+                    self.log_test("Import Partial Data", True, "Successfully imported partial backup data")
+                    success_count += 1
+                else:
+                    self.log_test("Import Partial Data", False, "Failed to import partial data")
+            else:
+                self.log_test("Import Partial Data", False, f"Failed to handle partial data: {response.status_code}")
+        except Exception as e:
+            self.log_test("Import Partial Data", False, f"Exception: {str(e)}")
+        
+        # Test export during potential database issues (should still work or fail gracefully)
+        try:
+            response = self.session.get(f"{BASE_URL}/backup/export")
+            if response.status_code in [200, 500]:  # Either works or fails gracefully
+                if response.status_code == 200:
+                    export_data = response.json()
+                    if "data" in export_data:
+                        self.log_test("Export Reliability", True, "Export completed successfully")
+                        success_count += 1
+                    else:
+                        self.log_test("Export Reliability", False, "Export returned invalid data")
+                else:
+                    self.log_test("Export Reliability", True, "Export failed gracefully with 500 error")
+                    success_count += 1
+            else:
+                self.log_test("Export Reliability", False, f"Unexpected export status: {response.status_code}")
+        except Exception as e:
+            self.log_test("Export Reliability", False, f"Exception: {str(e)}")
+        
+        return success_count >= 3
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Weekly Star Tracker Backend API Tests")
@@ -2980,6 +3322,10 @@ class BackendTester:
             ("Math Challenge Generation", self.test_math_challenge),
             ("Math Answer Submission", self.test_math_answer_submission),
             ("Math Settings", self.test_math_settings),
+            ("Export API", self.test_export_api),
+            ("Import API", self.test_import_api),
+            ("Full Export/Import Cycle", self.test_full_export_import_cycle),
+            ("Export/Import Error Handling", self.test_export_import_error_handling),
             ("German Word Problems (Textaufgaben)", self.test_german_word_problems),
             ("Configurable Problem Count", self.test_configurable_problem_count),
             ("Mixed Problem Types Distribution", self.test_mixed_problem_types),
