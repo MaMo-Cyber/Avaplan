@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 # Configuration
-BASE_URL = "https://55210a40-898b-4bb1-a2c1-85e6670f3763.preview.emergentagent.com/api"
+BASE_URL = "https://08ea8e81-0160-4f81-bdfa-a3009c5ac4a3.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class WordProblemsTestSuite:

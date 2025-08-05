@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://55210a40-898b-4bb1-a2c1-85e6670f3763.preview.emergentagent.com/api"
+BASE_URL = "https://08ea8e81-0160-4f81-bdfa-a3009c5ac4a3.preview.emergentagent.com/api"
 
 def test_word_problems_comprehensive():
     """Comprehensive analysis of word problems functionality"""
