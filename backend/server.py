@@ -837,9 +837,15 @@ async def generate_fill_blank_problems(count: int, grade: int, settings: GermanS
             from german_grade3_content import GRADE3_FILL_BLANK_COMPLETE
             templates = GRADE3_FILL_BLANK_COMPLETE
         
+        # Apply difficulty filtering
+        difficulty = settings.difficulty_settings.get("spelling_difficulty", "medium")
+        context_length = settings.difficulty_settings.get("fill_blank_context_length", "short")
+        filtered_templates = apply_fill_blank_difficulty_filter(templates, difficulty, context_length)
+        
         # Shuffle and select random subset to ensure massive variety
         import random
-        shuffled_templates = random.sample(templates, min(count * 3, len(templates)))
+        available_templates = min(count * 3, len(filtered_templates))
+        shuffled_templates = random.sample(filtered_templates, available_templates) if available_templates > 0 else filtered_templates
         
         for i in range(min(count, len(shuffled_templates))):
             template = shuffled_templates[i]
