@@ -3016,6 +3016,8 @@ function App() {
             onOpenMathSettings={() => setShowMathSettings(true)}
             onOpenGermanSettings={() => setShowGermanSettings(true)}
             onOpenEnglishSettings={() => setShowEnglishSettings(true)}
+            onExportData={exportData}
+            onImportData={handleFileImport}
           />
         )}
       </div>
