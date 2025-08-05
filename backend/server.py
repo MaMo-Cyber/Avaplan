@@ -56,10 +56,11 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # Local development
         "https://weekly-star-tracker.netlify.app",  # Production frontend
-        "https://*.netlify.app"  # Any netlify subdomain
+        "https://weekly-star-tracker.netlify.app/",  # With trailing slash
+        "*"  # Allow all for debugging
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
