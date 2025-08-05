@@ -19,7 +19,9 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# Extract database name from connection string or use default
+db_name = os.environ.get('DB_NAME', 'weekly_star_tracker')
+db = client[db_name]
 
 # Create the main app
 app = FastAPI()
