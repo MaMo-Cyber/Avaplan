@@ -27,6 +27,19 @@ db = client[db_name]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Add CORS middleware for frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Local development
+        "https://weekly-star-tracker.netlify.app",  # Production frontend
+        "https://*.netlify.app"  # Any netlify subdomain
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Models
 class Task(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
