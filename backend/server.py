@@ -985,47 +985,9 @@ async def generate_ai_word_type_problems(count: int, grade: int, settings: Germa
     return await generate_word_type_problems(count, grade, settings)
 
 async def generate_ai_fill_blank_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
-    """Generate fill-in-the-blank problems using AI"""
-    openai_key = os.environ.get('OPENAI_API_KEY')
-    
-    system_message = f"""Du bist ein Deutsch-Lehrer für Kinder. Erstelle genau {count} Lückentext-Aufgaben für Klasse {grade}.
-
-AUFGABENFORMAT:
-- Einfache Sätze mit einer Lücke
-- Das fehlende Wort soll logisch und eindeutig sein
-- Multiple Choice mit einer richtigen und 2 falschen Antworten
-- Altersgerechte Themen und Wörter
-
-Gib NUR ein JSON-Array zurück:
-[{{"question": "Setze das richtige Wort ein:\\n\\nDer ___ bellt laut.", "options": ["Hund", "Katze", "Vogel"], "correct_answer": "Hund"}}]"""
-
-    try:
-        chat = LlmChat(
-            api_key=openai_key,
-            session_id=f"german-fillblank-{uuid.uuid4()}",
-            system_message=system_message
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=f"Generiere {count} Lückentext-Aufgaben für Klasse {grade}")
-        response = await chat.send_message(user_message)
-        
-        problems_data = json.loads(response.strip())
-        problems = []
-        
-        for problem_data in problems_data[:count]:
-            problem = GermanProblem(
-                question=problem_data["question"],
-                question_type="fill_blank",
-                options=problem_data["options"],
-                correct_answer=problem_data["correct_answer"]
-            )
-            problems.append(problem)
-        
-        return problems
-        
-    except Exception as e:
-        logging.error(f"Error generating AI fill blank problems: {e}")
-        return []
+    """Generate AI fill blank problems using static fallback content"""
+    # For external deployment, use fallback content only
+    return await generate_fill_blank_problems(count, grade, settings)
 
 # English Challenge Generation Functions
 async def generate_english_problems(grade: int, count: int = None) -> List[EnglishProblem]:
