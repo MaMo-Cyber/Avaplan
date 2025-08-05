@@ -29,7 +29,11 @@ if not (mongo_url.startswith('mongodb://') or mongo_url.startswith('mongodb+srv:
     print("MONGO_URL must start with 'mongodb://' or 'mongodb+srv://'")
     raise ValueError("Invalid MONGO_URL format!")
 
-print(f"🔗 Connecting to MongoDB: {mongo_url[:50]}...")  # Only show first 50 chars for security
+# Show connection info (safely)
+if 'MaMo1988' in mongo_url:
+    print(f"🔗 Connecting with user MaMo1988 to: weekly-tracker.rhgfzlq.mongodb.net")
+else:
+    print(f"🔗 Connecting to MongoDB: {mongo_url[:50]}...")
 
 try:
     client = AsyncIOMotorClient(mongo_url)
