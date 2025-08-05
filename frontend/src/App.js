@@ -2650,6 +2650,96 @@ function App() {
     }
   };
 
+  // Export/Import Functions
+  const exportData = async () => {
+    try {
+      const response = await axios.get(`${API}/backup/export`);
+      const data = response.data;
+      
+      // Create filename with current date
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+      const filename = `weekly-star-tracker-backup-${dateStr}.json`;
+      
+      // Create and download file
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      alert(`✅ Backup erfolgreich erstellt!\n\nDatei: ${filename}\n\nDie Datei wurde in Ihre Downloads gespeichert.`);
+    } catch (error) {
+      console.error('Fehler beim Exportieren:', error);
+      alert('❌ Fehler beim Erstellen des Backups!');
+    }
+  };
+
+  const importData = async (file) => {
+    try {
+      const text = await file.text();
+      const backupData = JSON.parse(text);
+      
+      // Validate backup
+      if (!backupData.data || !backupData.app_version) {
+        throw new Error('Ungültiges Backup-Format');
+      }
+      
+      const response = await axios.post(`${API}/backup/import`, backupData);
+      const results = response.data.results;
+      
+      // Show import results
+      let message = '✅ Import erfolgreich!\n\n';
+      message += `📝 Aufgaben: ${results.tasks}\n`;
+      message += `📈 Fortschritt: ${results.progress}\n`;  
+      message += `🎁 Belohnungen: ${results.rewards}\n`;
+      message += `⚙️ Einstellungen: ${results.settings}\n`;
+      message += `📊 Statistiken: ${results.statistics}\n`;
+      
+      if (results.errors.length > 0) {
+        message += `\n⚠️ Fehler: ${results.errors.length}\n`;
+        results.errors.forEach(error => message += `• ${error}\n`);
+      }
+      
+      alert(message);
+      loadData(); // Reload app data
+    } catch (error) {
+      console.error('Fehler beim Importieren:', error);
+      let errorMsg = '❌ Import fehlgeschlagen!\n\n';
+      if (error.message.includes('JSON')) {
+        errorMsg += 'Die Datei ist keine gültige Backup-Datei.';
+      } else if (error.response) {
+        errorMsg += `Server-Fehler: ${error.response.data.detail || error.response.statusText}`;
+      } else {
+        errorMsg += `Fehler: ${error.message}`;
+      }
+      alert(errorMsg);
+    }
+  };
+
+  const handleFileImport = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.type === 'application/json' || file.name.endsWith('.json')) {
+        const confirmMsg = '⚠️ ACHTUNG: Import überschreibt alle aktuellen Daten!\n\n' +
+                          'Möchten Sie zuerst ein Backup Ihrer aktuellen Daten erstellen?\n\n' +
+                          'Klicken Sie "Abbrechen" um zuerst zu exportieren, oder "OK" um fortzufahren.';
+        
+        if (confirm(confirmMsg)) {
+          importData(file);
+        }
+      } else {
+        alert('❌ Bitte wählen Sie eine JSON-Datei aus!');
+      }
+    }
+    // Reset file input
+    event.target.value = '';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
