@@ -1619,47 +1619,9 @@ async def generate_ai_vocabulary_en_de_problems(count: int, grade: int, settings
     return await generate_vocabulary_en_de_problems(count, grade, settings)
 
 async def generate_ai_simple_sentence_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
-    """Generate simple sentence translation problems using AI"""
-    openai_key = os.environ.get('OPENAI_API_KEY')
-    
-    system_message = f"""Du bist ein Englisch-Lehrer für deutsche Kinder. Erstelle genau {count} einfache Satz-Übersetzungsaufgaben für Klasse {grade}.
-
-AUFGABENFORMAT:
-- Deutsche Sätze ins Englische übersetzen
-- Multiple Choice mit einer richtigen und 2-3 falschen englischen Übersetzungen
-- Sehr einfache, kurze Sätze für Klasse {grade}
-- Grundlegende Satzstrukturen mit bekanntem Vokabular
-
-Gib NUR ein JSON-Array zurück:
-[{{"question": "Wie übersetzt man 'Ich bin ein Kind.' ins Englische?", "options": ["I am a child.", "I have a child.", "I see a child."], "correct_answer": "I am a child."}}]"""
-
-    try:
-        chat = LlmChat(
-            api_key=openai_key,
-            session_id=f"english-sentences-{uuid.uuid4()}",
-            system_message=system_message
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=f"Generiere {count} einfache Satz-Übersetzungsaufgaben für Klasse {grade}")
-        response = await chat.send_message(user_message)
-        
-        problems_data = json.loads(response.strip())
-        problems = []
-        
-        for problem_data in problems_data[:count]:
-            problem = EnglishProblem(
-                question=problem_data["question"],
-                question_type="simple_sentences",
-                options=problem_data["options"],
-                correct_answer=problem_data["correct_answer"]
-            )
-            problems.append(problem)
-        
-        return problems
-        
-    except Exception as e:
-        logging.error(f"Error generating AI simple sentence problems: {e}")
-        return []
+    """Generate AI simple sentence problems using static fallback content"""
+    # For external deployment, use fallback content only
+    return await generate_simple_sentence_problems(count, grade, settings)
 
 # Helper functions
 def get_current_week_start():
