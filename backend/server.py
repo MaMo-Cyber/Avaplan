@@ -273,7 +273,7 @@ async def generate_german_problems(grade: int, count: int = None) -> List[German
 def apply_spelling_difficulty_filter(word_list, difficulty):
     """Filter word list based on difficulty setting"""
     if difficulty == "easy":
-        # Filter for shorter words and common words
+        # Filter for shorter words (easier to spell)
         return [word for word in word_list if len(word["correct"]) <= 8]
     elif difficulty == "hard":
         # Include longer words and more complex spellings
@@ -281,6 +281,27 @@ def apply_spelling_difficulty_filter(word_list, difficulty):
     else:  # medium
         # Include all words (no filtering)
         return word_list
+
+def apply_word_type_difficulty_filter(examples, difficulty, include_adjectives=True):
+    """Filter word type examples based on difficulty setting"""
+    if difficulty == "easy":
+        # Only use Nomen and Verb (easier to identify)
+        filtered = [ex for ex in examples if ex["type"] in ["Nomen", "Verb"]]
+        # Also prefer shorter sentences
+        filtered = [ex for ex in filtered if len(ex["sentence"].split()) <= 6]
+        return filtered
+    elif difficulty == "hard":
+        # Include all word types including more complex ones
+        if include_adjectives:
+            return examples
+        else:
+            return [ex for ex in examples if ex["type"] != "Adjektiv"]
+    else:  # medium
+        # Standard behavior - include adjectives based on setting
+        if include_adjectives:
+            return examples
+        else:
+            return [ex for ex in examples if ex["type"] != "Adjektiv"]
 
 async def generate_spelling_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
     """Generate German spelling problems using massively expanded content"""
