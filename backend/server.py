@@ -1614,47 +1614,9 @@ async def generate_ai_vocabulary_de_en_problems(count: int, grade: int, settings
     return await generate_vocabulary_de_en_problems(count, grade, settings)
 
 async def generate_ai_vocabulary_en_de_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
-    """Generate English to German vocabulary problems using AI"""
-    openai_key = os.environ.get('OPENAI_API_KEY')
-    
-    system_message = f"""Du bist ein Englisch-Lehrer für deutsche Kinder. Erstelle genau {count} Englisch-zu-Deutsch Vokabel-Aufgaben für Klasse {grade}.
-
-AUFGABENFORMAT:
-- Englische Wörter ins Deutsche übersetzen
-- Multiple Choice mit einer richtigen und 2-3 falschen deutschen Antworten
-- Altersgerechte, einfache Vokabeln für Klasse {grade}
-- Fokus auf Grundwortschatz: Tiere, Familie, Farben, Zahlen, Alltag
-
-Gib NUR ein JSON-Array zurück:
-[{{"question": "Was bedeutet 'dog' auf Deutsch?", "options": ["Hund", "Katze", "Vogel"], "correct_answer": "Hund"}}]"""
-
-    try:
-        chat = LlmChat(
-            api_key=openai_key,
-            session_id=f"english-vocab-en-de-{uuid.uuid4()}",
-            system_message=system_message
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=f"Generiere {count} Englisch-zu-Deutsch Vokabel-Aufgaben für Klasse {grade}")
-        response = await chat.send_message(user_message)
-        
-        problems_data = json.loads(response.strip())
-        problems = []
-        
-        for problem_data in problems_data[:count]:
-            problem = EnglishProblem(
-                question=problem_data["question"],
-                question_type="vocabulary_en_de",
-                options=problem_data["options"],
-                correct_answer=problem_data["correct_answer"]
-            )
-            problems.append(problem)
-        
-        return problems
-        
-    except Exception as e:
-        logging.error(f"Error generating AI EN->DE vocabulary problems: {e}")
-        return []
+    """Generate AI vocabulary EN-DE problems using static fallback content"""
+    # For external deployment, use fallback content only
+    return await generate_vocabulary_en_de_problems(count, grade, settings)
 
 async def generate_ai_simple_sentence_problems(count: int, grade: int, settings: EnglishSettings) -> List[EnglishProblem]:
     """Generate simple sentence translation problems using AI"""
