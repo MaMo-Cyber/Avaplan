@@ -270,6 +270,18 @@ async def generate_german_problems(grade: int, count: int = None) -> List[German
     random.shuffle(problems)
     return problems[:count]
 
+def apply_spelling_difficulty_filter(word_list, difficulty):
+    """Filter word list based on difficulty setting"""
+    if difficulty == "easy":
+        # Filter for shorter words and common words
+        return [word for word in word_list if len(word["correct"]) <= 8]
+    elif difficulty == "hard":
+        # Include longer words and more complex spellings
+        return [word for word in word_list if len(word["correct"]) >= 6]
+    else:  # medium
+        # Include all words (no filtering)
+        return word_list
+
 async def generate_spelling_problems(count: int, grade: int, settings: GermanSettings) -> List[GermanProblem]:
     """Generate German spelling problems using massively expanded content"""
     problems = []
