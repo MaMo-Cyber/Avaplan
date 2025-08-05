@@ -1874,87 +1874,9 @@ def generate_currency_problems(count: int, settings: MathSettings) -> List[MathP
     return problems
 
 async def generate_ai_math_problems(problem_type: str, grade: int, count: int, settings: MathSettings) -> List[MathProblem]:
-    """Generate traditional math problems using AI"""
-    openai_key = os.environ.get('OPENAI_API_KEY')
-    
-    type_descriptions = {
-        "addition": "Addition",
-        "subtraction": "Subtraktion", 
-        "multiplication": "Multiplikation",
-        "word_problems": "Textaufgaben"
-    }
-    
-    type_desc = type_descriptions.get(problem_type, "Mathematik")
-    
-    # Create appropriate system message based on problem type
-    if problem_type == "word_problems":
-        system_message = f"""Du bist ein Mathe-Aufgaben-Generator für Kinder. Erstelle genau {count} {type_desc} für Klasse {grade}.
-
-WICHTIGE BESCHRÄNKUNGEN:
-- ALLE Antworten müssen zwischen 1 und 100 liegen (niemals über 100)
-- Für Klasse {grade}: Textaufgaben mit Zahlen bis {settings.max_number}
-- Erstelle realistische Alltagssituationen für Kinder
-- Verwende nur deutsche Sprache
-- Die Geschichten sollen einfach und verständlich sein
-
-Gib NUR ein JSON-Array von Objekten zurück in genau diesem Format:
-[{{"question": "Anna hat 12 Äpfel. Sie gibt 5 Äpfel an ihre Freundin. Wie viele Äpfel hat Anna noch?", "answer": "7"}}, {{"question": "Tom sammelt 8 Sticker am Montag und 6 Sticker am Dienstag. Wie viele Sticker hat er insgesamt?", "answer": "14"}}]
-
-Erstelle abwechslungsreiche Textaufgaben mit verschiedenen Alltagssituationen. Überprüfe doppelt, dass ALLE Antworten 100 oder weniger sind."""
-    else:
-        system_message = f"""Du bist ein Mathe-Aufgaben-Generator für Kinder. Erstelle genau {count} {type_desc}-Aufgaben für Klasse {grade}.
-
-WICHTIGE BESCHRÄNKUNGEN:
-- ALLE Antworten müssen zwischen 1 und 100 liegen (niemals über 100)
-- Für Klasse {grade}: {type_desc} mit Zahlen bis {settings.max_number}
-- Bei Multiplikation: maximal bis x{settings.max_multiplication}
-- Stelle sicher, dass keine Antwort 100 überschreitet
-- Verwende nur deutsche Sprache
-
-Gib NUR ein JSON-Array von Objekten zurück in genau diesem Format:
-[{{"question": "Was ist 5 + 3?", "answer": "8"}}, {{"question": "Was ist 3 + 5?", "answer": "8"}}]
-
-Erstelle abwechslungsreiche aber altersgerechte Aufgaben. Fokus auf Zahlen, keine komplexen Textaufgaben. Überprüfe doppelt, dass ALLE Antworten 100 oder weniger sind."""
-
-    try:
-        chat = LlmChat(
-            api_key=openai_key,
-            session_id=f"math-gen-{uuid.uuid4()}",
-            system_message=system_message
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=f"Generiere {count} {type_desc}-Aufgaben für Klasse {grade}")
-        response = await chat.send_message(user_message)
-        
-        # Parse the JSON response
-        problems_data = json.loads(response.strip())
-        
-        problems = []
-        for i, problem_data in enumerate(problems_data[:count]):
-            answer_str = str(problem_data["answer"])
-            
-            # Ensure numeric answers don't exceed 100
-            try:
-                if answer_str.replace(".", "").replace(",", "").isdigit():
-                    numeric_val = float(answer_str.replace(",", "."))
-                    if numeric_val > 100:
-                        continue  # Skip problems with answers > 100
-            except:
-                pass  # Non-numeric answers are ok
-            
-            problem = MathProblem(
-                question=problem_data["question"],
-                question_type="text",
-                correct_answer=answer_str
-            )
-            problems.append(problem)
-        
-        return problems
-        
-    except Exception as e:
-        logging.error(f"Error generating AI math problems: {e}")
-        # Fallback to simple generated problems
-        return await generate_simple_math_problems(grade, count, settings)
+    """Generate AI math problems using static fallback content"""
+    # For external deployment, use fallback content only
+    return await generate_math_problems(problem_type, grade, count, settings)
 
 async def generate_simple_math_problems(grade: int, count: int, settings: MathSettings) -> List[MathProblem]:
     """Fallback simple math problem generation"""
