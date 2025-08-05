@@ -2278,6 +2278,17 @@ async def reset_safe_only():
     
     return {"message": "Safe stars reset successfully (all other stars preserved)"}
 
+def convert_objectid_to_str(obj):
+    """Convert MongoDB ObjectId to string for JSON serialization"""
+    if isinstance(obj, dict):
+        return {key: convert_objectid_to_str(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_objectid_to_str(item) for item in obj]
+    elif hasattr(obj, '__dict__') and hasattr(obj, '__class__') and 'ObjectId' in str(type(obj)):
+        return str(obj)
+    else:
+        return obj
+
 @api_router.get("/backup/export")
 async def export_all_data():
     """Export all app data as JSON backup"""
@@ -2294,15 +2305,19 @@ async def export_all_data():
         
         # Export tasks
         tasks = await db.tasks.find().to_list(length=None)
-        backup_data["data"]["tasks"] = tasks
+        backup_data["data"]["tasks"] = convert_objectid_to_str(tasks)
+        
+        # Export daily stars
+        daily_stars = await db.daily_stars.find().to_list(length=None)
+        backup_data["data"]["daily_stars"] = convert_objectid_to_str(daily_stars)
         
         # Export weekly progress
         progress = await db.weekly_progress.find().to_list(length=None)
-        backup_data["data"]["weekly_progress"] = progress
+        backup_data["data"]["weekly_progress"] = convert_objectid_to_str(progress)
         
         # Export rewards
         rewards = await db.rewards.find().to_list(length=None)
-        backup_data["data"]["rewards"] = rewards
+        backup_data["data"]["rewards"] = convert_objectid_to_str(rewards)
         
         # Export settings
         math_settings = await db.math_settings.find_one()
@@ -2310,9 +2325,9 @@ async def export_all_data():
         english_settings = await db.english_settings.find_one()
         
         backup_data["data"]["settings"] = {
-            "math": math_settings,
-            "german": german_settings,
-            "english": english_settings
+            "math": convert_objectid_to_str(math_settings),
+            "german": convert_objectid_to_str(german_settings),
+            "english": convert_objectid_to_str(english_settings)
         }
         
         # Export statistics
@@ -2321,9 +2336,9 @@ async def export_all_data():
         english_stats = await db.english_statistics.find().to_list(length=None)
         
         backup_data["data"]["statistics"] = {
-            "math": math_stats,
-            "german": german_stats,
-            "english": english_stats
+            "math": convert_objectid_to_str(math_stats),
+            "german": convert_objectid_to_str(german_stats),
+            "english": convert_objectid_to_str(english_stats)
         }
         
         return backup_data
