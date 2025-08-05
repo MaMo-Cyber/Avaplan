@@ -683,9 +683,15 @@ async def generate_word_type_problems(count: int, grade: int, settings: GermanSe
             from german_grade3_content import GRADE3_WORD_TYPES_COMPLETE
             examples = GRADE3_WORD_TYPES_COMPLETE
         
+        # Apply difficulty filtering
+        difficulty = settings.difficulty_settings.get("spelling_difficulty", "medium")
+        include_adjectives = settings.difficulty_settings.get("word_types_include_adjectives", True)
+        filtered_examples = apply_word_type_difficulty_filter(examples, difficulty, include_adjectives)
+        
         # Shuffle and select random subset to ensure variety
         import random
-        shuffled_examples = random.sample(examples, min(count * 3, len(examples)))
+        available_examples = min(count * 3, len(filtered_examples))
+        shuffled_examples = random.sample(filtered_examples, available_examples) if available_examples > 0 else filtered_examples
         
         for i in range(min(count, len(shuffled_examples))):
             example = shuffled_examples[i]
