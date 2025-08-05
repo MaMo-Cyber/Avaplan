@@ -3849,6 +3849,10 @@ class BackendTester:
             ("English Challenge Submission", self.test_english_challenge_submission),
             ("English Problem Generation", self.test_english_problem_generation),
             ("English Integration with Existing System", self.test_english_integration_with_existing_system),
+            ("German Difficulty Settings API", self.test_german_difficulty_settings_api),
+            ("German Difficulty Challenge Generation", self.test_german_difficulty_challenge_generation),
+            ("German Difficulty Filter Functions", self.test_german_difficulty_filter_functions),
+            ("German Difficulty Integration", self.test_german_difficulty_integration),
         ]
         
         passed_tests = 0
