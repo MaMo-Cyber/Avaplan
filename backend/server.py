@@ -2869,6 +2869,11 @@ async def reset_english_statistics():
 async def root():
     return {"message": "Weekly Star Tracker API Ready!"}
 
+@app.get("/")
+async def root():
+    """Root endpoint for health check"""
+    return {"message": "Weekly Star Tracker Backend is running!", "status": "healthy", "api": "/api/"}
+
 # Include the router
 app.include_router(api_router)
 
