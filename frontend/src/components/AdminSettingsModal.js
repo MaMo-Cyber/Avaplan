@@ -11,7 +11,9 @@ const AdminSettingsModal = ({
   onManageRewards,
   onOpenMathSettings,
   onOpenGermanSettings,
-  onOpenEnglishSettings
+  onOpenEnglishSettings,
+  onExportData,
+  onImportData
 }) => {
   const [showConfirmations, setShowConfirmations] = useState({
     resetWeek: false,
@@ -49,6 +51,14 @@ const AdminSettingsModal = ({
     }
   };
 
+  const handleFileUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = onImportData;
+    input.click();
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
@@ -66,6 +76,29 @@ const AdminSettingsModal = ({
         </div>
 
         <div className="space-y-4">
+          {/* Backup Section - NEW */}
+          <div className="border-b border-gray-200 pb-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">💾 Daten-Backup</h3>
+            <div className="space-y-2">
+              <button
+                onClick={onExportData}
+                className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors text-left"
+              >
+                📤 Backup erstellen (JSON-Datei)
+              </button>
+              <button
+                onClick={handleFileUpload}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors text-left"
+              >
+                📥 Backup wiederherstellen
+              </button>
+              <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                <strong>💡 Tipp:</strong> Erstellen Sie regelmäßig Backups, um Ihre Daten zu sichern! 
+                Die Backup-Datei enthält alle Aufgaben, Sterne, Belohnungen und Einstellungen.
+              </div>
+            </div>
+          </div>
+
           {/* Management Section */}
           <div className="border-b border-gray-200 pb-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-3">📋 Verwaltung</h3>
