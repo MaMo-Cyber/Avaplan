@@ -2377,6 +2377,16 @@ async def import_all_data(backup_data: dict):
             except Exception as e:
                 import_results["errors"].append(f"Tasks import failed: {str(e)}")
         
+        # Import daily stars
+        if "daily_stars" in data and data["daily_stars"]:
+            try:
+                await db.daily_stars.delete_many({})
+                if data["daily_stars"]:
+                    await db.daily_stars.insert_many(data["daily_stars"])
+                    import_results["daily_stars"] = len(data["daily_stars"])
+            except Exception as e:
+                import_results["errors"].append(f"Daily stars import failed: {str(e)}")
+        
         # Import weekly progress
         if "weekly_progress" in data and data["weekly_progress"]:
             try:
