@@ -305,13 +305,27 @@ async def generate_spelling_problems(count: int, grade: int, settings: GermanSet
             from german_grade3_content import GRADE3_SPELLING_COMPLETE
             word_list = GRADE3_SPELLING_COMPLETE
         
+        # Apply difficulty filtering
+        difficulty = settings.difficulty_settings.get("spelling_difficulty", "medium")
+        filtered_words = apply_spelling_difficulty_filter(word_list, difficulty)
+        
         # Shuffle and select random subset to ensure variety
         import random
-        shuffled_words = random.sample(word_list, min(count * 3, len(word_list)))
+        available_words = min(count * 3, len(filtered_words))
+        shuffled_words = random.sample(filtered_words, available_words) if available_words > 0 else filtered_words
         
         for i in range(min(count, len(shuffled_words))):
             word_data = shuffled_words[i]
             options = [word_data["correct"]] + word_data["wrong"]
+            
+            # Adjust wrong options based on difficulty
+            if difficulty == "easy":
+                # Use only 3 options (easier to choose)
+                options = options[:3]
+            elif difficulty == "hard":
+                # Keep all wrong options, make them more similar
+                pass
+            
             random.shuffle(options)
             
             problem = GermanProblem(
