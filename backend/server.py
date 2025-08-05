@@ -17,11 +17,16 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL')
+if not mongo_url:
+    raise ValueError("MONGO_URL environment variable is not set!")
+
+print(f"🔗 Connecting to MongoDB: {mongo_url[:50]}...")  # Only show first 50 chars for security
 client = AsyncIOMotorClient(mongo_url)
 # Extract database name from connection string or use default
 db_name = os.environ.get('DB_NAME', 'weekly_star_tracker')
 db = client[db_name]
+print(f"📂 Using database: {db_name}")
 
 # Create the main app
 app = FastAPI()
