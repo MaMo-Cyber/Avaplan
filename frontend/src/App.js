@@ -2307,9 +2307,9 @@ const MathChallenge = ({ onClose, onComplete }) => {
           </div>
           
           <div className="mb-4 text-sm text-gray-600">
-            Fülle ALLE Antworten aus, um die Einreichung zu aktivieren. Antworten ausgefüllt: {Object.keys(answers).length}/{challenge.problems.length}
+            Fülle ALLE Antworten aus, um die Einreichung zu aktivieren. Antworten ausgefüllt: {Object.keys(answers).length}/{challenge.problems ? challenge.problems.length : 0}
             <br />
-            <span className="text-purple-600 font-medium">Insgesamt {challenge.problems.length} Aufgaben</span>
+            <span className="text-purple-600 font-medium">Insgesamt {challenge.problems ? challenge.problems.length : 0} Aufgaben</span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
