@@ -2095,7 +2095,7 @@ const GermanChallenge = ({ onClose, onComplete }) => {
               disabled={loading || !allAnswersProvided}
               className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Einreichen...' : `Alle Antworten Einreichen (${Object.keys(answers).length}/${challenge.problems.length})`}
+              {loading ? 'Einreichen...' : `Alle Antworten Einreichen (${Object.keys(answers).length}/${challenge.problems ? challenge.problems.length : 0})`}
             </button>
           </div>
         </div>
