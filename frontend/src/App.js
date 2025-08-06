@@ -2620,12 +2620,17 @@ function App() {
 
   const withdrawFromSafe = async (amount) => {
     try {
-      await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
+      await axios.post(`${API}/progress/withdraw-from-safe`, { stars: amount });
       loadData();
       setShowSafe(false);
+      alert(`✅ ${amount} Sterne erfolgreich aus dem Tresor genommen!`);
     } catch (error) {
       console.error('Fehler beim Abheben aus dem Tresor:', error);
-      alert('Fehler beim Abheben der Sterne!');
+      if (error.response?.data?.detail) {
+        alert(`❌ Fehler: ${error.response.data.detail}`);
+      } else {
+        alert('❌ Fehler beim Tresor-Vorgang. Bitte versuche es erneut.');
+      }
     }
   };
 
