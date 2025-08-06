@@ -1,5 +1,6 @@
-const CACHE_NAME = 'weekly-star-tracker-v1';
-const API_CACHE_NAME = 'weekly-star-tracker-api-v1';
+const CACHE_NAME = 'weekly-star-tracker-v2';
+const API_CACHE_NAME = 'weekly-star-tracker-api-v2';
+const CHALLENGES_CACHE_NAME = 'weekly-star-tracker-challenges-v1';
 
 // Files to cache for offline functionality
 const STATIC_CACHE_URLS = [
@@ -15,9 +16,14 @@ const API_CACHE_URLS = [
   '/api/progress',
   '/api/tasks',
   '/api/rewards',
+  '/api/cache/preload',  // New preload endpoint
 ];
 
-// Install event - cache essential files
+// Challenge storage for offline usage
+let challengeCache = null;
+const CACHE_EXPIRY_HOURS = 24;
+
+// Install event - cache essential files and preload challenges
 self.addEventListener('install', (event) => {
   console.log('🔧 Service Worker installing...');
   
@@ -28,7 +34,47 @@ self.addEventListener('install', (event) => {
         .then((cache) => {
           console.log('📦 Caching static files');
           return cache.addAll(STATIC_CACHE_URLS.map(url => new Request(url, {credentials: 'same-origin'})));
-        })
+        }),
+      
+      // Preload challenges for offline usage
+      preloadChallenges()
+    ]).then(() => {
+      console.log('✅ Service Worker installed successfully');
+      self.skipWaiting();
+    }).catch((error) => {
+      console.error('❌ Service Worker installation failed:', error);
+    })
+  );
+});
+
+// Function to preload challenges
+async function preloadChallenges() {
+  try {
+    console.log('📚 Preloading challenges for offline usage...');
+    
+    const response = await fetch('/api/cache/preload', {
+      method: 'GET',
+      credentials: 'same-origin'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      challengeCache = {
+        ...data.cached_challenges,
+        timestamp: new Date().toISOString(),
+        expires: new Date(Date.now() + CACHE_EXPIRY_HOURS * 60 * 60 * 1000).toISOString()
+      };
+      
+      // Store in cache
+      const cache = await caches.open(CHALLENGES_CACHE_NAME);
+      await cache.put('/offline-challenges', new Response(JSON.stringify(challengeCache)));
+      
+      console.log(`✅ Preloaded ${data.total_problems} challenges for offline usage`);
+    }
+  } catch (error) {
+    console.error('⚠️  Failed to preload challenges:', error);
+  }
+}
         .catch((error) => {
           console.warn('⚠️ Some static files failed to cache:', error);
         }),
