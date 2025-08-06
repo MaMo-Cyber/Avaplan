@@ -119,6 +119,20 @@ self.addEventListener('fetch', (event) => {
 async function handleApiRequest(request) {
   const url = new URL(request.url);
   
+  // Handle challenge creation with offline fallback
+  if (url.pathname.includes('/challenge/') && request.method === 'POST') {
+    try {
+      const networkResponse = await fetch(request);
+      if (networkResponse.ok) {
+        return networkResponse;
+      }
+      throw new Error('Network request failed');
+    } catch (error) {
+      console.log('🔄 Network unavailable, serving cached challenges...');
+      return await serveCachedChallenge(url);
+    }
+  }
+  
   // For read-only requests (GET), try network first, then cache
   if (request.method === 'GET') {
     try {
@@ -128,6 +142,134 @@ async function handleApiRequest(request) {
         // Cache successful responses
         const cache = await caches.open(API_CACHE_NAME);
         cache.put(request, networkResponse.clone());
+        return networkResponse;
+      }
+      throw new Error('Network response not ok');
+    } catch (error) {
+      console.log('🔄 Network unavailable, serving from cache...');
+      
+      // Try to serve from cache
+      const cache = await caches.open(API_CACHE_NAME);
+      const cachedResponse = await cache.match(request);
+      
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      
+      // If no cached response, return error
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Network unavailable',
+        message: 'Please check your internet connection and try again.',
+        offline: true
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
+  // For other methods (POST, PUT, DELETE), require network
+  return fetch(request);
+}
+
+// Serve cached challenges when offline
+async function serveCachedChallenge(url) {
+  try {
+    const cache = await caches.open(CHALLENGES_CACHE_NAME);
+    const cachedData = await cache.match('/offline-challenges');
+    
+    if (!cachedData) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'No cached challenges available',
+        message: 'Please connect to internet to load new challenges.'
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const challengeData = await cachedData.json();
+    
+    // Check if cache is expired
+    if (new Date() > new Date(challengeData.expires)) {
+      console.warn('⚠️  Cached challenges expired, but serving anyway due to offline mode');
+    }
+    
+    // Extract challenge type and grade from URL
+    const pathParts = url.pathname.split('/');
+    const challengeType = pathParts[2]; // math, german, english
+    const grade = pathParts[4]; // grade number
+    
+    let problems = [];
+    
+    if (challengeType === 'math' && challengeData.math && challengeData.math[`grade_${grade}`]) {
+      const mathProblems = challengeData.math[`grade_${grade}`];
+      // Mix different problem types
+      Object.values(mathProblems).forEach(typeProblems => {
+        if (Array.isArray(typeProblems)) {
+          problems = problems.concat(typeProblems.slice(0, 3)); // Take first 3 of each type
+        }
+      });
+    } else if (challengeType === 'german' && challengeData.german && challengeData.german[`grade_${grade}`]) {
+      const germanProblems = challengeData.german[`grade_${grade}`];
+      Object.values(germanProblems).forEach(typeProblems => {
+        if (Array.isArray(typeProblems)) {
+          problems = problems.concat(typeProblems.slice(0, 3));
+        }
+      });
+    } else if (challengeType === 'english' && challengeData.english && challengeData.english[`grade_${grade}`]) {
+      const englishProblems = challengeData.english[`grade_${grade}`];
+      Object.values(englishProblems).forEach(typeProblems => {
+        if (Array.isArray(typeProblems)) {
+          problems = problems.concat(typeProblems.slice(0, 3));
+        }
+      });
+    }
+    
+    if (problems.length === 0) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'No cached challenges for this type/grade',
+        message: 'Please connect to internet to load challenges.'
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Create offline challenge response
+    const challenge = {
+      id: 'offline-' + Date.now(),
+      grade: parseInt(grade),
+      problems: problems,
+      created_at: new Date().toISOString(),
+      offline: true
+    };
+    
+    return new Response(JSON.stringify({
+      challenge: challenge,
+      success: true,
+      message: `Offline ${challengeType} challenge loaded with ${problems.length} problems`,
+      offline: true
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error serving cached challenge:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to load offline challenges',
+      message: 'Please check your internet connection and try again.'
+    }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
       }
       
       return networkResponse;
