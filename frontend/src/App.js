@@ -2144,7 +2144,15 @@ const MathChallenge = ({ onClose, onComplete }) => {
     setLoading(true);
     try {
       const response = await axios.post(`${API}/math/challenge/${selectedGrade}`);
-      setChallenge(response.data);
+      
+      // Handle the API response structure: { challenge: {...}, success: true }
+      const challengeData = response.data.challenge || response.data;
+      
+      if (!challengeData.problems || !Array.isArray(challengeData.problems)) {
+        throw new Error('Invalid challenge format: missing problems array');
+      }
+      
+      setChallenge(challengeData);
       setGrade(selectedGrade);
       setAnswers({});
     } catch (error) {
