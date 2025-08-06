@@ -1667,57 +1667,136 @@ def get_current_week_start():
     week_start = today - timedelta(days=days_since_monday)
     return week_start.replace(hour=0, minute=0, second=0, microsecond=0)
 
-async def generate_math_problems(grade: int, count: int = None) -> List[MathProblem]:
-    """Generate AI-powered math problems using OpenAI with extended problem types"""
+async def generate_math_problems(problem_type: str, grade: int, count: int, settings: MathSettings) -> List[MathProblem]:
+    """Generate math problems with specific type, grade, count and settings"""
     
-    # Get math settings
-    settings_doc = await db.math_settings.find_one()
-    if not settings_doc:
-        settings = MathSettings()
-        await db.math_settings.insert_one(settings.dict())
-    else:
-        settings = MathSettings(**settings_doc)
-    
-    # Use configured problem count if not specified
-    if count is None:
-        count = settings.problem_count
-    
-    # Generate mix of problems based on enabled types
     problems = []
-    enabled_types = [k for k, v in settings.problem_types.items() if v]
     
-    if not enabled_types:
-        enabled_types = ["addition", "subtraction", "multiplication"]  # fallback
+    if problem_type == "addition":
+        for i in range(count):
+            if grade == 2:
+                # Grade 2: Numbers up to 20
+                a = random.randint(1, 15)
+                b = random.randint(1, 20 - a)
+                answer = a + b
+                wrong_answers = [answer + 1, answer - 1, answer + 2]
+            else:  # Grade 3
+                # Grade 3: Numbers up to 100
+                a = random.randint(10, 80)
+                b = random.randint(1, 100 - a)
+                answer = a + b
+                wrong_answers = [answer + 5, answer - 5, answer + 10]
+            
+            options = [str(answer)] + [str(w) for w in wrong_answers]
+            random.shuffle(options)
+            
+            problem = MathProblem(
+                question=f"{a} + {b} = ?",
+                question_type="addition",
+                options=options,
+                correct_answer=str(answer)
+            )
+            problems.append(problem)
     
-    problems_per_type = count // len(enabled_types)
-    remaining = count % len(enabled_types)
+    elif problem_type == "subtraction":
+        for i in range(count):
+            if grade == 2:
+                a = random.randint(5, 20)
+                b = random.randint(1, a)
+                answer = a - b
+                wrong_answers = [answer + 1, answer - 1, answer + 2]
+            else:  # Grade 3
+                a = random.randint(20, 100)
+                b = random.randint(1, a)
+                answer = a - b
+                wrong_answers = [answer + 5, answer - 5, answer + 10]
+            
+            options = [str(answer)] + [str(w) for w in wrong_answers if w >= 0][:3]
+            while len(options) < 4:
+                options.append(str(random.randint(0, answer + 10)))
+            random.shuffle(options)
+            
+            problem = MathProblem(
+                question=f"{a} - {b} = ?",
+                question_type="subtraction", 
+                options=options,
+                correct_answer=str(answer)
+            )
+            problems.append(problem)
     
-    for problem_type in enabled_types:
-        type_count = problems_per_type + (1 if remaining > 0 else 0)
-        remaining -= 1
+    elif problem_type == "multiplication":
+        for i in range(count):
+            if grade == 2:
+                a = random.randint(1, 5)
+                b = random.randint(1, 5)
+            else:  # Grade 3
+                a = random.randint(2, 10)
+                b = random.randint(2, 10)
+            
+            answer = a * b
+            wrong_answers = [answer + a, answer - a, answer + b]
+            
+            options = [str(answer)] + [str(w) for w in wrong_answers if w > 0][:3]
+            while len(options) < 4:
+                options.append(str(random.randint(1, answer + 20)))
+            random.shuffle(options)
+            
+            problem = MathProblem(
+                question=f"{a} × {b} = ?",
+                question_type="multiplication",
+                options=options,
+                correct_answer=str(answer)
+            )
+            problems.append(problem)
+    
+    elif problem_type == "word_problems":
+        # Simple word problems
+        word_templates = [
+            ("Anna hat {a} Äpfel. Sie bekommt {b} weitere. Wie viele hat sie jetzt?", "addition"),
+            ("Tim hat {a} Bonbons. Er gibt {b} weg. Wie viele bleiben?", "subtraction"),
+            ("Es gibt {a} Gruppen mit je {b} Kindern. Wie viele Kinder sind das?", "multiplication")
+        ]
         
-        if problem_type == "clock_reading":
-            problems.extend(generate_clock_problems(type_count, settings))
-        elif problem_type == "currency_math":
-            problems.extend(generate_currency_problems(type_count, settings))
-        elif problem_type == "word_problems":
-            problems.extend(generate_german_word_problems(type_count, grade, settings))
-        else:
-            # Generate traditional math problems via AI (with fallback)
-            try:
-                openai_key = os.environ.get('OPENAI_API_KEY')
-                if openai_key:
-                    ai_problems = await generate_ai_math_problems(problem_type, grade, type_count, settings)
-                    problems.extend(ai_problems)
+        for i in range(count):
+            template, operation = random.choice(word_templates)
+            
+            if operation == "addition":
+                if grade == 2:
+                    a, b = random.randint(3, 12), random.randint(2, 8)
                 else:
-                    problems.extend(await generate_simple_math_problems(grade, type_count, settings))
-            except Exception as e:
-                logging.error(f"AI generation failed for {problem_type}: {e}")
-                problems.extend(await generate_simple_math_problems(grade, type_count, settings))
+                    a, b = random.randint(15, 45), random.randint(5, 25)
+                answer = a + b
+            elif operation == "subtraction":
+                if grade == 2:
+                    a = random.randint(5, 15)
+                    b = random.randint(2, a)
+                else:
+                    a = random.randint(20, 60)
+                    b = random.randint(5, a)
+                answer = a - b
+            else:  # multiplication
+                if grade == 2:
+                    a, b = random.randint(2, 4), random.randint(2, 5)
+                else:
+                    a, b = random.randint(3, 8), random.randint(2, 7)
+                answer = a * b
+            
+            question = template.format(a=a, b=b)
+            wrong_answers = [answer + 1, answer - 1, answer + 2]
+            options = [str(answer)] + [str(w) for w in wrong_answers if w > 0][:3]
+            while len(options) < 4:
+                options.append(str(random.randint(1, answer + 10)))
+            random.shuffle(options)
+            
+            problem = MathProblem(
+                question=question,
+                question_type="word_problems",
+                options=options,
+                correct_answer=str(answer)
+            )
+            problems.append(problem)
     
-    # Shuffle the problems
-    random.shuffle(problems)
-    return problems[:count]
+    return problems
 
 def generate_german_word_problems(count: int, grade: int, settings: MathSettings) -> List[MathProblem]:
     """Generate German word problems using templates"""
