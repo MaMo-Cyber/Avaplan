@@ -2135,14 +2135,21 @@ async def add_stars_to_safe(request: AddStarsRequest):
     if not progress:
         raise HTTPException(status_code=404, detail="No progress found for current week")
     
-    # Calculate available stars (earned - used)
+    # Calculate available stars that can be moved to safe
     total_stars_earned = progress.get("total_stars_earned", 0)
     total_stars_used = progress.get("total_stars_used", 0)
-    available_for_transfer = total_stars_earned - total_stars_used
+    available_reward_stars = progress.get("available_stars", 0)  # Stars available for rewards
     
-    # Validation: Can only add stars that haven't been used yet
+    # Total stars that can be moved to safe = unspent earned stars + available reward stars
+    unspent_earned = total_stars_earned - total_stars_used
+    available_for_transfer = unspent_earned + available_reward_stars
+    
+    # Validation: Can only add stars that are actually available
     if stars > available_for_transfer:
-        raise HTTPException(status_code=400, detail=f"Not enough stars to add to safe. Available: {available_for_transfer}, Requested: {stars}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Not enough stars to add to safe. Available: {available_for_transfer} (Unspent: {unspent_earned}, Reward: {available_reward_stars}), Requested: {stars}"
+        )
     
     # Create clean progress dict
     clean_progress = {
