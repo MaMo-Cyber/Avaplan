@@ -2471,18 +2471,58 @@ async def delete_reward(reward_id: str):
 # Math Challenge Endpoints
 @api_router.post("/math/challenge/{grade}")
 async def create_math_challenge(grade: int):
-    if grade not in [2, 3]:
-        raise HTTPException(status_code=400, detail="Grade must be 2 or 3")
-    
-    # Get settings to use configured problem count
-    settings_doc = await db.math_settings.find_one()
-    problem_count = settings_doc.get("problem_count", 30) if settings_doc else 30
-    
-    problems = await generate_math_problems(grade, problem_count)
-    challenge = MathChallenge(grade=grade, problems=problems)
-    
-    await db.math_challenges.insert_one(challenge.dict())
-    return challenge
+    """Create math challenge with improved error handling"""
+    try:
+        if grade not in [2, 3]:
+            raise HTTPException(status_code=400, detail="Grade must be 2 or 3")
+        
+        # Get settings with fallback
+        settings_doc = await db.math_settings.find_one()
+        settings = MathSettings(**settings_doc) if settings_doc else MathSettings()
+        
+        # Generate problems for enabled problem types
+        problems = []
+        enabled_types = [k for k, v in settings.problem_types.items() if v]
+        if not enabled_types:
+            enabled_types = ["addition", "subtraction", "multiplication"]  # fallback
+        
+        problems_per_type = max(1, settings.problem_count // len(enabled_types))
+        
+        for problem_type in enabled_types:
+            try:
+                type_problems = await generate_math_problems(problem_type, grade, problems_per_type, settings)
+                problems.extend(type_problems)
+            except Exception as e:
+                print(f"⚠️  Warning: Failed to generate {problem_type} problems: {e}")
+                # Add fallback problems
+                fallback_problems = await generate_math_problems("addition", grade, 5, settings)
+                problems.extend(fallback_problems)
+        
+        if not problems:
+            # Emergency fallback
+            problems = await generate_math_problems("addition", grade, 10, settings)
+        
+        # Shuffle and limit to requested count
+        random.shuffle(problems)
+        problems = problems[:settings.problem_count]
+        
+        challenge = MathChallenge(grade=grade, problems=problems)
+        await db.math_challenges.insert_one(challenge.dict())
+        
+        return {
+            "challenge": challenge,
+            "success": True,
+            "message": f"Math challenge created with {len(problems)} problems"
+        }
+        
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        print(f"❌ Error creating math challenge: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to create math challenge. Please try again."
+        )
 
 @api_router.post("/math/challenge/{challenge_id}/submit")
 async def submit_math_answers(challenge_id: str, answers: Dict[int, str]):
