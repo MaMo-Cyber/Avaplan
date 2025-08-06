@@ -1748,9 +1748,9 @@ const EnglishChallenge = ({ onClose, onComplete }) => {
           </div>
           
           <div className="mb-4 text-sm text-gray-600">
-            Fülle ALLE Antworten aus, um die Einreichung zu aktivieren. Antworten ausgefüllt: {Object.keys(answers).length}/{challenge.problems.length}
+            Fülle ALLE Antworten aus, um die Einreichung zu aktivieren. Antworten ausgefüllt: {Object.keys(answers).length}/{challenge.problems ? challenge.problems.length : 0}
             <br />
-            <span className="text-green-600 font-medium">Insgesamt {challenge.problems.length} English Aufgaben</span>
+            <span className="text-green-600 font-medium">Insgesamt {challenge.problems ? challenge.problems.length : 0} English Aufgaben</span>
           </div>
           
           <div className="grid grid-cols-1 gap-4 mb-6">
