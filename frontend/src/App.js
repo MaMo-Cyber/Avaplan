@@ -2558,21 +2558,44 @@ function App() {
   };
 
   const addStarsToSafe = async () => {
-    if (progress.total_stars === 0) {
-      alert('Keine Sterne verfügbar, um sie in den Tresor zu legen!');
+    // Available stars = total earned stars - total used stars
+    const totalEarned = progress.total_stars_earned || 0;
+    const totalUsed = progress.total_stars_used || 0;
+    const starsInSafe = progress.stars_in_safe || 0;
+    const availableStars = progress.available_stars || 0;
+    
+    // Calculate stars that can be moved to safe
+    // This includes both unspent task stars AND available reward stars
+    const maxAvailableForSafe = totalEarned - totalUsed;
+    
+    if (maxAvailableForSafe <= 0) {
+      alert('Keine Sterne verfügbar, um sie in den Tresor zu legen!\n\n💡 Tipp: Verdiene Sterne durch Aufgaben oder nimm Sterne aus dem Tresor heraus.');
       return;
     }
     
-    const maxAvailable = progress.total_stars;
-    const starsToAdd = prompt(`Wie viele Sterne in den Tresor legen? (Verfügbar: ${maxAvailable})`);
+    // Show detailed breakdown for user
+    const taskStars = progress.total_stars || 0; // Unspent task stars
+    const rewardStars = availableStars; // Available reward stars
+    
+    let message = `Wie viele Sterne in den Tresor legen?\n\n`;
+    message += `📊 Verfügbare Sterne (${maxAvailableForSafe} total):\n`;
+    if (taskStars > 0) {
+      message += `⭐ Aufgaben-Sterne: ${taskStars}\n`;
+    }
+    if (rewardStars > 0) {
+      message += `🎁 Belohnungs-Sterne: ${rewardStars}\n`;
+    }
+    message += `\n💰 Bereits im Tresor: ${starsInSafe}`;
+    
+    const starsToAdd = prompt(message);
     
     if (!starsToAdd) return;
     
     const amount = parseInt(starsToAdd);
     
     // Validation: Cannot add more than available
-    if (amount > maxAvailable) {
-      alert(`Du hast nur ${maxAvailable} Sterne verfügbar! Du kannst nicht mehr in den Tresor legen als du besitzt.`);
+    if (amount > maxAvailableForSafe) {
+      alert(`Du hast nur ${maxAvailableForSafe} Sterne verfügbar!\n\n📊 Aufschlüsselung:\n⭐ Aufgaben-Sterne: ${taskStars}\n🎁 Belohnungs-Sterne: ${rewardStars}`);
       return;
     }
     
@@ -2582,16 +2605,16 @@ function App() {
     }
     
     try {
-      await axios.post(`${API}/progress/add-to-safe?stars=${amount}`);
+      await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
       loadData();
+      alert(`✅ ${amount} Sterne erfolgreich in den Tresor gelegt!`);
     } catch (error) {
       console.error('Fehler beim Hinzufügen von Sternen zum Tresor:', error);
       if (error.response?.data?.detail) {
-        alert(error.response.data.detail);
+        alert(`❌ Fehler: ${error.response.data.detail}`);
       } else {
-        alert('Nicht genügend Sterne verfügbar!');
+        alert('❌ Fehler beim Tresor-Vorgang. Bitte versuche es erneut.');
       }
-      loadData(); // Reload to fix any inconsistent state
     }
   };
 
