@@ -2161,7 +2161,8 @@ async def add_stars_to_safe(request: AddStarsRequest):
     return clean_progress
 
 @api_router.post("/progress/withdraw-from-safe")
-async def withdraw_stars_from_safe(stars: int):
+async def withdraw_stars_from_safe(request: WithdrawStarsRequest):
+    stars = request.stars
     week_start = get_current_week_start()
     progress = await db.weekly_progress.find_one({"week_start": week_start})
     
