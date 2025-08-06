@@ -51,6 +51,23 @@ except Exception as e:
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Add global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """Global exception handler for better error responses"""
+    print(f"❌ Unhandled exception: {exc}")
+    print(f"Request: {request.url}")
+    
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "error": "Internal server error",
+            "message": "Something went wrong. Please try again.",
+            "details": str(exc) if os.environ.get('DEBUG') == 'true' else None
+        }
+    )
+
 # Add CORS middleware for frontend access
 app.add_middleware(
     CORSMiddleware,
