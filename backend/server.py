@@ -2151,13 +2151,20 @@ async def add_stars_to_safe(request: AddStarsRequest):
             detail=f"Not enough stars to add to safe. Available: {available_for_transfer} (Unspent: {unspent_earned}, Reward: {available_reward_stars}), Requested: {stars}"
         )
     
+    # Determine how to allocate the stars being moved to safe
+    current_available_reward_stars = progress.get("available_stars", 0)
+    
+    # Strategy: First use available reward stars, then unspent earned stars
+    stars_from_rewards = min(stars, current_available_reward_stars)
+    stars_from_earned = stars - stars_from_rewards
+    
     # Create clean progress dict
     clean_progress = {
         "id": progress.get("id", str(uuid.uuid4())),
         "week_start": progress["week_start"],
         "total_stars_earned": total_stars_earned,
-        "total_stars_used": total_stars_used + stars,  # Track that these stars are now "used"
-        "available_stars": progress.get("available_stars", 0),
+        "total_stars_used": total_stars_used + stars_from_earned,  # Only count earned stars as "used"
+        "available_stars": current_available_reward_stars - stars_from_rewards,  # Reduce available reward stars
         "stars_in_safe": progress.get("stars_in_safe", 0) + stars
     }
     
