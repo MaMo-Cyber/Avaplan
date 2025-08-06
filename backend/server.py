@@ -2967,6 +2967,78 @@ async def reset_english_statistics():
     await db.english_statistics.replace_one({}, stats.dict(), upsert=True)
     return {"message": "English statistics reset successfully"}
 
+@api_router.get("/cache/preload")
+async def preload_challenges():
+    """Preload challenges for offline usage"""
+    try:
+        cached_challenges = {
+            "math": {},
+            "german": {},
+            "english": {},
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Cache Math challenges for both grades
+        for grade in [2, 3]:
+            cached_challenges["math"][f"grade_{grade}"] = {
+                "addition": await generate_math_problems("addition", grade, 10, MathSettings()),
+                "subtraction": await generate_math_problems("subtraction", grade, 10, MathSettings()),
+                "multiplication": await generate_math_problems("multiplication", grade, 10, MathSettings()),
+                "word_problems": await generate_math_problems("word_problems", grade, 5, MathSettings())
+            }
+        
+        # Cache German challenges  
+        for grade in [2, 3]:
+            cached_challenges["german"][f"grade_{grade}"] = {
+                "spelling": await generate_spelling_problems(10, grade, GermanSettings()),
+                "word_types": await generate_word_type_problems(8, grade, GermanSettings()),
+                "fill_blank": await generate_fill_blank_problems(8, grade, GermanSettings())
+            }
+        
+        # Cache English challenges
+        for grade in [2, 3]:
+            cached_challenges["english"][f"grade_{grade}"] = {
+                "vocabulary_de_en": await generate_vocabulary_de_en_problems(10, grade, EnglishSettings()),
+                "vocabulary_en_de": await generate_vocabulary_en_de_problems(10, grade, EnglishSettings()),
+                "simple_sentences": await generate_simple_sentence_problems(8, grade, EnglishSettings())
+            }
+        
+        # Convert MathProblem, GermanProblem, EnglishProblem objects to dicts for JSON serialization
+        def serialize_problems(obj):
+            if hasattr(obj, 'dict'):
+                return obj.dict()
+            elif isinstance(obj, list):
+                return [serialize_problems(item) for item in obj]
+            elif isinstance(obj, dict):
+                return {k: serialize_problems(v) for k, v in obj.items()}
+            else:
+                return obj
+        
+        cached_challenges = serialize_problems(cached_challenges)
+        
+        return {
+            "success": True,
+            "cached_challenges": cached_challenges,
+            "total_problems": sum([
+                len(problems) for grade_data in cached_challenges["math"].values() 
+                for problems in grade_data.values() if isinstance(problems, list)
+            ]) + sum([
+                len(problems) for grade_data in cached_challenges["german"].values()
+                for problems in grade_data.values() if isinstance(problems, list)
+            ]) + sum([
+                len(problems) for grade_data in cached_challenges["english"].values()
+                for problems in grade_data.values() if isinstance(problems, list)
+            ]),
+            "message": "Challenges preloaded successfully for offline usage"
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Failed to preload challenges"
+        }
+
 # Basic status endpoints
 @api_router.get("/")
 async def root():
