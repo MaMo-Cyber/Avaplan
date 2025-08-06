@@ -125,6 +125,9 @@ class RewardCreate(BaseModel):
 class AddStarsRequest(BaseModel):
     stars: int
 
+class WithdrawStarsRequest(BaseModel):
+    stars: int
+
 class MathProblem(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     question: str
