@@ -75,15 +75,6 @@ async function preloadChallenges() {
     console.error('⚠️  Failed to preload challenges:', error);
   }
 }
-        .catch((error) => {
-          console.warn('⚠️ Some static files failed to cache:', error);
-        }),
-      
-      // Skip waiting to activate immediately
-      self.skipWaiting()
-    ])
-  );
-});
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
