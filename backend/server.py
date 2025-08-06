@@ -2124,7 +2124,8 @@ async def get_weekly_progress():
     return clean_progress
 
 @api_router.post("/progress/add-to-safe")
-async def add_stars_to_safe(stars: int):
+async def add_stars_to_safe(request: AddStarsRequest):
+    stars = request.stars
     week_start = get_current_week_start()
     progress = await db.weekly_progress.find_one({"week_start": week_start})
     
