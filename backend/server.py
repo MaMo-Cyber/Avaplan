@@ -3120,6 +3120,40 @@ async def preload_challenges():
         }
 
 # Basic status endpoints
+@api_router.get("/debug/stars-state")
+async def get_stars_debug():
+    """Debug endpoint to understand star states"""
+    week_start = get_current_week_start()
+    progress = await db.weekly_progress.find_one({"week_start": week_start})
+    
+    if not progress:
+        return {"error": "No progress found"}
+    
+    total_earned = progress.get("total_stars_earned", 0)
+    total_used = progress.get("total_stars_used", 0)
+    available_reward_stars = progress.get("available_stars", 0)
+    stars_in_safe = progress.get("stars_in_safe", 0)
+    
+    unspent_earned = total_earned - total_used
+    total_available_for_safe = unspent_earned + available_reward_stars
+    
+    return {
+        "raw_progress": progress,
+        "calculations": {
+            "total_stars_earned": total_earned,
+            "total_stars_used": total_used,
+            "unspent_earned_stars": unspent_earned,
+            "available_reward_stars": available_reward_stars,
+            "stars_in_safe": stars_in_safe,
+            "total_available_for_safe": total_available_for_safe
+        },
+        "frontend_display": {
+            "total_stars": unspent_earned,  # What frontend shows as "task stars"
+            "available_stars": available_reward_stars,  # What frontend shows as "reward stars"
+            "stars_in_safe": stars_in_safe
+        }
+    }
+
 @api_router.get("/")
 async def root():
     return {"message": "Weekly Star Tracker API Ready!"}
