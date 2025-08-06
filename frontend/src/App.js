@@ -1891,7 +1891,10 @@ const GermanChallenge = ({ onClose, onComplete }) => {
     setLoading(false);
   };
 
-  const allAnswersProvided = challenge && Object.keys(answers).length === challenge.problems.length &&
+  const allAnswersProvided = challenge && 
+    challenge.problems && 
+    Array.isArray(challenge.problems) && 
+    Object.keys(answers).length === challenge.problems.length &&
     challenge.problems.every((_, index) => answers[index] !== undefined && answers[index] !== '');
 
   // Results Detail Page
