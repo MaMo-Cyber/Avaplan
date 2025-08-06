@@ -270,49 +270,6 @@ async function serveCachedChallenge(url) {
     });
   }
 }
-      }
-      
-      return networkResponse;
-    } catch (error) {
-      console.log('📡 Network failed, trying cache for:', url.pathname);
-      
-      const cachedResponse = await caches.match(request);
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      
-      // Return offline message for failed API requests
-      return new Response(
-        JSON.stringify({ 
-          error: 'Offline', 
-          message: 'Diese Funktion benötigt eine Internetverbindung.',
-          offline: true 
-        }),
-        { 
-          status: 503,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-  }
-  
-  // For write requests (POST, PUT, DELETE), always try network
-  try {
-    return await fetch(request);
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ 
-        error: 'Offline', 
-        message: 'Speichern nicht möglich. Bitte versuchen Sie es erneut wenn Sie online sind.',
-        offline: true 
-      }),
-      { 
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-  }
-}
 
 // Handle static requests with cache-first strategy
 async function handleStaticRequest(request) {
