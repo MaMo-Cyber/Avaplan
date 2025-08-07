@@ -48,7 +48,20 @@ export const mockApi = {
   },
 
   // Stars
-  getStars: () => Promise.resolve(mockStars),
+  getStars: () => {
+    // Convert object format to array format expected by frontend
+    const starArray = [];
+    Object.entries(mockStars).forEach(([taskId, taskStars]) => {
+      Object.entries(taskStars).forEach(([day, stars]) => {
+        starArray.push({
+          task_id: taskId,
+          day: day,
+          stars: stars
+        });
+      });
+    });
+    return Promise.resolve(starArray);
+  },
   updateStars: (taskId, day, stars) => {
     if (!mockStars[taskId]) {
       mockStars[taskId] = {};
