@@ -3016,14 +3016,14 @@ function App() {
           />
         )}
 
-        {showStarTransfer && (
+        {/*showStarTransfer && (
           <StarTransferModal
             isOpen={showStarTransfer}
             onClose={() => setShowStarTransfer(false)}
             progress={progress}
             onTransfer={handleStarTransfer}
           />
-        )}
+        )*/}
         
         {showMathSettings && (
           <MathSettingsModal
