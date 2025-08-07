@@ -2583,7 +2583,8 @@ function App() {
     
     // Calculate stars that can be moved to safe
     // This includes both unspent task stars AND available reward stars
-    const maxAvailableForSafe = totalEarned - totalUsed;
+    const unspentTaskStars = totalEarned - totalUsed;
+    const maxAvailableForSafe = unspentTaskStars + availableStars;
     
     if (maxAvailableForSafe <= 0) {
       alert('Keine Sterne verfügbar, um sie in den Tresor zu legen!\n\n💡 Tipp: Verdiene Sterne durch Aufgaben oder nimm Sterne aus dem Tresor heraus.');
@@ -2591,7 +2592,7 @@ function App() {
     }
     
     // Show detailed breakdown for user
-    const taskStars = progress.total_stars || 0; // Unspent task stars
+    const taskStars = progress.total_stars || 0; // Unspent task stars (should match unspentTaskStars)
     const rewardStars = availableStars; // Available reward stars
     
     let message = `Wie viele Sterne in den Tresor legen?\n\n`;
