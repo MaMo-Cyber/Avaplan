@@ -2671,7 +2671,6 @@ function App() {
       
       alert(`❌ Fehler: ${errorMessage}`);
     }
-    }
   };
 
   // Helper function for task stars to safe
