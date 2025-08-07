@@ -232,7 +232,7 @@ const RewardClaimErrorModal = ({ isOpen, onClose, rewardName, requiredStars, ava
                 <span className="font-medium">Verfügbar:</span> {availableStars} ⭐
               </p>
               <p className="text-red-600 font-medium">
-                Du brauchst noch {requiredStars - availableStars} ⭐ mehr!
+                Du brauchst noch {Math.max(0, (requiredStars || 0) - (availableStars || 0))} ⭐ mehr!
               </p>
             </div>
           </div>
