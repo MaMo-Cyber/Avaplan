@@ -2661,14 +2661,26 @@ function App() {
   // New function to handle star transfer from the modal
   const handleStarTransfer = async (taskStarsAmount, rewardStarsAmount) => {
     try {
-      // Transfer task stars if any
-      if (taskStarsAmount > 0) {
-        await axios.post(`${API}/progress/add-to-safe?stars=${taskStarsAmount}`);
-      }
+      if (isMockMode()) {
+        // Use mock API for star transfers
+        if (taskStarsAmount > 0) {
+          await mockApi.addStarsToSafe(taskStarsAmount);
+          console.log(`⭐ Demo Mode: Moved ${taskStarsAmount} task stars to safe`);
+        }
 
-      // Transfer reward stars if any
-      if (rewardStarsAmount > 0) {
-        await axios.post(`${API}/progress/move-reward-to-safe?stars=${rewardStarsAmount}`);
+        if (rewardStarsAmount > 0) {
+          await mockApi.moveRewardToSafe(rewardStarsAmount);
+          console.log(`⭐ Demo Mode: Moved ${rewardStarsAmount} reward stars to safe`);
+        }
+      } else {
+        // Use real API
+        if (taskStarsAmount > 0) {
+          await axios.post(`${API}/progress/add-to-safe?stars=${taskStarsAmount}`);
+        }
+
+        if (rewardStarsAmount > 0) {
+          await axios.post(`${API}/progress/move-reward-to-safe?stars=${rewardStarsAmount}`);
+        }
       }
 
       // Reload data to reflect changes
