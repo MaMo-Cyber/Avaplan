@@ -2586,51 +2586,72 @@ function App() {
     const starsInSafe = progress.stars_in_safe || 0;
     const availableStars = progress.available_stars || 0;
     
-    // Calculate stars that can be moved to safe
-    // This includes both unspent task stars AND available reward stars
+    // Calculate different star types
     const unspentTaskStars = totalEarned - totalUsed;
-    const maxAvailableForSafe = unspentTaskStars + availableStars;
+    const taskStars = progress.total_stars || 0; // Should match unspentTaskStars
+    const rewardStars = availableStars;
     
-    if (maxAvailableForSafe <= 0) {
+    // Check if we have any stars to move
+    if (taskStars <= 0 && rewardStars <= 0) {
       alert('Keine Sterne verfügbar, um sie in den Tresor zu legen!\n\n💡 Tipp: Verdiene Sterne durch Aufgaben oder nimm Sterne aus dem Tresor heraus.');
       return;
     }
     
-    // Show detailed breakdown for user
-    const taskStars = progress.total_stars || 0; // Unspent task stars (should match unspentTaskStars)
-    const rewardStars = availableStars; // Available reward stars
+    // Show selection dialog
+    let message = `Welche Sterne in den Tresor legen?\n\n`;
+    message += `📊 Verfügbare Optionen:\n`;
     
-    let message = `Wie viele Sterne in den Tresor legen?\n\n`;
-    message += `📊 Verfügbare Sterne (${maxAvailableForSafe} total):\n`;
+    const options = [];
     if (taskStars > 0) {
-      message += `⭐ Aufgaben-Sterne: ${taskStars}\n`;
+      message += `1️⃣ Aufgaben-Sterne: ${taskStars} verfügbar\n`;
+      options.push({ type: 'task', count: taskStars, label: 'Aufgaben-Sterne' });
     }
     if (rewardStars > 0) {
-      message += `🎁 Belohnungs-Sterne: ${rewardStars}\n`;
+      message += `2️⃣ Belohnungs-Sterne: ${rewardStars} verfügbar\n`;
+      options.push({ type: 'reward', count: rewardStars, label: 'Belohnungs-Sterne' });
     }
+    
     message += `\n💰 Bereits im Tresor: ${starsInSafe}`;
+    message += `\n\nGib die Nummer ein (${options.map((_, i) => i + 1).join(' oder ')}):`;
     
-    const starsToAdd = prompt(message);
+    const choice = prompt(message);
+    if (!choice) return;
     
+    const choiceIndex = parseInt(choice) - 1;
+    if (choiceIndex < 0 || choiceIndex >= options.length) {
+      alert('Ungültige Auswahl! Bitte wähle 1 oder 2.');
+      return;
+    }
+    
+    const selectedOption = options[choiceIndex];
+    const maxAvailable = selectedOption.count;
+    
+    // Ask for amount
+    const starsToAdd = prompt(`Wie viele ${selectedOption.label} in den Tresor legen?\n\nVerfügbar: ${maxAvailable}`);
     if (!starsToAdd) return;
     
     const amount = parseInt(starsToAdd);
     
-    // Validation: Cannot add more than available
-    if (amount > maxAvailableForSafe) {
-      alert(`Du hast nur ${maxAvailableForSafe} Sterne verfügbar!\n\n📊 Aufschlüsselung:\n⭐ Aufgaben-Sterne: ${taskStars}\n🎁 Belohnungs-Sterne: ${rewardStars}`);
-      return;
-    }
-    
-    if (amount <= 0) {
+    // Validation
+    if (amount <= 0 || isNaN(amount)) {
       alert('Bitte gib eine gültige Anzahl ein!');
       return;
     }
     
+    if (amount > maxAvailable) {
+      alert(`Du hast nur ${maxAvailable} ${selectedOption.label} verfügbar!`);
+      return;
+    }
+    
+    // Execute the transfer based on selected type
     try {
-      await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
-      loadData();
-      alert(`✅ ${amount} Sterne erfolgreich in den Tresor gelegt!`);
+      if (selectedOption.type === 'task') {
+        // Move task stars to safe
+        await addTaskStarsToSafe(amount);
+      } else if (selectedOption.type === 'reward') {
+        // Move reward stars to safe
+        await addRewardStarsToSafe(amount);
+      }
     } catch (error) {
       console.error('Fehler beim Hinzufügen von Sternen zum Tresor:', error);
       if (error.response?.data?.detail) {
@@ -2639,6 +2660,22 @@ function App() {
         alert('❌ Fehler beim Tresor-Vorgang. Bitte versuche es erneut.');
       }
     }
+  };
+
+  // Helper function for task stars to safe
+  const addTaskStarsToSafe = async (amount) => {
+    await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
+    loadData();
+    alert(`✅ ${amount} Aufgaben-Sterne erfolgreich in den Tresor gelegt!`);
+  };
+
+  // Helper function for reward stars to safe
+  const addRewardStarsToSafe = async (amount) => {
+    // For reward stars, we need to first reduce available_stars, then increase safe
+    // This requires a special endpoint or handling
+    await axios.post(`${API}/progress/move-reward-to-safe`, { stars: amount });
+    loadData();
+    alert(`✅ ${amount} Belohnungs-Sterne erfolgreich in den Tresor gelegt!`);
   };
 
   const withdrawFromSafe = async (amount) => {
