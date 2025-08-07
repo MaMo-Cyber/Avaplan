@@ -2633,21 +2633,6 @@ function App() {
     }
   };
 
-  // Helper function for task stars to safe
-  const addTaskStarsToSafe = async (amount) => {
-    await axios.post(`${API}/progress/add-to-safe?stars=${amount}`);
-    loadData();
-    alert(`✅ ${amount} Aufgaben-Sterne erfolgreich in den Tresor gelegt!`);
-  };
-
-  // Helper function for reward stars to safe
-  const addRewardStarsToSafe = async (amount) => {
-    // For reward stars, we need to first reduce available_stars, then increase safe
-    // This requires a special endpoint or handling
-    await axios.post(`${API}/progress/move-reward-to-safe?stars=${amount}`);
-    loadData();
-    alert(`✅ ${amount} Belohnungs-Sterne erfolgreich in den Tresor gelegt!`);
-  };
 
   const withdrawFromSafe = async (amount) => {
     try {
