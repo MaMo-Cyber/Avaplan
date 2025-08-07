@@ -2428,19 +2428,46 @@ function App() {
 
   const loadData = async () => {
     try {
-      const [tasksRes, starsRes, progressRes, rewardsRes] = await Promise.all([
-        axios.get(`${API}/tasks`),
-        axios.get(`${API}/stars`),
-        axios.get(`${API}/progress`),
-        axios.get(`${API}/rewards`)
-      ]);
-      
-      setTasks(tasksRes.data);
-      setWeekStars(starsRes.data);
-      setProgress(progressRes.data);
-      setRewards(rewardsRes.data);
+      if (isMockMode()) {
+        // Use mock data
+        const tasks = await mockApi.getTasks();
+        const progress = await mockApi.getProgress();
+        const rewards = await mockApi.getRewards();
+        
+        setTasks(tasks);
+        setWeekStars({}); // Mock empty stars data
+        setProgress(progress);
+        setRewards(rewards);
+        
+        console.log('📊 Demo Mode: Data loaded from mock API');
+      } else {
+        // Use real API
+        const [tasksRes, starsRes, progressRes, rewardsRes] = await Promise.all([
+          axios.get(`${API}/tasks`),
+          axios.get(`${API}/stars`),
+          axios.get(`${API}/progress`),
+          axios.get(`${API}/rewards`)
+        ]);
+        
+        setTasks(tasksRes.data);
+        setWeekStars(starsRes.data);
+        setProgress(progressRes.data);
+        setRewards(rewardsRes.data);
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Daten:', error);
+      // Fallback to mock mode if real API fails
+      if (!isMockMode()) {
+        console.log('🔄 Falling back to demo mode due to API error');
+        const tasks = await mockApi.getTasks();
+        const progress = await mockApi.getProgress();
+        const rewards = await mockApi.getRewards();
+        
+        setTasks(tasks);
+        setWeekStars({});
+        setProgress(progress);
+        setRewards(rewards);
+      }
     }
     setLoading(false);
   };
