@@ -2753,9 +2753,21 @@ function App() {
 
   const resetWeek = async () => {
     try {
-      await axios.post(`${API}/progress/reset`);
+      if (isMockMode()) {
+        // Reset weekly stars but keep safe stars
+        mockStars = {};
+        mockProgress.total_stars_earned = 0;
+        mockProgress.total_stars = 0; 
+        mockProgress.total_stars_used = 0;
+        mockProgress.available_stars = 0;
+        // Keep mockProgress.stars_in_safe unchanged
+        console.log('⭐ Demo Mode: Week reset, safe preserved');
+      } else {
+        await axios.post(`${API}/progress/reset`);
+      }
+      
       loadData();
-      alert('Woche wurde zurückgesetzt. Tresor-Sterne wurden beibehalten!');
+      alert(`Woche wurde zurückgesetzt. Tresor-Sterne wurden beibehalten! ${isMockMode() ? '(Demo Mode)' : ''}`);
     } catch (error) {
       console.error('Fehler beim Zurücksetzen der Woche:', error);
       alert('Fehler beim Zurücksetzen der Woche!');
@@ -2764,9 +2776,16 @@ function App() {
 
   const resetSafe = async () => {
     try {
-      await axios.post(`${API}/progress/reset-safe`);
+      if (isMockMode()) {
+        // Reset safe stars
+        mockProgress.stars_in_safe = 0;
+        console.log('⭐ Demo Mode: Safe reset');
+      } else {
+        await axios.post(`${API}/progress/reset-safe`);
+      }
+      
       loadData();
-      alert('Tresor wurde zurückgesetzt. Alle anderen Sterne wurden beibehalten!');
+      alert(`Tresor wurde zurückgesetzt. Alle anderen Sterne wurden beibehalten! ${isMockMode() ? '(Demo Mode)' : ''}`);
     } catch (error) {
       console.error('Fehler beim Zurücksetzen des Tresors:', error);
       alert('Fehler beim Zurücksetzen des Tresors!');
@@ -2775,9 +2794,28 @@ function App() {
 
   const resetAllStars = async () => {
     try {
-      await axios.post(`${API}/progress/reset-all-stars`);
+      if (isMockMode()) {
+        // Reset everything
+        mockStars = {};
+        mockProgress = {
+          total_stars: 0,
+          total_stars_earned: 0,
+          total_stars_used: 0,
+          available_stars: 0,
+          stars_in_safe: 0,
+        };
+        console.log('⭐ Demo Mode: All stars reset');
+      } else {
+        await axios.post(`${API}/progress/reset-all-stars`);
+      }
+      
       loadData();
-      alert('Alle Sterne wurden erfolgreich zurückgesetzt!');
+      alert(`Alle Sterne wurden erfolgreich zurückgesetzt! ${isMockMode() ? '(Demo Mode)' : ''}`);
+    } catch (error) {
+      console.error('Fehler beim Zurücksetzen aller Sterne:', error);
+      alert('Fehler beim Zurücksetzen aller Sterne!');
+    }
+  };
     } catch (error) {
       console.error('Fehler beim Zurücksetzen aller Sterne:', error);
       alert('Fehler beim Zurücksetzen der Sterne!');
