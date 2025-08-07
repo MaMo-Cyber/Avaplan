@@ -85,24 +85,22 @@ export const mockApi = {
     }
     
     // Store the new stars value
+    const oldStars = mockStars[taskId][day] || 0;
     mockStars[taskId][day] = Math.max(0, stars);
     
-    // Recalculate total progress
-    const totalEarnedStars = calculateTotalStars();
+    console.log(`⭐ Mock: Updated ${taskId}/${day} from ${oldStars} to ${stars} stars`);
     
-    // Update progress to reflect new totals
-    mockProgress.total_stars_earned = totalEarnedStars;
-    mockProgress.total_stars = Math.max(0, totalEarnedStars - mockProgress.total_stars_used);
-    
-    console.log(`⭐ Mock: Updated ${taskId}/${day} = ${stars} stars`);
-    console.log(`📊 Mock: Total earned: ${totalEarnedStars}, Available: ${mockProgress.total_stars}`);
+    // Recalculate all progress values
+    recalculateProgress();
     
     return Promise.resolve({ 
       message: 'Stars updated', 
       task_id: taskId,
       day: day,
       stars: stars,
-      total_earned: totalEarnedStars 
+      old_stars: oldStars,
+      total_earned: mockProgress.total_stars_earned,
+      available_task_stars: mockProgress.total_stars
     });
   },
 
