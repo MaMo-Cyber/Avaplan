@@ -4085,6 +4085,7 @@ class BackendTester:
         print("=" * 60)
         
         test_functions = [
+            ("Star Moving Functionality (User Error Report)", self.test_star_moving_functionality),
             ("API Health Check", self.test_api_health),
             ("Task Management", self.test_task_management),
             ("Star System", self.test_star_system),
