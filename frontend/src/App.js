@@ -2535,16 +2535,30 @@ function App() {
     }
     
     try {
-      const response = await axios.post(`${API}/rewards`, { 
-        name: rewardName, 
-        required_stars: rewardStars
-      });
-      
-      if (response.status === 200) {
+      if (isMockMode()) {
+        // Use mock API
+        await mockApi.createReward({ 
+          name: rewardName, 
+          stars_required: rewardStars
+        });
         setNewRewardName('');
         setNewRewardStars('');
         await loadData();
-        console.log('Belohnung erfolgreich hinzugefügt:', rewardName, rewardStars);
+        alert(`✅ Belohnung "${rewardName}" erfolgreich hinzugefügt! (Demo Mode)`);
+        console.log('Belohnung erfolgreich hinzugefügt (Mock):', rewardName, rewardStars);
+      } else {
+        // Use real API
+        const response = await axios.post(`${API}/rewards`, { 
+          name: rewardName, 
+          required_stars: rewardStars
+        });
+        
+        if (response.status === 200) {
+          setNewRewardName('');
+          setNewRewardStars('');
+          await loadData();
+          console.log('Belohnung erfolgreich hinzugefügt:', rewardName, rewardStars);
+        }
       }
     } catch (error) {
       console.error('Fehler beim Hinzufügen der Belohnung:', error);
