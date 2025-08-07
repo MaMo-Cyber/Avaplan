@@ -2513,8 +2513,16 @@ function App() {
 
   const handleStarClick = async (taskId, day, stars) => {
     try {
-      await axios.post(`${API}/stars/${taskId}/${day}?stars=${stars}`);
-      loadData();
+      if (isMockMode()) {
+        // Use mock API for star updates
+        await mockApi.updateStars(taskId, day, stars);
+        console.log(`⭐ Demo Mode: Updated stars for task ${taskId} on ${day}: ${stars} stars`);
+        loadData();
+      } else {
+        // Use real API
+        await axios.post(`${API}/stars/${taskId}/${day}?stars=${stars}`);
+        loadData();
+      }
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Sterne:', error);
     }
