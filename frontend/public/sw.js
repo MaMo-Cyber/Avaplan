@@ -1,6 +1,6 @@
-const CACHE_NAME = 'weekly-star-tracker-v2';
-const API_CACHE_NAME = 'weekly-star-tracker-api-v2';
-const CHALLENGES_CACHE_NAME = 'weekly-star-tracker-challenges-v1';
+const CACHE_NAME = 'weekly-star-tracker-v3';
+const API_CACHE_NAME = 'weekly-star-tracker-api-v3';
+const CHALLENGES_CACHE_NAME = 'weekly-star-tracker-challenges-v2';
 
 // Files to cache for offline functionality
 const STATIC_CACHE_URLS = [
@@ -25,24 +25,24 @@ const CACHE_EXPIRY_HOURS = 24;
 
 // Install event - cache essential files and preload challenges
 self.addEventListener('install', (event) => {
-  console.log('🔧 Service Worker installing...');
+  console.log('🔧 Service Worker installing v3...');
   
   event.waitUntil(
     Promise.all([
       // Cache static files
       caches.open(CACHE_NAME)
         .then((cache) => {
-          console.log('📦 Caching static files');
+          console.log('📦 Caching static files v3');
           return cache.addAll(STATIC_CACHE_URLS.map(url => new Request(url, {credentials: 'same-origin'})));
         }),
       
       // Preload challenges for offline usage
       preloadChallenges()
     ]).then(() => {
-      console.log('✅ Service Worker installed successfully');
+      console.log('✅ Service Worker v3 installed successfully');
       self.skipWaiting();
     }).catch((error) => {
-      console.error('❌ Service Worker installation failed:', error);
+      console.error('❌ Service Worker v3 installation failed:', error);
     })
   );
 });
@@ -78,7 +78,7 @@ async function preloadChallenges() {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('✅ Service Worker activating...');
+  console.log('✅ Service Worker v3 activating...');
   
   event.waitUntil(
     Promise.all([
@@ -86,7 +86,7 @@ self.addEventListener('activate', (event) => {
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
+            if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME && cacheName !== CHALLENGES_CACHE_NAME) {
               console.log('🗑️ Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
@@ -420,4 +420,4 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-console.log('🚀 Weekly Star Tracker Service Worker loaded successfully!');
+console.log('🚀 Weekly Star Tracker Service Worker v3 loaded successfully!');
