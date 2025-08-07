@@ -2816,11 +2816,6 @@ function App() {
       alert('Fehler beim Zurücksetzen aller Sterne!');
     }
   };
-    } catch (error) {
-      console.error('Fehler beim Zurücksetzen aller Sterne:', error);
-      alert('Fehler beim Zurücksetzen der Sterne!');
-    }
-  };
 
   const deleteAllRewards = async () => {
     try {
