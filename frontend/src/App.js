@@ -3015,6 +3015,15 @@ function App() {
             onWithdraw={withdrawFromSafe}
           />
         )}
+
+        {showStarTransfer && (
+          <StarTransferModal
+            isOpen={showStarTransfer}
+            onClose={() => setShowStarTransfer(false)}
+            progress={progress}
+            onTransfer={handleStarTransfer}
+          />
+        )}
         
         {showMathSettings && (
           <MathSettingsModal
