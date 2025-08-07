@@ -5,15 +5,28 @@ let mockTasks = [
   { id: '1', name: 'Test Task', created_at: '2025-08-07T09:00:00Z' }
 ];
 
+let mockStars = {}; // Store star data by task/day
+
 let mockProgress = {
   total_stars: 0,
-  total_stars_earned: 5,
+  total_stars_earned: 0,
   total_stars_used: 0,
   available_stars: 0,
   stars_in_safe: 3,
 };
 
 let mockRewards = [];
+
+// Helper function to calculate total stars
+const calculateTotalStars = () => {
+  let total = 0;
+  Object.values(mockStars).forEach(taskStars => {
+    Object.values(taskStars).forEach(stars => {
+      total += stars;
+    });
+  });
+  return total;
+};
 
 export const mockApi = {
   // Tasks
@@ -29,26 +42,49 @@ export const mockApi = {
   },
   deleteTask: (taskId) => {
     mockTasks = mockTasks.filter(t => t.id !== taskId);
+    // Remove stars for deleted task
+    delete mockStars[taskId];
     return Promise.resolve({ message: 'Task deleted' });
+  },
+
+  // Stars
+  getStars: () => Promise.resolve(mockStars),
+  updateStars: (taskId, day, stars) => {
+    if (!mockStars[taskId]) {
+      mockStars[taskId] = {};
+    }
+    mockStars[taskId][day] = Math.max(0, stars);
+    
+    // Update progress based on star changes
+    const totalStars = calculateTotalStars();
+    mockProgress.total_stars = Math.max(0, totalStars - mockProgress.total_stars_used);
+    mockProgress.total_stars_earned = totalStars;
+    
+    console.log(`⭐ Mock: Updated ${taskId}/${day} = ${stars} stars. Total: ${totalStars}`);
+    return Promise.resolve({ message: 'Stars updated', total_stars: totalStars });
   },
 
   // Progress
   getProgress: () => Promise.resolve(mockProgress),
   addStarsToSafe: (stars) => {
-    mockProgress.stars_in_safe += stars;
-    mockProgress.total_stars -= stars;
+    const available = Math.max(0, mockProgress.total_stars);
+    const toSafe = Math.min(stars, available);
+    mockProgress.stars_in_safe += toSafe;
+    mockProgress.total_stars_used += toSafe;
+    mockProgress.total_stars = Math.max(0, mockProgress.total_stars - toSafe);
     return Promise.resolve(mockProgress);
   },
   withdrawFromSafe: (stars) => {
-    mockProgress.stars_in_safe -= stars;
-    mockProgress.available_stars += stars;
+    const available = Math.min(stars, mockProgress.stars_in_safe);
+    mockProgress.stars_in_safe -= available;
+    mockProgress.available_stars += available;
     return Promise.resolve(mockProgress);
   },
-
-  // Stars
-  updateStars: (taskId, day, stars) => {
-    mockProgress.total_stars = Math.max(0, mockProgress.total_stars + stars);
-    return Promise.resolve({ message: 'Stars updated' });
+  moveRewardToSafe: (stars) => {
+    const available = Math.min(stars, mockProgress.available_stars);
+    mockProgress.available_stars -= available;
+    mockProgress.stars_in_safe += available;
+    return Promise.resolve(mockProgress);
   },
 
   // Rewards
@@ -63,6 +99,22 @@ export const mockApi = {
     };
     mockRewards.push(newReward);
     return Promise.resolve(newReward);
+  },
+  claimReward: (rewardId) => {
+    const reward = mockRewards.find(r => r.id === rewardId);
+    if (reward && !reward.claimed) {
+      const cost = reward.stars_required;
+      const available = mockProgress.available_stars;
+      
+      if (available >= cost) {
+        reward.claimed = true;
+        mockProgress.available_stars -= cost;
+        return Promise.resolve({ message: 'Reward claimed' });
+      } else {
+        throw new Error('Not enough stars');
+      }
+    }
+    throw new Error('Reward not found or already claimed');
   }
 };
 
