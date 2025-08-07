@@ -2564,12 +2564,17 @@ function App() {
     
     try {
       // Move stars from total_stars to available_stars by adding to safe first, then withdrawing
-      await axios.post(`${API}/progress/add-to-safe?stars=${amount}`);
-      await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
+      await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
+      await axios.post(`${API}/progress/withdraw-from-safe`, { stars: amount });
       loadData();
+      alert(`✅ ${amount} Sterne erfolgreich zu verfügbaren Sternen verschoben!`);
     } catch (error) {
       console.error('Fehler beim Verschieben der Sterne:', error);
-      alert('Fehler beim Verschieben der Sterne!');
+      if (error.response?.data?.detail) {
+        alert(`❌ Fehler: ${error.response.data.detail}`);
+      } else {
+        alert('❌ Fehler beim Verschieben der Sterne! Bitte versuche es erneut.');
+      }
       loadData(); // Reload in case of inconsistent state
     }
   };
