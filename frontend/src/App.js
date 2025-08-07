@@ -2710,10 +2710,18 @@ function App() {
 
   const withdrawFromSafe = async (amount) => {
     try {
-      await axios.post(`${API}/progress/withdraw-from-safe`, { stars: amount });
+      if (isMockMode()) {
+        // Use mock API
+        await mockApi.withdrawFromSafe(amount);
+        console.log(`⭐ Demo Mode: Withdrew ${amount} stars from safe`);
+      } else {
+        // Use real API
+        await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
+      }
+      
       loadData();
       setShowSafe(false);
-      alert(`✅ ${amount} Sterne erfolgreich aus dem Tresor genommen!`);
+      alert(`✅ ${amount} Sterne erfolgreich aus dem Tresor genommen! (${isMockMode() ? 'Demo Mode' : ''})`);
     } catch (error) {
       console.error('Fehler beim Abheben aus dem Tresor:', error);
       let errorMessage = 'Fehler beim Tresor-Vorgang. Bitte versuche es erneut.';
