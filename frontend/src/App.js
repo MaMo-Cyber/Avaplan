@@ -2464,7 +2464,7 @@ function App() {
         const rewards = await mockApi.getRewards();
         
         setTasks(tasks);
-        setWeekStars({});
+        setWeekStars([]);
         setProgress(progress);
         setRewards(rewards);
       }
