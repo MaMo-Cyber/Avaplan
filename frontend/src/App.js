@@ -2686,7 +2686,7 @@ function App() {
 
   // Helper function for task stars to safe
   const addTaskStarsToSafe = async (amount) => {
-    await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
+    await axios.post(`${API}/progress/add-to-safe?stars=${amount}`);
     loadData();
     alert(`✅ ${amount} Aufgaben-Sterne erfolgreich in den Tresor gelegt!`);
   };
