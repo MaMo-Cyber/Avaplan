@@ -2754,14 +2754,7 @@ function App() {
   const resetWeek = async () => {
     try {
       if (isMockMode()) {
-        // Reset weekly stars but keep safe stars
-        mockStars = {};
-        mockProgress.total_stars_earned = 0;
-        mockProgress.total_stars = 0; 
-        mockProgress.total_stars_used = 0;
-        mockProgress.available_stars = 0;
-        // Keep mockProgress.stars_in_safe unchanged
-        console.log('⭐ Demo Mode: Week reset, safe preserved');
+        await mockApi.resetWeek();
       } else {
         await axios.post(`${API}/progress/reset`);
       }
@@ -2777,9 +2770,7 @@ function App() {
   const resetSafe = async () => {
     try {
       if (isMockMode()) {
-        // Reset safe stars
-        mockProgress.stars_in_safe = 0;
-        console.log('⭐ Demo Mode: Safe reset');
+        await mockApi.resetSafe();
       } else {
         await axios.post(`${API}/progress/reset-safe`);
       }
@@ -2795,16 +2786,7 @@ function App() {
   const resetAllStars = async () => {
     try {
       if (isMockMode()) {
-        // Reset everything
-        mockStars = {};
-        mockProgress = {
-          total_stars: 0,
-          total_stars_earned: 0,
-          total_stars_used: 0,
-          available_stars: 0,
-          stars_in_safe: 0,
-        };
-        console.log('⭐ Demo Mode: All stars reset');
+        await mockApi.resetAllStars();
       } else {
         await axios.post(`${API}/progress/reset-all-stars`);
       }
