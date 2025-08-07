@@ -8,16 +8,16 @@ let mockTasks = [
 let mockStars = {}; // Store star data by task/day
 
 let mockProgress = {
-  total_stars: 5, // Available task stars
-  total_stars_earned: 8, // Total earned from tasks
-  total_stars_used: 3,   // Used for rewards
-  available_stars: 2,    // Available reward stars (from challenges)
-  stars_in_safe: 3,      // Stars in safe
+  total_stars: 0,      // Currently available task stars (earned - used)
+  total_stars_earned: 0,  // Total stars earned from tasks
+  total_stars_used: 0,    // Stars used for rewards 
+  available_stars: 0,     // Available reward stars (from challenges)
+  stars_in_safe: 3,       // Stars in safe
 };
 
 let mockRewards = [];
 
-// Helper function to calculate total stars
+// Helper function to calculate total stars from tasks
 const calculateTotalStars = () => {
   let total = 0;
   Object.values(mockStars).forEach(taskStars => {
@@ -26,6 +26,23 @@ const calculateTotalStars = () => {
     });
   });
   return total;
+};
+
+// Helper function to recalculate progress
+const recalculateProgress = () => {
+  const totalEarnedFromTasks = calculateTotalStars();
+  mockProgress.total_stars_earned = totalEarnedFromTasks;
+  
+  // Available task stars = total earned - used for rewards - in safe
+  const starsUsedForSafe = mockProgress.stars_in_safe - 3; // Original safe had 3
+  mockProgress.total_stars = Math.max(0, totalEarnedFromTasks - mockProgress.total_stars_used - Math.max(0, starsUsedForSafe));
+  
+  console.log(`📊 Mock Progress Recalculated:`);
+  console.log(`   Earned from tasks: ${totalEarnedFromTasks}`);
+  console.log(`   Available task stars: ${mockProgress.total_stars}`);
+  console.log(`   Used for rewards: ${mockProgress.total_stars_used}`);
+  console.log(`   Available reward stars: ${mockProgress.available_stars}`);
+  console.log(`   In safe: ${mockProgress.stars_in_safe}`);
 };
 
 export const mockApi = {
