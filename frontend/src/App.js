@@ -3,6 +3,7 @@ import "./App.css";
 import axios from "axios";
 import StarTransferModal from "./components/StarTransferModal";
 import AdminSettingsModal from "./components/AdminSettingsModal";
+import { mockApi, isMockMode } from "./mockApi";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
