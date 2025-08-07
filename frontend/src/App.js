@@ -2431,11 +2431,12 @@ function App() {
       if (isMockMode()) {
         // Use mock data
         const tasks = await mockApi.getTasks();
+        const stars = await mockApi.getStars();
         const progress = await mockApi.getProgress();
         const rewards = await mockApi.getRewards();
         
         setTasks(tasks);
-        setWeekStars([]); // Mock empty stars data as array
+        setWeekStars(stars);
         setProgress(progress);
         setRewards(rewards);
         
@@ -2460,11 +2461,12 @@ function App() {
       if (!isMockMode()) {
         console.log('🔄 Falling back to demo mode due to API error');
         const tasks = await mockApi.getTasks();
+        const stars = await mockApi.getStars();
         const progress = await mockApi.getProgress();
         const rewards = await mockApi.getRewards();
         
         setTasks(tasks);
-        setWeekStars([]);
+        setWeekStars(stars);
         setProgress(progress);
         setRewards(rewards);
       }
