@@ -108,7 +108,8 @@ class StarMovingTester:
         
         # 3. TEST ADD-TO-SAFE API - Valid scenario
         try:
-            response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=3")
+            request_data = {"stars": 3}
+            response = self.session.post(f"{BASE_URL}/progress/add-to-safe", json=request_data)
             
             if response.status_code == 200:
                 data = response.json()
@@ -133,7 +134,7 @@ class StarMovingTester:
                 # Check error response format
                 try:
                     error_data = response.json()
-                    if isinstance(error_data, dict) and ("error" in error_data or "message" in error_data):
+                    if isinstance(error_data, dict) and ("error" in error_data or "message" in error_data or "detail" in error_data):
                         self.log_test("3. Add-to-Safe API (Valid)", False, 
                                     f"❌ API error but proper format: {error_data}")
                     else:
@@ -147,15 +148,16 @@ class StarMovingTester:
         
         # 4. TEST ADD-TO-SAFE API - Invalid scenario (too many stars)
         try:
-            response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars=100")
+            request_data = {"stars": 100}
+            response = self.session.post(f"{BASE_URL}/progress/add-to-safe", json=request_data)
             
             if response.status_code == 400:
                 # This should fail, but check error message format
                 try:
                     error_data = response.json()
                     if isinstance(error_data, dict):
-                        if "error" in error_data or "message" in error_data:
-                            error_msg = error_data.get("error", error_data.get("message", ""))
+                        if "error" in error_data or "message" in error_data or "detail" in error_data:
+                            error_msg = error_data.get("error", error_data.get("message", error_data.get("detail", "")))
                             if isinstance(error_msg, str) and len(error_msg) > 0:
                                 self.log_test("4. Add-to-Safe API (Invalid) - Error Format", True, 
                                             f"✅ Proper error message: {error_msg}")
@@ -165,7 +167,7 @@ class StarMovingTester:
                                             f"❌ Error message not string: {error_msg}")
                         else:
                             self.log_test("4. Add-to-Safe API (Invalid) - Error Format", False, 
-                                        f"❌ No error/message field: {error_data}")
+                                        f"❌ No error/message/detail field: {error_data}")
                     else:
                         self.log_test("4. Add-to-Safe API (Invalid) - Error Format", False, 
                                     f"❌ Error response not JSON object: {error_data}")
@@ -180,7 +182,8 @@ class StarMovingTester:
         
         # 5. TEST WITHDRAW-FROM-SAFE API - Valid scenario
         try:
-            response = self.session.post(f"{BASE_URL}/progress/withdraw-from-safe?stars=2")
+            request_data = {"stars": 2}
+            response = self.session.post(f"{BASE_URL}/progress/withdraw-from-safe", json=request_data)
             
             if response.status_code == 200:
                 data = response.json()
@@ -214,15 +217,16 @@ class StarMovingTester:
         
         # 6. TEST WITHDRAW-FROM-SAFE API - Invalid scenario (more than available)
         try:
-            response = self.session.post(f"{BASE_URL}/progress/withdraw-from-safe?stars=100")
+            request_data = {"stars": 100}
+            response = self.session.post(f"{BASE_URL}/progress/withdraw-from-safe", json=request_data)
             
             if response.status_code == 400:
                 # Check error message format
                 try:
                     error_data = response.json()
                     if isinstance(error_data, dict):
-                        if "error" in error_data or "message" in error_data:
-                            error_msg = error_data.get("error", error_data.get("message", ""))
+                        if "error" in error_data or "message" in error_data or "detail" in error_data:
+                            error_msg = error_data.get("error", error_data.get("message", error_data.get("detail", "")))
                             if isinstance(error_msg, str) and len(error_msg) > 0:
                                 self.log_test("6. Withdraw-from-Safe API (Invalid) - Error Format", True, 
                                             f"✅ Proper error message: {error_msg}")
@@ -232,7 +236,7 @@ class StarMovingTester:
                                             f"❌ Error message not string: {error_msg}")
                         else:
                             self.log_test("6. Withdraw-from-Safe API (Invalid) - Error Format", False, 
-                                        f"❌ No error/message field: {error_data}")
+                                        f"❌ No error/message/detail field: {error_data}")
                     else:
                         self.log_test("6. Withdraw-from-Safe API (Invalid) - Error Format", False, 
                                     f"❌ Error response not JSON object: {error_data}")
@@ -255,7 +259,8 @@ class StarMovingTester:
                 # Test moving exactly the available stars
                 available_stars = progress.get("total_stars", 0)
                 if available_stars > 0:
-                    response = self.session.post(f"{BASE_URL}/progress/add-to-safe?stars={available_stars}")
+                    request_data = {"stars": available_stars}
+                    response = self.session.post(f"{BASE_URL}/progress/add-to-safe", json=request_data)
                     if response.status_code == 200:
                         data = response.json()
                         if isinstance(data, dict) and "stars_in_safe" in data:
