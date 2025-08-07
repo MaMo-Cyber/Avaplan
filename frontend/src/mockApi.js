@@ -8,11 +8,11 @@ let mockTasks = [
 let mockStars = {}; // Store star data by task/day
 
 let mockProgress = {
-  total_stars: 0,
-  total_stars_earned: 0,
-  total_stars_used: 0,
-  available_stars: 0,
-  stars_in_safe: 3,
+  total_stars: 5, // Available task stars
+  total_stars_earned: 8, // Total earned from tasks
+  total_stars_used: 3,   // Used for rewards
+  available_stars: 2,    // Available reward stars (from challenges)
+  stars_in_safe: 3,      // Stars in safe
 };
 
 let mockRewards = [];
