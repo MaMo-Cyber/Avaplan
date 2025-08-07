@@ -2695,7 +2695,7 @@ function App() {
   const addRewardStarsToSafe = async (amount) => {
     // For reward stars, we need to first reduce available_stars, then increase safe
     // This requires a special endpoint or handling
-    await axios.post(`${API}/progress/move-reward-to-safe`, { stars: amount });
+    await axios.post(`${API}/progress/move-reward-to-safe?stars=${amount}`);
     loadData();
     alert(`✅ ${amount} Belohnungs-Sterne erfolgreich in den Tresor gelegt!`);
   };
