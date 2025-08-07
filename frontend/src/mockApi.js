@@ -66,15 +66,27 @@ export const mockApi = {
     if (!mockStars[taskId]) {
       mockStars[taskId] = {};
     }
+    
+    // Store the new stars value
     mockStars[taskId][day] = Math.max(0, stars);
     
-    // Update progress based on star changes
-    const totalStars = calculateTotalStars();
-    mockProgress.total_stars = Math.max(0, totalStars - mockProgress.total_stars_used);
-    mockProgress.total_stars_earned = totalStars;
+    // Recalculate total progress
+    const totalEarnedStars = calculateTotalStars();
     
-    console.log(`⭐ Mock: Updated ${taskId}/${day} = ${stars} stars. Total: ${totalStars}`);
-    return Promise.resolve({ message: 'Stars updated', total_stars: totalStars });
+    // Update progress to reflect new totals
+    mockProgress.total_stars_earned = totalEarnedStars;
+    mockProgress.total_stars = Math.max(0, totalEarnedStars - mockProgress.total_stars_used);
+    
+    console.log(`⭐ Mock: Updated ${taskId}/${day} = ${stars} stars`);
+    console.log(`📊 Mock: Total earned: ${totalEarnedStars}, Available: ${mockProgress.total_stars}`);
+    
+    return Promise.resolve({ 
+      message: 'Stars updated', 
+      task_id: taskId,
+      day: day,
+      stars: stars,
+      total_earned: totalEarnedStars 
+    });
   },
 
   // Progress
