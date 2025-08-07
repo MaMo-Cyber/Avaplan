@@ -140,6 +140,40 @@ export const mockApi = {
       }
     }
     throw new Error('Reward not found or already claimed');
+  },
+
+  // Reset functions
+  resetWeek: () => {
+    // Reset weekly stars but keep safe stars
+    mockStars = {};
+    mockProgress.total_stars_earned = 0;
+    mockProgress.total_stars = 0; 
+    mockProgress.total_stars_used = 0;
+    mockProgress.available_stars = 0;
+    // Keep mockProgress.stars_in_safe unchanged
+    console.log('⭐ Mock: Week reset, safe preserved');
+    return Promise.resolve({ message: 'Week reset' });
+  },
+
+  resetSafe: () => {
+    // Reset safe stars
+    mockProgress.stars_in_safe = 0;
+    console.log('⭐ Mock: Safe reset');
+    return Promise.resolve({ message: 'Safe reset' });
+  },
+
+  resetAllStars: () => {
+    // Reset everything
+    mockStars = {};
+    mockProgress = {
+      total_stars: 0,
+      total_stars_earned: 0,
+      total_stars_used: 0,
+      available_stars: 0,
+      stars_in_safe: 0,
+    };
+    console.log('⭐ Mock: All stars reset');
+    return Promise.resolve({ message: 'All stars reset' });
   }
 };
 
