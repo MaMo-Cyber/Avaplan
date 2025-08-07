@@ -2174,6 +2174,47 @@ async def add_stars_to_safe(request: AddStarsRequest):
     await db.weekly_progress.replace_one({"week_start": week_start}, clean_progress)
     return clean_progress
 
+@api_router.post("/progress/move-reward-to-safe")
+async def move_reward_stars_to_safe(request: AddStarsRequest):
+    """Move available reward stars specifically to safe"""
+    stars = request.stars
+    week_start = get_current_week_start()
+    progress = await db.weekly_progress.find_one({"week_start": week_start})
+    
+    if not progress:
+        raise HTTPException(status_code=404, detail="No progress found for current week")
+    
+    current_available_reward_stars = progress.get("available_stars", 0)
+    
+    # Validation: Can only move available reward stars
+    if stars > current_available_reward_stars:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Not enough reward stars available. Available: {current_available_reward_stars}, Requested: {stars}"
+        )
+    
+    if stars <= 0:
+        raise HTTPException(status_code=400, detail="Stars must be positive")
+    
+    # Move reward stars to safe
+    clean_progress = {
+        "id": progress.get("id", str(uuid.uuid4())),
+        "week_start": progress["week_start"],
+        "total_stars_earned": progress.get("total_stars_earned", 0),
+        "total_stars_used": progress.get("total_stars_used", 0),
+        "available_stars": current_available_reward_stars - stars,  # Reduce available reward stars
+        "stars_in_safe": progress.get("stars_in_safe", 0) + stars   # Increase safe
+    }
+    
+    await db.weekly_progress.replace_one({"week_start": week_start}, clean_progress)
+    
+    return {
+        "success": True,
+        "message": f"Moved {stars} reward stars to safe",
+        "new_available_stars": clean_progress["available_stars"],
+        "new_safe_stars": clean_progress["stars_in_safe"]
+    }
+
 @api_router.post("/progress/withdraw-from-safe")
 async def withdraw_stars_from_safe(request: WithdrawStarsRequest):
     stars = request.stars
