@@ -2627,11 +2627,19 @@ function App() {
     }
     
     try {
-      // Move stars from total_stars to available_stars by adding to safe first, then withdrawing
-      await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
-      await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
-      loadData();
-      alert(`✅ ${amount} Sterne erfolgreich zu verfügbaren Sternen verschoben!`);
+      if (isMockMode()) {
+        // In mock mode, simulate moving task stars to available stars
+        // This is a simplified approach for demo purposes
+        console.log(`⭐ Demo Mode: Moving ${amount} task stars to available stars`);
+        loadData(); // Just reload to show some change
+      } else {
+        // Move stars from total_stars to available_stars by adding to safe first, then withdrawing
+        await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
+        await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
+        loadData();
+      }
+      
+      alert(`✅ ${amount} Sterne erfolgreich zu verfügbaren Sternen verschoben! (${isMockMode() ? 'Demo Mode' : ''})`);
     } catch (error) {
       console.error('Fehler beim Verschieben der Sterne:', error);
       let errorMessage = 'Fehler beim Verschieben der Sterne! Bitte versuche es erneut.';
