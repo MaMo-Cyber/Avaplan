@@ -2413,6 +2413,7 @@ function App() {
   const [showGermanChallenge, setShowGermanChallenge] = useState(false);
   const [showEnglishChallenge, setShowEnglishChallenge] = useState(false);
   const [showSafe, setShowSafe] = useState(false);
+  const [showStarTransfer, setShowStarTransfer] = useState(false);
   const [showMathSettings, setShowMathSettings] = useState(false);
   const [showGermanSettings, setShowGermanSettings] = useState(false);
   const [showEnglishSettings, setShowEnglishSettings] = useState(false);
