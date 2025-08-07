@@ -2453,11 +2453,21 @@ function App() {
     }
     
     try {
-      const response = await axios.post(`${API}/tasks`, { name: taskName });
-      if (response.status === 200) {
+      if (isMockMode()) {
+        // Use mock API
+        await mockApi.createTask({ name: taskName });
         setNewTaskName('');
         await loadData();
-        console.log('Aufgabe erfolgreich hinzugefügt:', taskName);
+        alert(`✅ Aufgabe "${taskName}" erfolgreich hinzugefügt! (Demo Mode)`);
+        console.log('Aufgabe erfolgreich hinzugefügt (Mock):', taskName);
+      } else {
+        // Use real API
+        const response = await axios.post(`${API}/tasks`, { name: taskName });
+        if (response.status === 200) {
+          setNewTaskName('');
+          await loadData();
+          console.log('Aufgabe erfolgreich hinzugefügt:', taskName);
+        }
       }
     } catch (error) {
       console.error('Fehler beim Hinzufügen der Aufgabe:', error);
