@@ -107,23 +107,47 @@ export const mockApi = {
   // Progress
   getProgress: () => Promise.resolve(mockProgress),
   addStarsToSafe: (stars) => {
-    const available = Math.max(0, mockProgress.total_stars);
-    const toSafe = Math.min(stars, available);
-    mockProgress.stars_in_safe += toSafe;
-    mockProgress.total_stars_used += toSafe;
-    mockProgress.total_stars = Math.max(0, mockProgress.total_stars - toSafe);
+    const taskStarsAvailable = mockProgress.total_stars;
+    const toTransfer = Math.min(stars, taskStarsAvailable);
+    
+    if (toTransfer > 0) {
+      mockProgress.stars_in_safe += toTransfer;
+      // Don't modify total_stars here, it will be recalculated
+    }
+    
+    recalculateProgress();
+    
+    console.log(`⭐ Mock: Moved ${toTransfer} task stars to safe`);
     return Promise.resolve(mockProgress);
   },
+  
   withdrawFromSafe: (stars) => {
-    const available = Math.min(stars, mockProgress.stars_in_safe);
-    mockProgress.stars_in_safe -= available;
-    mockProgress.available_stars += available;
+    const availableInSafe = mockProgress.stars_in_safe;
+    const toWithdraw = Math.min(stars, availableInSafe);
+    
+    if (toWithdraw > 0) {
+      mockProgress.stars_in_safe -= toWithdraw;
+      mockProgress.available_stars += toWithdraw; // These become reward stars
+    }
+    
+    recalculateProgress();
+    
+    console.log(`⭐ Mock: Withdrew ${toWithdraw} stars from safe to available stars`);
     return Promise.resolve(mockProgress);
   },
+  
   moveRewardToSafe: (stars) => {
-    const available = Math.min(stars, mockProgress.available_stars);
-    mockProgress.available_stars -= available;
-    mockProgress.stars_in_safe += available;
+    const availableRewardStars = mockProgress.available_stars;
+    const toTransfer = Math.min(stars, availableRewardStars);
+    
+    if (toTransfer > 0) {
+      mockProgress.available_stars -= toTransfer;
+      mockProgress.stars_in_safe += toTransfer;
+    }
+    
+    recalculateProgress();
+    
+    console.log(`⭐ Mock: Moved ${toTransfer} reward stars to safe`);
     return Promise.resolve(mockProgress);
   },
 
