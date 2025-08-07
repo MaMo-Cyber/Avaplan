@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 # Configuration
-BASE_URL = "https://weekly-star-tracker-backend.onrender.com/api"
+BASE_URL = "http://localhost:8001/api"
 TIMEOUT = 30
 
 class StarMovingTester:
