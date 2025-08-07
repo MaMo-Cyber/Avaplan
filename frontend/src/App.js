@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import axios from "axios";
+import StarTransferModal from "./components/StarTransferModal";
 import AdminSettingsModal from "./components/AdminSettingsModal";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
