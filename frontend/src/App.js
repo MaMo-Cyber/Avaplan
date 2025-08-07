@@ -2570,11 +2570,22 @@ function App() {
       alert(`✅ ${amount} Sterne erfolgreich zu verfügbaren Sternen verschoben!`);
     } catch (error) {
       console.error('Fehler beim Verschieben der Sterne:', error);
+      let errorMessage = 'Fehler beim Verschieben der Sterne! Bitte versuche es erneut.';
+      
       if (error.response?.data?.detail) {
-        alert(`❌ Fehler: ${error.response.data.detail}`);
-      } else {
-        alert('❌ Fehler beim Verschieben der Sterne! Bitte versuche es erneut.');
+        // Ensure error message is a string, not an object
+        errorMessage = typeof error.response.data.detail === 'string' 
+          ? error.response.data.detail 
+          : JSON.stringify(error.response.data.detail);
+      } else if (error.response?.data?.message) {
+        errorMessage = typeof error.response.data.message === 'string'
+          ? error.response.data.message
+          : JSON.stringify(error.response.data.message);
+      } else if (error.message) {
+        errorMessage = error.message;
       }
+      
+      alert(`❌ Fehler: ${errorMessage}`);
       loadData(); // Reload in case of inconsistent state
     }
   };
