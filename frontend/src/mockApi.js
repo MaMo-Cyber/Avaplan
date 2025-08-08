@@ -209,15 +209,21 @@ export const mockApi = {
     mockProgress.total_stars = 0; 
     mockProgress.total_stars_used = 0;
     mockProgress.available_stars = 0;
-    // Keep mockProgress.stars_in_safe unchanged
+    // Keep mockProgress.stars_in_safe and starsMovedToSafe unchanged
     console.log('⭐ Mock: Week reset, safe preserved');
     return Promise.resolve({ message: 'Week reset' });
   },
 
   resetSafe: () => {
-    // Reset safe stars
-    mockProgress.stars_in_safe = 0;
-    console.log('⭐ Mock: Safe reset');
+    // Reset safe stars to original 3
+    const userStarsInSafe = Math.max(0, mockProgress.stars_in_safe - 3);
+    mockProgress.stars_in_safe = 3;
+    starsMovedToSafe = 0;
+    
+    // Return user stars to available task stars
+    recalculateProgress();
+    
+    console.log('⭐ Mock: Safe reset to original 3 stars');
     return Promise.resolve({ message: 'Safe reset' });
   },
 
@@ -229,8 +235,9 @@ export const mockApi = {
       total_stars_earned: 0,
       total_stars_used: 0,
       available_stars: 0,
-      stars_in_safe: 0,
+      stars_in_safe: 3, // Keep original 3
     };
+    starsMovedToSafe = 0;
     console.log('⭐ Mock: All stars reset');
     return Promise.resolve({ message: 'All stars reset' });
   }
