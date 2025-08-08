@@ -7,7 +7,7 @@ Tests the requested scenarios while accounting for the identified critical bug
 import requests
 import json
 
-BASE_URL = "https://5c70f64d-6966-4b96-bc5d-5faea0110744.preview.emergentagent.com/api"
+BASE_URL = "https://f358c107-2a1c-4118-a0b5-322a7704d00c.preview.emergentagent.com/api"
 
 def log_test(test_name, success, details=""):
     status = "✅ PASS" if success else "❌ FAIL"
