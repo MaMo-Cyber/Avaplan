@@ -8,12 +8,15 @@ let mockTasks = [
 let mockStars = {}; // Store star data by task/day
 
 let mockProgress = {
-  total_stars: 0,      // Currently available task stars (earned - used)
-  total_stars_earned: 0,  // Total stars earned from tasks
-  total_stars_used: 0,    // Stars used for rewards 
-  available_stars: 0,     // Available reward stars (from challenges)
-  stars_in_safe: 3,       // Stars in safe
+  total_stars: 0,        // Currently available task stars (earned - used)
+  total_stars_earned: 0, // Total stars earned from tasks
+  total_stars_used: 0,   // Stars used for rewards 
+  available_stars: 0,    // Available reward stars (from challenges)
+  stars_in_safe: 3,      // Total stars in safe (original 3 + user added)
 };
+
+// Track stars moved to safe by user (separate from original 3)
+let starsMovedToSafe = 0;
 
 let mockRewards = [];
 
