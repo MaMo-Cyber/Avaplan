@@ -353,8 +353,14 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
 
   const loadSettings = async () => {
     try {
-      const response = await axios.get(`${API}/english/settings`);
-      setSettings(response.data);
+      let response;
+      if (isMockMode()) {
+        response = await mockApi.getEnglishSettings();
+        setSettings(response);
+      } else {
+        response = await axios.get(`${API}/english/settings`);
+        setSettings(response.data);
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Englisch-Einstellungen:', error);
     }
