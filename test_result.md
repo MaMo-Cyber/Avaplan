@@ -850,10 +850,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Star Transfer Modal Functionality"
+    - "Mock Mode Challenge Settings Integration"
   stuck_tasks:
     - "Stars System Fixes (Sternen-System-Fixes)"
     - "Star Transfer Modal Functionality"
+    - "Mock Mode Challenge Settings Integration"
   test_all: false
   test_priority: "high_first"
 
