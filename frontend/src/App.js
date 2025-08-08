@@ -2522,11 +2522,13 @@ function App() {
   };
 
   const handleStarClick = async (taskId, day, stars) => {
+    console.log('⭐ handleStarClick called:', { taskId, day, stars });
     try {
       if (isMockMode()) {
         // Use mock API for star updates
         await mockApi.updateStars(taskId, day, stars);
         console.log(`⭐ Demo Mode: Updated stars for task ${taskId} on ${day}: ${stars} stars`);
+        console.log('🔄 Calling loadData() to refresh...');
         loadData();
       } else {
         // Use real API
