@@ -550,6 +550,18 @@ backend:
         agent: "testing"
         comment: "✅ GERMAN DIFFICULTY INTEGRATION WORKING SEAMLESSLY! Comprehensive testing verified: 1) Difficulty settings don't break existing functionality - challenge submission works correctly (25.0% score, 0 stars), statistics tracking functional (3 attempts recorded), 2) Backward compatibility maintained - challenges without explicit difficulty settings use defaults and generate 20 valid problems with all required fields, 3) Complete integration with existing German challenge system - submission API, statistics API, and database operations all function correctly with difficulty-adjusted challenges. The difficulty system enhances the existing German challenge functionality without disrupting any core features."
 
+  - task: "Mock Mode Challenge Settings Integration"
+    implemented: false
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL BUG CONFIRMED: Mock Mode completely ignores Challenge Settings! Comprehensive testing revealed that while the settings UI works perfectly (can change problem count from default to 25, save settings successfully), the actual math challenge generation completely bypasses mock mode and calls real backend API directly (App.js line 2154). Result: Challenge shows hardcoded 3 problems instead of configured 25 problems. The mockApi.js file has no math challenge functions, so all challenge generation goes to backend. This creates a misleading user experience where settings appear to work but have zero effect on challenges. ROOT CAUSE: Math challenge creation function startChallenge() doesn't check isMockMode() before making API calls. IMPACT: Demo mode users can configure settings but they're completely ignored, making the feature appear broken. URGENT FIX NEEDED: Either add mock challenge generation to mockApi.js or ensure backend properly applies saved settings in mock mode."
+
 frontend:
   - task: "Star Visibility Test"
     implemented: true
