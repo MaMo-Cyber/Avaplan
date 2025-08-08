@@ -2635,10 +2635,11 @@ function App() {
     
     try {
       if (isMockMode()) {
-        // In mock mode, simulate moving task stars to available stars
-        // This is a simplified approach for demo purposes
-        console.log(`⭐ Demo Mode: Moving ${amount} task stars to available stars`);
-        loadData(); // Just reload to show some change
+        // Use mock API: Move task stars to safe, then withdraw as reward stars
+        await mockApi.addStarsToSafe(amount);
+        await mockApi.withdrawFromSafe(amount);
+        console.log(`⭐ Mock: Moved ${amount} task stars to available reward stars`);
+        loadData();
       } else {
         // Move stars from total_stars to available_stars by adding to safe first, then withdrawing
         await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
