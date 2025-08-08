@@ -165,7 +165,8 @@ class MathChallengeSettingsTester:
                     # Create new challenge to test if settings are used
                     response = self.session.post(f"{BASE_URL}/math/challenge/2")
                     if response.status_code == 200:
-                        challenge = response.json()
+                        response_data = response.json()
+                        challenge = response_data.get("challenge", response_data)
                         actual_problem_count = len(challenge.get("problems", []))
                         
                         if actual_problem_count == 15:
