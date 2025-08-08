@@ -2635,10 +2635,8 @@ function App() {
     
     try {
       if (isMockMode()) {
-        // Use mock API: Directly move task stars to reward stars 
-        // by reducing total_stars_used (which reduces total_stars display)
-        mockProgress.total_stars_used += amount;
-        mockProgress.available_stars += amount;
+        // Use mock API: Move task stars directly to available reward stars
+        await mockApi.moveTaskStarsToAvailable(amount);
         console.log(`⭐ Mock: Moved ${amount} task stars to available reward stars`);
         loadData();
       } else {
