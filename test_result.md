@@ -798,7 +798,7 @@ frontend:
     implemented: true
     working: false
     file: "frontend/src/components/StarTransferModal.js"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: false
     status_history:
@@ -811,6 +811,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "❌ STAR TRANSFER BUG CONFIRMED: Comprehensive testing of the star transfer functionality revealed that the bug is still present. TEST RESULTS: 1) ✅ Successfully navigated to app and added task 'Test Aufgabe', 2) ✅ Successfully clicked first star (Monday) to add 1 star to task, 3) ❌ CRITICAL BUG: After clicking star, 'Aufgaben-Sterne' shows 0 ⭐ instead of expected 1 ⭐, indicating star counting is not working correctly, 4) ✅ Transfer button '➡️ Zu Verfügbar' is visible and clickable, 5) ❌ TRANSFER FAILURE: After clicking transfer button, no changes occur in star counts (Verfügbare: 0→0, Aufgaben: 0→0), 6) ❌ No prompt/dialog appears for entering transfer amount. ROOT CAUSE: The fundamental issue is that task stars are not being properly counted/displayed in the 'Aufgaben-Sterne' section, and the transfer functionality is not working. The star transfer bug has NOT been fixed - task stars are not properly reduced when moved to available stars."
+      - working: false
+        agent: "testing"
+        comment: "🔍 STAR COUNTING DEBUG COMPLETED - ROOT CAUSE IDENTIFIED: Comprehensive debug testing per user request revealed the exact issue in the star counting logic. ✅ TESTING COMPLETED: 1) Added 'Debug Task' successfully, 2) Clicked first star (Monday) - star visually filled (⭐), 3) Console logs captured showing progress object updates. 🚨 CRITICAL BUG CONFIRMED: Console shows 'Available task stars: 1' in mock calculation but progress object shows 'available_stars: 0' - this is the core issue! 📊 DETAILED FINDINGS: Initial state: {total_stars: 0, available_stars: 0, stars_in_safe: 3}, After star click: {total_stars: 1, total_stars_earned: 1, available_stars: 0, stars_in_safe: 3}. UI correctly shows: Verfügbare Sterne: 0 ⭐ (matches console), Aufgaben-Sterne: 1 ⭐ (matches console), Gesamt Verdient: 1 ⭐ (matches console). 💡 ROOT CAUSE: The progress calculation logic incorrectly sets available_stars to 0 when it should be 1 (total_stars - total_stars_used = 1 - 0 = 1). This explains why transfer functionality fails and why users can't use task stars for rewards. The mock API correctly calculates 'Available task stars: 1' but the final progress object has available_stars: 0."
 
 metadata:
   created_by: "testing_agent"
