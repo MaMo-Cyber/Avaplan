@@ -315,6 +315,142 @@ export const mockApi = {
     starsMovedToSafe = 0;
     console.log('⭐ Mock: All stars reset');
     return Promise.resolve({ message: 'All stars reset' });
+  },
+
+  // Mock Challenge Functions
+  createMathChallenge: (grade) => {
+    const problemCount = mockMathSettings.problem_count;
+    const problems = [];
+    
+    console.log(`🧮 Mock: Creating ${problemCount} math problems for grade ${grade}`);
+    
+    for (let i = 0; i < problemCount; i++) {
+      const num1 = Math.floor(Math.random() * 20) + 1;
+      const num2 = Math.floor(Math.random() * 20) + 1;
+      const operators = ['+', '-', '×'];
+      const operator = operators[Math.floor(Math.random() * operators.length)];
+      
+      let answer;
+      switch (operator) {
+        case '+': answer = num1 + num2; break;
+        case '-': answer = Math.abs(num1 - num2); break;
+        case '×': answer = num1 * num2; break;
+      }
+      
+      problems.push({
+        question: `${num1} ${operator} ${num2} = ?`,
+        correct_answer: answer.toString(),
+        question_type: 'basic_math'
+      });
+    }
+    
+    const challenge = {
+      id: Date.now().toString(),
+      grade: grade,
+      problems: problems,
+      created_at: new Date().toISOString()
+    };
+    
+    return Promise.resolve({ challenge: challenge, success: true });
+  },
+
+  createGermanChallenge: (grade) => {
+    const problemCount = mockGermanSettings.problem_count;
+    const problems = [];
+    
+    console.log(`📖 Mock: Creating ${problemCount} German problems for grade ${grade}`);
+    
+    for (let i = 0; i < problemCount; i++) {
+      const words = grade === 2 
+        ? ['Haus', 'Auto', 'Baum', 'Buch', 'Hund', 'Katze', 'Ball', 'Tisch']
+        : ['Computer', 'Schmetterling', 'Regenbogen', 'Fahrrad', 'Elefant', 'Blume', 'Fenster', 'Schlüssel'];
+      
+      const word = words[Math.floor(Math.random() * words.length)];
+      
+      problems.push({
+        question: `Wie schreibt man "${word}"?`,
+        correct_answer: word,
+        options: [word, word.toLowerCase(), word.toUpperCase(), word + 'e'],
+        question_type: 'spelling'
+      });
+    }
+    
+    const challenge = {
+      id: Date.now().toString(),
+      grade: grade,
+      problems: problems,
+      created_at: new Date().toISOString()
+    };
+    
+    return Promise.resolve({ challenge: challenge, success: true });
+  },
+
+  createEnglishChallenge: (grade) => {
+    const problemCount = mockEnglishSettings.problem_count;
+    const problems = [];
+    
+    console.log(`🇬🇧 Mock: Creating ${problemCount} English problems for grade ${grade}`);
+    
+    const vocabulary = {
+      2: [
+        { de: 'Haus', en: 'house' },
+        { de: 'Auto', en: 'car' },
+        { de: 'Hund', en: 'dog' },
+        { de: 'Katze', en: 'cat' },
+        { de: 'Baum', en: 'tree' }
+      ],
+      3: [
+        { de: 'Computer', en: 'computer' },
+        { de: 'Schmetterling', en: 'butterfly' },
+        { de: 'Regenbogen', en: 'rainbow' },
+        { de: 'Fahrrad', en: 'bicycle' },
+        { de: 'Elefant', en: 'elephant' }
+      ]
+    };
+    
+    const words = vocabulary[grade] || vocabulary[2];
+    
+    for (let i = 0; i < problemCount; i++) {
+      const word = words[i % words.length];
+      
+      problems.push({
+        question: `Wie heißt "${word.de}" auf Englisch?`,
+        correct_answer: word.en,
+        options: [word.en, word.en + 's', word.de, word.en.toUpperCase()],
+        question_type: 'vocabulary'
+      });
+    }
+    
+    const challenge = {
+      id: Date.now().toString(),
+      grade: grade,
+      problems: problems,
+      created_at: new Date().toISOString()
+    };
+    
+    return Promise.resolve({ challenge: challenge, success: true });
+  },
+
+  // Settings Functions
+  getMathSettings: () => Promise.resolve(mockMathSettings),
+  updateMathSettings: (settings) => {
+    mockMathSettings = { ...mockMathSettings, ...settings };
+    console.log('🧮 Mock: Math settings updated:', mockMathSettings);
+    return Promise.resolve({ message: 'Settings updated' });
+  },
+
+  getGermanSettings: () => Promise.resolve(mockGermanSettings),
+  updateGermanSettings: (settings) => {
+    mockGermanSettings = { ...mockGermanSettings, ...settings };
+    console.log('📖 Mock: German settings updated:', mockGermanSettings);
+    return Promise.resolve({ message: 'Settings updated' });
+  },
+
+  getEnglishSettings: () => Promise.resolve(mockEnglishSettings),
+  updateEnglishSettings: (settings) => {
+    mockEnglishSettings = { ...mockEnglishSettings, ...settings };
+    console.log('🇬🇧 Mock: English settings updated:', mockEnglishSettings);
+    return Promise.resolve({ message: 'Settings updated' });
   }
 };
 
