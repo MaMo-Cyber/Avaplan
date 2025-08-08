@@ -378,7 +378,12 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
   const updateSettings = async () => {
     setLoading(true);
     try {
-      await axios.put(`${API}/english/settings`, settings);
+      if (isMockMode()) {
+        await mockApi.updateEnglishSettings(settings);
+        console.log('🇬🇧 Mock: English settings updated');
+      } else {
+        await axios.put(`${API}/english/settings`, settings);
+      }
       onComplete && onComplete();
       alert('Englisch-Einstellungen erfolgreich gespeichert!');
     } catch (error) {
