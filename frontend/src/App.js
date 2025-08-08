@@ -1583,8 +1583,18 @@ const EnglishChallenge = ({ onClose, onComplete }) => {
   const startChallenge = async (selectedGrade) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/english/challenge/${selectedGrade}`);
-      setChallenge(response.data);
+      let response;
+      if (isMockMode()) {
+        // Use mock API for English challenge
+        response = await mockApi.createEnglishChallenge(selectedGrade);
+        console.log('🇬🇧 Mock: English challenge created with settings');
+      } else {
+        // Use real API
+        response = await axios.post(`${API}/english/challenge/${selectedGrade}`);
+      }
+      
+      const challengeData = response.challenge || response.data?.challenge || response.data;
+      setChallenge(challengeData);
       setGrade(selectedGrade);
       setAnswers({});
     } catch (error) {
