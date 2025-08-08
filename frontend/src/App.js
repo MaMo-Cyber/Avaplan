@@ -2940,6 +2940,7 @@ function App() {
         <StarsSummary 
           taskStars={progress.total_stars}
           availableStars={progress.available_stars || 0}
+          totalEarned={progress.total_stars_earned || 0}
           onAddTaskStarsToAvailable={addTaskStarsToAvailable}
         />
 
