@@ -88,7 +88,13 @@ class MathChallengeSettingsTester:
         try:
             response = self.session.post(f"{BASE_URL}/math/challenge/2")
             if response.status_code == 200:
-                challenge = response.json()
+                response_data = response.json()
+                
+                # Check if response has challenge wrapper
+                if "challenge" in response_data:
+                    challenge = response_data["challenge"]
+                else:
+                    challenge = response_data
                 
                 # Check response structure
                 expected_fields = ["id", "grade", "problems", "completed", "score", "stars_earned", "created_at"]
