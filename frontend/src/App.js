@@ -2151,10 +2151,18 @@ const MathChallenge = ({ onClose, onComplete }) => {
   const startChallenge = async (selectedGrade) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/math/challenge/${selectedGrade}`);
+      let response;
+      if (isMockMode()) {
+        // Use mock API for math challenge
+        response = await mockApi.createMathChallenge(selectedGrade);
+        console.log('🧮 Mock: Math challenge created with settings');
+      } else {
+        // Use real API
+        response = await axios.post(`${API}/math/challenge/${selectedGrade}`);
+      }
       
       // Handle the API response structure: { challenge: {...}, success: true }
-      const challengeData = response.data.challenge || response.data;
+      const challengeData = response.challenge || response.data?.challenge || response.data;
       
       if (!challengeData.problems || !Array.isArray(challengeData.problems)) {
         throw new Error('Invalid challenge format: missing problems array');
