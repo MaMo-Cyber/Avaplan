@@ -18,6 +18,54 @@ let starsMovedToSafe = 0;
 
 let mockRewards = [];
 
+// Mock settings storage
+let mockMathSettings = {
+  max_number: 100,
+  max_multiplication: 10,
+  problem_count: 15, // Default problem count
+  star_tiers: {"90": 3, "80": 2, "70": 1},
+  problem_types: {
+    addition: true,
+    subtraction: true,
+    multiplication: true,
+    clock_reading: false,
+    currency_math: false,
+    word_problems: false
+  }
+};
+
+let mockGermanSettings = {
+  problem_count: 20,
+  star_tiers: {"90": 3, "80": 2, "70": 1},
+  problem_types: {
+    spelling_problems: true,
+    word_type_problems: true,
+    fill_blank_problems: true
+  },
+  difficulty_settings: {
+    vocabulary_level: "basic",
+    include_articles: false
+  }
+};
+
+let mockEnglishSettings = {
+  problem_count: 15,
+  star_tiers: {"90": 3, "80": 2, "70": 1},
+  problem_types: {
+    vocabulary_de_en: true,
+    vocabulary_en_de: true,
+    simple_sentences: true,
+    basic_grammar: false,
+    colors_numbers: true,
+    animals_objects: true
+  },
+  difficulty_settings: {
+    vocabulary_level: "basic",
+    include_articles: false,
+    sentence_complexity: "simple"
+  }
+};
+
 // Helper function to calculate total stars from tasks
 const calculateTotalStars = () => {
   let total = 0;
