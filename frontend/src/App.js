@@ -125,7 +125,7 @@ const TaskRow = ({ task, weekStars, onStarClick }) => {
 };
 
 // Stars Summary Component
-const StarsSummary = ({ taskStars, availableStars, onAddTaskStarsToAvailable }) => {
+const StarsSummary = ({ taskStars, availableStars, totalEarned, onAddTaskStarsToAvailable }) => {
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100">
       <h3 className="text-xl font-semibold text-purple-800 mb-4 text-center">⭐ Sterne-Übersicht ⭐</h3>
@@ -155,7 +155,7 @@ const StarsSummary = ({ taskStars, availableStars, onAddTaskStarsToAvailable }) 
         {/* Total Earned */}
         <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-300">
           <h4 className="text-lg font-semibold text-purple-800 mb-2">Gesamt Verdient</h4>
-          <div className="text-4xl font-bold text-green-600 mb-2">{taskStars + availableStars} ⭐</div>
+          <div className="text-4xl font-bold text-green-600 mb-2">{totalEarned} ⭐</div>
           <p className="text-sm text-gray-600">Diese Woche</p>
         </div>
       </div>
