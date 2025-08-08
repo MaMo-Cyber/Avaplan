@@ -171,6 +171,28 @@ export const mockApi = {
     return Promise.resolve(mockProgress);
   },
 
+  moveTaskStarsToAvailable: (stars) => {
+    const taskStarsAvailable = mockProgress.total_stars;
+    const toTransfer = Math.min(stars, taskStarsAvailable);
+    
+    if (toTransfer > 0) {
+      // Increase total_stars_used which reduces available task stars
+      mockProgress.total_stars_used += toTransfer;
+      
+      // Add to available reward stars
+      mockProgress.available_stars += toTransfer;
+      
+      // Recalculate progress
+      recalculateProgress();
+      
+      console.log(`⭐ Mock: Moved ${toTransfer} task stars to available reward stars`);
+    } else {
+      console.log(`❌ Mock: Cannot move ${stars} stars - only ${taskStarsAvailable} available`);
+    }
+    
+    return Promise.resolve(mockProgress);
+  },
+
   // Rewards
   getRewards: () => Promise.resolve(mockRewards),
   createReward: (rewardData) => {
