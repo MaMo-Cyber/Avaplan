@@ -215,15 +215,20 @@ export const mockApi = {
   },
 
   resetSafe: () => {
-    // Reset safe stars to original 3
+    // Reset safe stars to original 3 and return user stars to available task stars
     const userStarsInSafe = Math.max(0, mockProgress.stars_in_safe - 3);
+    
+    // Add user stars back to available task stars  
+    mockProgress.total_stars += userStarsInSafe;
+    
+    // Reset safe to original 3
     mockProgress.stars_in_safe = 3;
     starsMovedToSafe = 0;
     
-    // Return user stars to available task stars
+    // Recalculate progress
     recalculateProgress();
     
-    console.log('⭐ Mock: Safe reset to original 3 stars');
+    console.log(`⭐ Mock: Safe reset to 3 stars, ${userStarsInSafe} stars returned to available`);
     return Promise.resolve({ message: 'Safe reset' });
   },
 
