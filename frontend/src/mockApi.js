@@ -114,13 +114,20 @@ export const mockApi = {
     const toTransfer = Math.min(stars, taskStarsAvailable);
     
     if (toTransfer > 0) {
+      // Track how many stars were moved by user to safe
+      starsMovedToSafe += toTransfer;
+      
+      // Update total safe stars
       mockProgress.stars_in_safe += toTransfer;
-      // Don't modify total_stars here, it will be recalculated
+      
+      // Recalculate progress (this will reduce total_stars)
+      recalculateProgress();
+      
+      console.log(`⭐ Mock: Moved ${toTransfer} task stars to safe (user moved total: ${starsMovedToSafe})`);
+    } else {
+      console.log(`❌ Mock: Cannot move ${stars} stars - only ${taskStarsAvailable} available`);
     }
     
-    recalculateProgress();
-    
-    console.log(`⭐ Mock: Moved ${toTransfer} task stars to safe`);
     return Promise.resolve(mockProgress);
   },
   
