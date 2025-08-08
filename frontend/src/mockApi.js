@@ -132,17 +132,27 @@ export const mockApi = {
   },
   
   withdrawFromSafe: (stars) => {
-    const availableInSafe = mockProgress.stars_in_safe;
-    const toWithdraw = Math.min(stars, availableInSafe);
+    // Can only withdraw what's actually in safe (not original 3)
+    const userStarsInSafe = Math.max(0, mockProgress.stars_in_safe - 3);
+    const toWithdraw = Math.min(stars, userStarsInSafe);
     
     if (toWithdraw > 0) {
+      // Reduce safe total
       mockProgress.stars_in_safe -= toWithdraw;
-      mockProgress.available_stars += toWithdraw; // These become reward stars
+      
+      // Reduce tracking of user-moved stars
+      starsMovedToSafe = Math.max(0, starsMovedToSafe - toWithdraw);
+      
+      // These become reward stars (available_stars)
+      mockProgress.available_stars += toWithdraw;
+      
+      recalculateProgress();
+      
+      console.log(`⭐ Mock: Withdrew ${toWithdraw} stars from safe to reward stars (user moved total: ${starsMovedToSafe})`);
+    } else {
+      console.log(`❌ Mock: Cannot withdraw ${stars} stars - only ${userStarsInSafe} user stars available in safe`);
     }
     
-    recalculateProgress();
-    
-    console.log(`⭐ Mock: Withdrew ${toWithdraw} stars from safe to available stars`);
     return Promise.resolve(mockProgress);
   },
   
