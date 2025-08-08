@@ -243,7 +243,8 @@ class MathChallengeSettingsTester:
         try:
             response = self.session.post(f"{BASE_URL}/math/challenge/3")
             if response.status_code == 200:
-                challenge = response.json()
+                response_data = response.json()
+                challenge = response_data.get("challenge", response_data)
                 problems = challenge.get("problems", [])
                 
                 if len(problems) > 0 and challenge.get("grade") == 3:
@@ -255,7 +256,7 @@ class MathChallengeSettingsTester:
                     self.created_challenges.append(challenge["id"])
                 else:
                     self.log_test("5. Math Challenge Creation (Grade 3)", False, 
-                                f"❌ Invalid Grade 3 challenge: {challenge}")
+                                f"❌ Invalid Grade 3 challenge: problems={len(problems)}, grade={challenge.get('grade')}")
             else:
                 self.log_test("5. Math Challenge Creation (Grade 3)", False, 
                             f"❌ Status code: {response.status_code}")
