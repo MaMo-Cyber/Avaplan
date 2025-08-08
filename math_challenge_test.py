@@ -299,7 +299,8 @@ class MathChallengeSettingsTester:
                 # Create challenge and analyze problem types
                 response = self.session.post(f"{BASE_URL}/math/challenge/2")
                 if response.status_code == 200:
-                    challenge = response.json()
+                    response_data = response.json()
+                    challenge = response_data.get("challenge", response_data)
                     problems = challenge.get("problems", [])
                     
                     # Count problem types (basic analysis)
