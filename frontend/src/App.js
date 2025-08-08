@@ -131,25 +131,25 @@ const StarsSummary = ({ taskStars, availableStars, totalEarned, onAddTaskStarsTo
       <h3 className="text-xl font-semibold text-purple-800 mb-4 text-center">⭐ Sterne-Übersicht ⭐</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Available Stars for Rewards */}
-        <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border-2 border-yellow-300">
-          <h4 className="text-lg font-semibold text-purple-800 mb-2">Verfügbare Sterne</h4>
-          <div className="text-4xl font-bold text-yellow-600 mb-2">{availableStars} ⭐</div>
-          <p className="text-sm text-gray-600">Für Belohnungen</p>
-        </div>
-
-        {/* Task Stars */}
-        <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-300">
+        {/* Available Task Stars */}
+        <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-300">
           <h4 className="text-lg font-semibold text-purple-800 mb-2">Aufgaben-Sterne</h4>
-          <div className="text-4xl font-bold text-purple-600 mb-2">{taskStars} ⭐</div>
+          <div className="text-4xl font-bold text-blue-600 mb-2">{taskStars} ⭐</div>
           {taskStars > 0 && (
             <button 
               onClick={onAddTaskStarsToAvailable}
-              className="text-xs bg-purple-500 text-white px-3 py-1 rounded-lg hover:bg-purple-600 transition-colors"
+              className="text-xs bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors"
             >
               ➡️ Zu Verfügbar
             </button>
           )}
+        </div>
+
+        {/* Available Reward Stars */}
+        <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border-2 border-yellow-300">
+          <h4 className="text-lg font-semibold text-purple-800 mb-2">Belohnungs-Sterne</h4>
+          <div className="text-4xl font-bold text-yellow-600 mb-2">{availableStars} ⭐</div>
+          <p className="text-sm text-gray-600">Von Herausforderungen</p>
         </div>
 
         {/* Total Earned */}
