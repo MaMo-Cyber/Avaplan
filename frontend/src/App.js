@@ -2506,7 +2506,14 @@ function App() {
 
   const deleteTask = async (taskId) => {
     try {
-      await axios.delete(`${API}/tasks/${taskId}`);
+      if (isMockMode()) {
+        // Use mock API
+        await mockApi.deleteTask(taskId);
+        console.log(`🗑️ Mock: Deleted task ${taskId}`);
+      } else {
+        // Use real API
+        await axios.delete(`${API}/tasks/${taskId}`);
+      }
       loadData();
     } catch (error) {
       console.error('Fehler beim Löschen der Aufgabe:', error);
