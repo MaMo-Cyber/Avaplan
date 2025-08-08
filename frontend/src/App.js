@@ -2441,6 +2441,7 @@ function App() {
         setRewards(rewards);
         
         console.log('📊 Demo Mode: Data loaded from mock API');
+        console.log('📊 Progress object:', progress);
       } else {
         // Use real API
         const [tasksRes, starsRes, progressRes, rewardsRes] = await Promise.all([
