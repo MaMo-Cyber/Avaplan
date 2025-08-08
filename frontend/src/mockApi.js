@@ -62,6 +62,8 @@ export const mockApi = {
     mockTasks = mockTasks.filter(t => t.id !== taskId);
     // Remove stars for deleted task
     delete mockStars[taskId];
+    // Recalculate progress after task deletion
+    recalculateProgress();
     return Promise.resolve({ message: 'Task deleted' });
   },
 
