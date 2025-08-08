@@ -2611,6 +2611,8 @@ function App() {
   };
 
   const addTaskStarsToAvailable = async () => {
+    console.log('🔧 addTaskStarsToAvailable called! progress.total_stars:', progress.total_stars);
+    
     if (progress.total_stars === 0) {
       alert('Keine Aufgaben-Sterne verfügbar!');
       return;
@@ -2619,9 +2621,13 @@ function App() {
     const maxAvailable = progress.total_stars;
     const starsToAdd = prompt(`Wie viele Aufgaben-Sterne zu verfügbaren Sternen hinzufügen? (Verfügbar: ${maxAvailable})`);
     
+    console.log('🔧 User input:', starsToAdd);
+    
     if (!starsToAdd) return;
     
     const amount = parseInt(starsToAdd);
+    
+    console.log('🔧 Parsed amount:', amount);
     
     // Validation: Cannot add more than available
     if (amount > maxAvailable) {
