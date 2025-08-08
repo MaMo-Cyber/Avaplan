@@ -1877,8 +1877,18 @@ const GermanChallenge = ({ onClose, onComplete }) => {
   const startChallenge = async (selectedGrade) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/german/challenge/${selectedGrade}`);
-      setChallenge(response.data);
+      let response;
+      if (isMockMode()) {
+        // Use mock API for German challenge
+        response = await mockApi.createGermanChallenge(selectedGrade);
+        console.log('📖 Mock: German challenge created with settings');
+      } else {
+        // Use real API
+        response = await axios.post(`${API}/german/challenge/${selectedGrade}`);
+      }
+      
+      const challengeData = response.challenge || response.data?.challenge || response.data;
+      setChallenge(challengeData);
       setGrade(selectedGrade);
       setAnswers({});
     } catch (error) {
