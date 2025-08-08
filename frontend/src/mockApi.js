@@ -1,9 +1,7 @@
 // Mock Backend für Testing
 const MOCK_MODE = true; // Set to true for testing without backend
 
-let mockTasks = [
-  { id: '1', name: 'Test Task', created_at: '2025-08-07T09:00:00Z' }
-];
+let mockTasks = [];
 
 let mockStars = {}; // Store star data by task/day
 
