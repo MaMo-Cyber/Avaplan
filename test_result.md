@@ -554,7 +554,7 @@ backend:
     implemented: true
     working: false
     file: "frontend/src/App.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -564,6 +564,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "🔍 DETAILED TESTING COMPLETED: Comprehensive end-to-end testing of Math Challenge Settings in Mock Mode revealed the exact issue. ✅ SETTINGS UI WORKING: Successfully opened admin settings → math settings, changed problem count from 5 to 25, saved settings. ❌ SETTINGS NOT APPLIED: Math challenge generation uses default mock value of 15 problems (from mockApi.js line 25: problem_count: 15) instead of the saved value of 25. 🔍 ROOT CAUSE IDENTIFIED: The mockApi.createMathChallenge() function correctly uses mockMathSettings.problem_count, but the settings update in mockApi.updateMathSettings() is not properly persisting or being applied. The challenge shows 'Insgesamt 15 Aufgaben' confirming it uses the default mock value, not the changed value. 📊 TEST RESULTS: Settings UI (✅ Working) + Settings Persistence (❌ Failing) + Challenge Generation (✅ Working with wrong settings) = Overall system not working as expected. IMPACT: Users can change settings but they have no effect on actual challenges, creating a broken user experience in demo mode."
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL BUG CONFIRMED WITH ENHANCED DEBUGGING: Comprehensive testing with console log analysis revealed the exact root cause of the Math Challenge Settings integration failure. ✅ SETTINGS UI: Working perfectly (can change problem count from 15 to 25 in UI). ✅ MODAL FUNCTIONALITY: Math settings modal opens correctly, shows current values, accepts new values. ❌ SETTINGS PERSISTENCE BUG: The MathSettingsModal component is NOT properly updating the settings object when user changes values. Console logs show: Input settings object still contains problem_count: 15 (should be 25), Before/After update both show problem_count: 15, mockMathSettings never gets the new value of 25. ✅ CHALLENGE CREATION: Works correctly but uses the wrong settings (15 instead of 25). 📊 FINAL RESULT: Challenge shows 'Insgesamt 15 Aufgaben' and generates exactly 15 problems, confirming settings are ignored. 🔍 ROOT CAUSE: The MathSettingsModal component's state management is broken - the UI shows 25 but the settings object being passed to updateMathSettings still contains the old value (15). This creates a misleading user experience where settings appear to work but have zero effect. IMPACT: Demo mode users can configure settings but they're completely ignored, making the feature appear broken."
 
 frontend:
   - task: "Star Visibility Test"
