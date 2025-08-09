@@ -31,6 +31,15 @@ let mockMathSettings = {
     clock_reading: false,
     currency_math: false,
     word_problems: false
+  },
+  clock_settings: {
+    include_half_hours: true,
+    include_quarter_hours: true,
+    include_five_minute_intervals: false
+  },
+  currency_settings: {
+    currency_symbol: "€",
+    max_amount: 20.00
   }
 };
 
