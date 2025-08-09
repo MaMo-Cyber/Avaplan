@@ -816,10 +816,16 @@ const GermanSettingsModal = ({ isOpen, onClose, onComplete }) => {
     }
   };
 
-  const updateSettings = async () => {
+  const updateSettings = useCallback(async () => {
     setLoading(true);
     try {
-      await axios.put(`${API}/german/settings`, settings);
+      console.log('🔍 DEBUG: German settings being sent to API:', JSON.stringify(settings, null, 2));
+      if (isMockMode()) {
+        await mockApi.updateGermanSettings(settings);
+        console.log('🇩🇪 Mock: German settings updated');
+      } else {
+        await axios.put(`${API}/german/settings`, settings);
+      }
       onComplete && onComplete();
       alert('Deutsch-Einstellungen erfolgreich gespeichert!');
     } catch (error) {
@@ -827,7 +833,7 @@ const GermanSettingsModal = ({ isOpen, onClose, onComplete }) => {
       alert('Fehler beim Speichern der Einstellungen!');
     }
     setLoading(false);
-  };
+  }, [settings, onComplete]);
 
   const resetStatistics = async () => {
     if (confirm('Bist du sicher, dass du alle Deutsch-Statistiken zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden!')) {
