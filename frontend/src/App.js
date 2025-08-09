@@ -794,8 +794,14 @@ const GermanSettingsModal = ({ isOpen, onClose, onComplete }) => {
 
   const loadSettings = async () => {
     try {
-      const response = await axios.get(`${API}/german/settings`);
-      setSettings(response.data);
+      if (isMockMode()) {
+        const response = await mockApi.getGermanSettings();
+        setSettings(response);
+        console.log('🇩🇪 Mock: German settings loaded:', response);
+      } else {
+        const response = await axios.get(`${API}/german/settings`);
+        setSettings(response.data);
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Deutsch-Einstellungen:', error);
     }
