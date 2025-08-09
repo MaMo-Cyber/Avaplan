@@ -865,11 +865,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Mock Mode Challenge Settings Integration"
+    - "Settings Persistence Between Sessions (Minor Issue)"
   stuck_tasks:
     - "Stars System Fixes (Sternen-System-Fixes)"
     - "Star Transfer Modal Functionality"
-    - "Mock Mode Challenge Settings Integration"
   test_all: false
   test_priority: "high_first"
 
