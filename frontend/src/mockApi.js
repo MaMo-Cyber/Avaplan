@@ -435,7 +435,12 @@ export const mockApi = {
   // Settings Functions
   getMathSettings: () => Promise.resolve(mockMathSettings),
   updateMathSettings: (settings) => {
+    console.log('🔍 DEBUG: Input settings object:', JSON.stringify(settings, null, 2));
+    console.log('🔍 DEBUG: Before update mockMathSettings:', JSON.stringify(mockMathSettings, null, 2));
+    
     mockMathSettings = { ...mockMathSettings, ...settings };
+    
+    console.log('🔍 DEBUG: After update mockMathSettings:', JSON.stringify(mockMathSettings, null, 2));
     console.log('🧮 Mock: Math settings updated:', mockMathSettings);
     return Promise.resolve({ message: 'Settings updated' });
   },
