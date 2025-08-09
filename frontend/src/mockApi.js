@@ -319,6 +319,7 @@ export const mockApi = {
 
   // Mock Challenge Functions
   createMathChallenge: (grade) => {
+    console.log('🔍 DEBUG: mockMathSettings before challenge creation:', JSON.stringify(mockMathSettings, null, 2));
     const problemCount = mockMathSettings.problem_count;
     const problems = [];
     
