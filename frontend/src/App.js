@@ -1229,15 +1229,15 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
     }
   };
 
-  const updateSettings = async () => {
+  const updateSettings = async (settingsToUpdate = settings) => {
     setLoading(true);
     try {
-      console.log('🔍 DEBUG: Settings being sent to API:', JSON.stringify(settings, null, 2));
+      console.log('🔍 DEBUG: Settings being sent to API:', JSON.stringify(settingsToUpdate, null, 2));
       if (isMockMode()) {
-        await mockApi.updateMathSettings(settings);
+        await mockApi.updateMathSettings(settingsToUpdate);
         console.log('🧮 Mock: Math settings updated in modal');
       } else {
-        await axios.put(`${API}/math/settings`, settings);
+        await axios.put(`${API}/math/settings`, settingsToUpdate);
       }
       onComplete();
       alert('Einstellungen erfolgreich gespeichert!');
