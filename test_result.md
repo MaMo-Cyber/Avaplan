@@ -550,13 +550,13 @@ backend:
         agent: "testing"
         comment: "✅ GERMAN DIFFICULTY INTEGRATION WORKING SEAMLESSLY! Comprehensive testing verified: 1) Difficulty settings don't break existing functionality - challenge submission works correctly (25.0% score, 0 stars), statistics tracking functional (3 attempts recorded), 2) Backward compatibility maintained - challenges without explicit difficulty settings use defaults and generate 20 valid problems with all required fields, 3) Complete integration with existing German challenge system - submission API, statistics API, and database operations all function correctly with difficulty-adjusted challenges. The difficulty system enhances the existing German challenge functionality without disrupting any core features."
 
-  - task: "Mock Mode Challenge Settings Integration"
+  - task: "MathSettingsModal State Management Bug Fix"
     implemented: true
     working: false
     file: "frontend/src/App.js"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "testing"
@@ -567,6 +567,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "🚨 CRITICAL BUG CONFIRMED WITH ENHANCED DEBUGGING: Comprehensive testing with console log analysis revealed the exact root cause of the Math Challenge Settings integration failure. ✅ SETTINGS UI: Working perfectly (can change problem count from 15 to 25 in UI). ✅ MODAL FUNCTIONALITY: Math settings modal opens correctly, shows current values, accepts new values. ❌ SETTINGS PERSISTENCE BUG: The MathSettingsModal component is NOT properly updating the settings object when user changes values. Console logs show: Input settings object still contains problem_count: 15 (should be 25), Before/After update both show problem_count: 15, mockMathSettings never gets the new value of 25. ✅ CHALLENGE CREATION: Works correctly but uses the wrong settings (15 instead of 25). 📊 FINAL RESULT: Challenge shows 'Insgesamt 15 Aufgaben' and generates exactly 15 problems, confirming settings are ignored. 🔍 ROOT CAUSE: The MathSettingsModal component's state management is broken - the UI shows 25 but the settings object being passed to updateMathSettings still contains the old value (15). This creates a misleading user experience where settings appear to work but have zero effect. IMPACT: Demo mode users can configure settings but they're completely ignored, making the feature appear broken."
+      - working: false
+        agent: "main"
+        comment: "DEBUGGING IN PROGRESS: Added enhanced debugging logs to the MathSettingsModal component to trace the state management issue. Added console.log statements to both the input onChange handler and the updateSettings function to track when the settings object is updated and what values are being sent to the API. The issue appears to be in the React state management where the UI shows the new value but the actual settings object being passed to the mock API still contains the old value."
 
 frontend:
   - task: "Star Visibility Test"
