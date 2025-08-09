@@ -1371,9 +1371,13 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                   onChange={(e) => {
                     const newValue = parseInt(e.target.value);
                     console.log('🔍 DEBUG: Problem count input changed to:', newValue);
-                    const newSettings = {...settings, problem_count: newValue};
-                    console.log('🔍 DEBUG: New settings object:', JSON.stringify(newSettings, null, 2));
-                    setSettings(newSettings);
+                    
+                    // Use functional state update to ensure we're working with latest state
+                    setSettings(prevSettings => {
+                      const newSettings = {...prevSettings, problem_count: newValue};
+                      console.log('🔍 DEBUG: New settings object in functional update:', JSON.stringify(newSettings, null, 2));
+                      return newSettings;
+                    });
                   }}
                   className="w-full p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
