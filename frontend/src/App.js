@@ -1199,12 +1199,31 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
 
   const loadData = async () => {
     try {
-      const [settingsRes, statsRes] = await Promise.all([
-        axios.get(`${API}/math/settings`),
-        axios.get(`${API}/math/statistics`)
-      ]);
-      setSettings(settingsRes.data);
-      setStatistics(statsRes.data);
+      if (isMockMode()) {
+        const [settingsRes, statsRes] = await Promise.all([
+          mockApi.getMathSettings(),
+          // Mock statistics - can add later
+          Promise.resolve({
+            total_attempts: 5,
+            grade_2_attempts: 3,
+            grade_3_attempts: 2,
+            total_correct: 8,
+            total_wrong: 2,
+            average_score: 80.0,
+            best_score: 95.0,
+            total_stars_earned: 12
+          })
+        ]);
+        setSettings(settingsRes);
+        setStatistics(statsRes);
+      } else {
+        const [settingsRes, statsRes] = await Promise.all([
+          axios.get(`${API}/math/settings`),
+          axios.get(`${API}/math/statistics`)
+        ]);
+        setSettings(settingsRes.data);
+        setStatistics(statsRes.data);
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Mathe-Daten:', error);
     }
