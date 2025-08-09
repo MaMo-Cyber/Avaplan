@@ -1537,13 +1537,22 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                       type="number"
                       step="0.01"
                       value={settings.currency_settings?.max_amount || 20.00}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        currency_settings: {
-                          ...settings.currency_settings,
-                          max_amount: parseFloat(e.target.value)
-                        }
-                      })}
+                      onChange={(e) => {
+                        const newAmount = parseFloat(e.target.value);
+                        console.log('🔍 DEBUG: Math currency max amount changed to:', newAmount);
+                        
+                        setSettings(prevSettings => {
+                          const newSettings = {
+                            ...prevSettings,
+                            currency_settings: {
+                              ...prevSettings.currency_settings,
+                              max_amount: newAmount
+                            }
+                          };
+                          console.log('🔍 DEBUG: New Math settings with currency max amount update:', JSON.stringify(newSettings, null, 2));
+                          return newSettings;
+                        });
+                      }}
                       className="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
                     />
                   </div>
