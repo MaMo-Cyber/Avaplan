@@ -1559,13 +1559,22 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                           <input
                             type="checkbox"
                             checked={value}
-                            onChange={(e) => setSettings({
-                              ...settings,
-                              clock_settings: {
-                                ...settings.clock_settings,
-                                [key]: e.target.checked
-                              }
-                            })}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              console.log(`🔍 DEBUG: Math clock setting '${key}' changed to:`, isChecked);
+                              
+                              setSettings(prevSettings => {
+                                const newSettings = {
+                                  ...prevSettings,
+                                  clock_settings: {
+                                    ...prevSettings.clock_settings,
+                                    [key]: isChecked
+                                  }
+                                };
+                                console.log('🔍 DEBUG: New Math settings with clock setting update:', JSON.stringify(newSettings, null, 2));
+                                return newSettings;
+                              });
+                            }}
                             className="w-4 h-4 text-purple-600 rounded"
                           />
                           <span>{settingNames[key] || key}</span>
