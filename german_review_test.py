@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 # Configuration
-BASE_URL = "https://f358c107-2a1c-4118-a0b5-322a7704d00c.preview.emergentagent.com/api"
+BASE_URL = "https://7bcca722-bd3a-4927-8afe-4fd31ad54c91.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class GermanReviewTester:

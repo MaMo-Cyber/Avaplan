@@ -7,7 +7,7 @@ Documents the critical bug in the stars system logic
 import requests
 import json
 
-BASE_URL = "https://f358c107-2a1c-4118-a0b5-322a7704d00c.preview.emergentagent.com/api"
+BASE_URL = "https://7bcca722-bd3a-4927-8afe-4fd31ad54c91.preview.emergentagent.com/api"
 
 def log_test(test_name, success, details=""):
     status = "✅ PASS" if success else "❌ FAIL"
