@@ -1361,7 +1361,13 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                   min="10"
                   max="50"
                   value={settings.problem_count}
-                  onChange={(e) => setSettings({...settings, problem_count: parseInt(e.target.value)})}
+                  onChange={(e) => {
+                    const newValue = parseInt(e.target.value);
+                    console.log('🔍 DEBUG: Problem count input changed to:', newValue);
+                    const newSettings = {...settings, problem_count: newValue};
+                    console.log('🔍 DEBUG: New settings object:', JSON.stringify(newSettings, null, 2));
+                    setSettings(newSettings);
+                  }}
                   className="w-full p-3 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">Standard: 30 Aufgaben</p>
