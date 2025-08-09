@@ -1232,7 +1232,12 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
   const updateSettings = async () => {
     setLoading(true);
     try {
-      await axios.put(`${API}/math/settings`, settings);
+      if (isMockMode()) {
+        await mockApi.updateMathSettings(settings);
+        console.log('🧮 Mock: Math settings updated in modal');
+      } else {
+        await axios.put(`${API}/math/settings`, settings);
+      }
       onComplete();
       alert('Einstellungen erfolgreich gespeichert!');
     } catch (error) {
