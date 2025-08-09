@@ -933,7 +933,17 @@ const GermanSettingsModal = ({ isOpen, onClose, onComplete }) => {
                   min="10"
                   max="50"
                   value={settings.problem_count}
-                  onChange={(e) => setSettings({...settings, problem_count: parseInt(e.target.value)})}
+                  onChange={(e) => {
+                    const newValue = parseInt(e.target.value);
+                    console.log('🔍 DEBUG: German problem count input changed to:', newValue);
+                    
+                    // Use functional state update to ensure we're working with latest state
+                    setSettings(prevSettings => {
+                      const newSettings = {...prevSettings, problem_count: newValue};
+                      console.log('🔍 DEBUG: New German settings object in functional update:', JSON.stringify(newSettings, null, 2));
+                      return newSettings;
+                    });
+                  }}
                   className="w-20 p-2 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
                 />
               </div>
