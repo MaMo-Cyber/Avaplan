@@ -1191,6 +1191,13 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('settings');
 
+  // Debug effect to track settings changes
+  useEffect(() => {
+    if (settings) {
+      console.log('🔍 DEBUG: Settings state updated:', JSON.stringify(settings, null, 2));
+    }
+  }, [settings]);
+
   useEffect(() => {
     if (isOpen) {
       loadData();
