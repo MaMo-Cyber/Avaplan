@@ -555,13 +555,22 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
                   <label className="block font-medium mb-2">Vokabel-Level:</label>
                   <select
                     value={settings.difficulty_settings.vocabulary_level}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      difficulty_settings: {
-                        ...settings.difficulty_settings,
-                        vocabulary_level: e.target.value
-                      }
-                    })}
+                    onChange={(e) => {
+                      const newLevel = e.target.value;
+                      console.log('🔍 DEBUG: English vocabulary level changed to:', newLevel);
+                      
+                      setSettings(prevSettings => {
+                        const newSettings = {
+                          ...prevSettings,
+                          difficulty_settings: {
+                            ...prevSettings.difficulty_settings,
+                            vocabulary_level: newLevel
+                          }
+                        };
+                        console.log('🔍 DEBUG: New English settings with vocabulary level update:', JSON.stringify(newSettings, null, 2));
+                        return newSettings;
+                      });
+                    }}
                     className="p-2 border border-green-300 rounded focus:outline-none focus:border-green-500"
                   >
                     <option value="basic">Grundwortschatz</option>
