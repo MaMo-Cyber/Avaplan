@@ -1236,15 +1236,15 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
     }
   };
 
-  const updateSettings = async (settingsToUpdate = settings) => {
+  const updateSettings = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('🔍 DEBUG: Settings being sent to API:', JSON.stringify(settingsToUpdate, null, 2));
+      console.log('🔍 DEBUG: Settings being sent to API:', JSON.stringify(settings, null, 2));
       if (isMockMode()) {
-        await mockApi.updateMathSettings(settingsToUpdate);
+        await mockApi.updateMathSettings(settings);
         console.log('🧮 Mock: Math settings updated in modal');
       } else {
-        await axios.put(`${API}/math/settings`, settingsToUpdate);
+        await axios.put(`${API}/math/settings`, settings);
       }
       onComplete();
       alert('Einstellungen erfolgreich gespeichert!');
@@ -1252,7 +1252,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
       console.error('Fehler beim Aktualisieren der Einstellungen:', error);
     }
     setLoading(false);
-  };
+  }, [settings, onComplete]);
 
   const resetStatistics = async () => {
     if (confirm('Bist du sicher, dass du alle Mathe-Statistiken zurücksetzen möchtest?')) {
