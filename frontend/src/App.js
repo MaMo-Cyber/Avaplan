@@ -521,13 +521,22 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
                       <input
                         type="checkbox"
                         checked={enabled}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          problem_types: {
-                            ...settings.problem_types,
-                            [type]: e.target.checked
-                          }
-                        })}
+                        onChange={(e) => {
+                          const isChecked = e.target.checked;
+                          console.log(`🔍 DEBUG: English problem type '${type}' changed to:`, isChecked);
+                          
+                          setSettings(prevSettings => {
+                            const newSettings = {
+                              ...prevSettings,
+                              problem_types: {
+                                ...prevSettings.problem_types,
+                                [type]: isChecked
+                              }
+                            };
+                            console.log('🔍 DEBUG: New English settings with problem type update:', JSON.stringify(newSettings, null, 2));
+                            return newSettings;
+                          });
+                        }}
                         className="w-4 h-4 text-green-600 rounded"
                       />
                       <span className="text-sm">{typeLabels[type] || type}</span>
