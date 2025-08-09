@@ -1510,13 +1510,22 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                     <input
                       type="text"
                       value={settings.currency_settings?.currency_symbol || "€"}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        currency_settings: {
-                          ...settings.currency_settings,
-                          currency_symbol: e.target.value
-                        }
-                      })}
+                      onChange={(e) => {
+                        const newSymbol = e.target.value;
+                        console.log('🔍 DEBUG: Math currency symbol changed to:', newSymbol);
+                        
+                        setSettings(prevSettings => {
+                          const newSettings = {
+                            ...prevSettings,
+                            currency_settings: {
+                              ...prevSettings.currency_settings,
+                              currency_symbol: newSymbol
+                            }
+                          };
+                          console.log('🔍 DEBUG: New Math settings with currency symbol update:', JSON.stringify(newSettings, null, 2));
+                          return newSettings;
+                        });
+                      }}
                       className="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:border-purple-500"
                     />
                   </div>
