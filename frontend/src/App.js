@@ -583,13 +583,22 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
                     <input
                       type="checkbox"
                       checked={settings.difficulty_settings.include_articles}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        difficulty_settings: {
-                          ...settings.difficulty_settings,
-                          include_articles: e.target.checked
-                        }
-                      })}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        console.log('🔍 DEBUG: English include_articles changed to:', isChecked);
+                        
+                        setSettings(prevSettings => {
+                          const newSettings = {
+                            ...prevSettings,
+                            difficulty_settings: {
+                              ...prevSettings.difficulty_settings,
+                              include_articles: isChecked
+                            }
+                          };
+                          console.log('🔍 DEBUG: New English settings with include_articles update:', JSON.stringify(newSettings, null, 2));
+                          return newSettings;
+                        });
+                      }}
                       className="w-4 h-4 text-green-600 rounded"
                     />
                     <span>Deutsche Artikel (der/die/das) mit einbeziehen</span>
