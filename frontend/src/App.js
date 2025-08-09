@@ -344,6 +344,13 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
   });
   const [loading, setLoading] = useState(false);
 
+  // Debug effect to track settings changes
+  useEffect(() => {
+    if (settings) {
+      console.log('🔍 DEBUG: English settings state updated:', JSON.stringify(settings, null, 2));
+    }
+  }, [settings]);
+
   useEffect(() => {
     if (isOpen) {
       loadSettings();
