@@ -1232,6 +1232,7 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
   const updateSettings = async () => {
     setLoading(true);
     try {
+      console.log('🔍 DEBUG: Settings being sent to API:', JSON.stringify(settings, null, 2));
       if (isMockMode()) {
         await mockApi.updateMathSettings(settings);
         console.log('🧮 Mock: Math settings updated in modal');
