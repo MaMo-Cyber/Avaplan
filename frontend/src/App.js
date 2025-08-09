@@ -375,9 +375,10 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
     }
   };
 
-  const updateSettings = async () => {
+  const updateSettings = useCallback(async () => {
     setLoading(true);
     try {
+      console.log('🔍 DEBUG: English settings being sent to API:', JSON.stringify(settings, null, 2));
       if (isMockMode()) {
         await mockApi.updateEnglishSettings(settings);
         console.log('🇬🇧 Mock: English settings updated');
@@ -391,7 +392,7 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
       alert('Fehler beim Speichern der Einstellungen!');
     }
     setLoading(false);
-  };
+  }, [settings, onComplete]);
 
   const resetStatistics = async () => {
     if (confirm('Bist du sicher, dass du alle Englisch-Statistiken zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden!')) {
