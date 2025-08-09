@@ -865,6 +865,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Clock Time Settings Issue (Critical Bug)"
     - "Settings Persistence Between Sessions (Minor Issue)"
   stuck_tasks:
     - "Stars System Fixes (Sternen-System-Fixes)"
