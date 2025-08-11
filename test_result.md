@@ -578,6 +578,18 @@ backend:
         comment: "🎉 MATHSETTINGSMODAL STATE MANAGEMENT BUG FIX VERIFIED SUCCESSFUL! Comprehensive testing confirmed the React state management issue has been resolved. ✅ REACT STATE MANAGEMENT: Fixed - Console logs show proper state updates: 'DEBUG: Problem count input changed to: 25' and 'DEBUG: New settings object in functional update: {problem_count: 25}'. The useCallback with dependencies and functional state updates are working correctly. ✅ SETTINGS PERSISTENCE: Fixed - Console logs show 'DEBUG: Settings being sent to API: {problem_count: 25}' and 'After update mockMathSettings: {problem_count: 25}'. The settings object now correctly contains the updated value. ✅ API INTEGRATION: Working - mockApi.updateMathSettings receives and stores the correct value (25). 📊 DETAILED ANALYSIS: The fix using functional state updates (setSettings(prevSettings => {...prevSettings, problem_count: newValue})) successfully resolves the stale closure issue. The debugging logs clearly show the state flow: Input Change → State Update → API Call → Settings Saved. 🎯 IMPACT: Users can now change settings and they are properly applied. The misleading behavior where settings appeared to save but had no effect has been eliminated. The MathSettingsModal component's state management is now working correctly with proper React patterns."
 
 frontend:
+  - task: "Clock Time Settings Issue (Critical Bug)"
+    implemented: true
+    working: false
+    file: "frontend/src/mockApi.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL BUG CONFIRMED: CLOCK TIME SETTINGS NOT WORKING! Comprehensive testing of the user-reported clock time settings issue has revealed the exact problem. ✅ SETTINGS UI WORKING: Successfully enabled '🕐 Uhrzeiten ablesen' checkbox, settings saved correctly to mockMathSettings with clock_reading: true. ✅ CONSOLE LOGS CONFIRMED: Debug logs show proper settings flow - clock_reading changed from false to true and saved properly. ❌ CRITICAL ISSUE: Challenge generation completely ignores clock settings! Despite clock_reading being enabled, challenge generated 15 basic math problems (15 + 13 = ?, 9 × 20 = ?, etc.) instead of clock time problems. 🔍 ROOT CAUSE IDENTIFIED: mockApi.createMathChallenge() function (lines 330-365) only generates basic arithmetic problems with +, -, × operators and completely ignores problem_types and clock_settings. The function needs to be updated to: 1) Check problem_types.clock_reading setting, 2) Generate clock problems when enabled, 3) Use clock_settings for time formats (half hours, quarter hours), 4) Respect problem_count setting. This confirms exactly what user reported: 'was immer noch nicht so ganz funktioniert sind die Uhrzeiten, wenn ich das im Menü ändere wird es nicht übernommen' (clock times don't work when changed in menu)."
+
   - task: "Star Visibility Test"
     implemented: true
     working: true
