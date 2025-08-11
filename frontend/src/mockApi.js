@@ -1,3 +1,47 @@
+// Helper function to generate clock problems based on settings
+const generateClockProblem = (clockSettings) => {
+  const availableMinutes = [];
+  
+  // Add minute options based on settings
+  if (clockSettings.include_half_hours) {
+    availableMinutes.push(30);
+  }
+  if (clockSettings.include_quarter_hours) {
+    availableMinutes.push(15, 45);
+  }
+  if (clockSettings.include_five_minute_intervals) {
+    availableMinutes.push(5, 10, 20, 25, 35, 40, 50, 55);
+  }
+  
+  // If no specific settings, default to all common times
+  if (availableMinutes.length === 0) {
+    availableMinutes.push(0, 15, 30, 45);
+  }
+  
+  // Generate random time
+  const hour = Math.floor(Math.random() * 12) + 1; // 1-12
+  const minute = availableMinutes[Math.floor(Math.random() * availableMinutes.length)];
+  
+  // Format time
+  const timeString = `${hour}:${minute.toString().padStart(2, '0')}`;
+  
+  // Generate question variations
+  const questionTypes = [
+    `Wie spät ist es? ${timeString}`,
+    `Welche Zeit zeigt die Uhr? ${timeString}`,
+    `Die Uhr zeigt ${timeString}. Wie spät ist es?`
+  ];
+  
+  const question = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+  
+  return {
+    question: question,
+    correct_answer: timeString,
+    question_type: 'clock_reading',
+    clock_display: { hour, minute }
+  };
+};
+
 // Mock Backend für Testing
 const MOCK_MODE = true; // Set to true for testing without backend
 
