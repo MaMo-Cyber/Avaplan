@@ -124,8 +124,8 @@ const AdminSettingsModal = ({
             <div className="space-y-2">
               <button
                 onClick={() => {
-                  onClose();
                   onOpenMathSettings();
+                  onClose();
                 }}
                 className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors text-left"
               >
@@ -133,8 +133,8 @@ const AdminSettingsModal = ({
               </button>
               <button
                 onClick={() => {
-                  onClose();
                   onOpenGermanSettings();
+                  onClose();
                 }}
                 className="w-full bg-indigo-500 text-white py-3 px-4 rounded-lg hover:bg-indigo-600 transition-colors text-left"
               >
@@ -142,8 +142,8 @@ const AdminSettingsModal = ({
               </button>
               <button
                 onClick={() => {
-                  onClose();
                   onOpenEnglishSettings();
+                  onClose();
                 }}
                 className="w-full bg-purple-500 text-white py-3 px-4 rounded-lg hover:bg-purple-600 transition-colors text-left"
               >
