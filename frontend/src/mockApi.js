@@ -91,13 +91,17 @@ let mockGermanSettings = {
   problem_count: 20,
   star_tiers: {"90": 3, "80": 2, "70": 1},
   problem_types: {
-    spelling_problems: true,
-    word_type_problems: true,
-    fill_blank_problems: true
+    spelling: true,
+    word_types: true,
+    fill_blank: true,
+    grammar: false,
+    articles: false,
+    sentence_order: false
   },
   difficulty_settings: {
-    vocabulary_level: "basic",
-    include_articles: false
+    spelling_difficulty: "medium",
+    word_types_include_adjectives: true,
+    fill_blank_context_length: "short"
   }
 };
 
