@@ -415,15 +415,23 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
   };
 
   const updateStarTier = (percentage, stars) => {
-    const newTiers = { ...settings.star_tiers };
-    newTiers[percentage] = stars;
-    setSettings({ ...settings, star_tiers: newTiers });
+    setSettings(prevSettings => {
+      const newTiers = { ...prevSettings.star_tiers };
+      newTiers[percentage] = stars;
+      const newSettings = { ...prevSettings, star_tiers: newTiers };
+      console.log('🔍 DEBUG: English star tier updated:', JSON.stringify(newSettings, null, 2));
+      return newSettings;
+    });
   };
 
   const removeStarTier = (percentage) => {
-    const newTiers = { ...settings.star_tiers };
-    delete newTiers[percentage];
-    setSettings({ ...settings, star_tiers: newTiers });
+    setSettings(prevSettings => {
+      const newTiers = { ...prevSettings.star_tiers };
+      delete newTiers[percentage];
+      const newSettings = { ...prevSettings, star_tiers: newTiers };
+      console.log('🔍 DEBUG: English star tier removed:', JSON.stringify(newSettings, null, 2));
+      return newSettings;
+    });
   };
 
   const addStarTier = () => {
