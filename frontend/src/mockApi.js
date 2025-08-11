@@ -334,24 +334,38 @@ export const mockApi = {
     
     console.log(`🧮 Mock: Creating ${problemCount} math problems for grade ${grade}`);
     
+    // Check if clock reading is enabled
+    const isClockEnabled = mockMathSettings.problem_types?.clock_reading || false;
+    const clockSettings = mockMathSettings.clock_settings || {};
+    
+    console.log('🕐 DEBUG: Clock reading enabled:', isClockEnabled);
+    console.log('🕐 DEBUG: Clock settings:', JSON.stringify(clockSettings, null, 2));
+    
     for (let i = 0; i < problemCount; i++) {
-      const num1 = Math.floor(Math.random() * 20) + 1;
-      const num2 = Math.floor(Math.random() * 20) + 1;
-      const operators = ['+', '-', '×'];
-      const operator = operators[Math.floor(Math.random() * operators.length)];
-      
-      let answer;
-      switch (operator) {
-        case '+': answer = num1 + num2; break;
-        case '-': answer = Math.abs(num1 - num2); break;
-        case '×': answer = num1 * num2; break;
+      // If clock reading is enabled, generate clock problems
+      if (isClockEnabled && Math.random() < 0.6) { // 60% chance for clock problems when enabled
+        const clockProblem = generateClockProblem(clockSettings);
+        problems.push(clockProblem);
+      } else {
+        // Generate regular math problems
+        const num1 = Math.floor(Math.random() * 20) + 1;
+        const num2 = Math.floor(Math.random() * 20) + 1;
+        const operators = ['+', '-', '×'];
+        const operator = operators[Math.floor(Math.random() * operators.length)];
+        
+        let answer;
+        switch (operator) {
+          case '+': answer = num1 + num2; break;
+          case '-': answer = Math.abs(num1 - num2); break;
+          case '×': answer = num1 * num2; break;
+        }
+        
+        problems.push({
+          question: `${num1} ${operator} ${num2} = ?`,
+          correct_answer: answer.toString(),
+          question_type: 'basic_math'
+        });
       }
-      
-      problems.push({
-        question: `${num1} ${operator} ${num2} = ?`,
-        correct_answer: answer.toString(),
-        question_type: 'basic_math'
-      });
     }
     
     const challenge = {
