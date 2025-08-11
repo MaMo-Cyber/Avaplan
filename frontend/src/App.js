@@ -1481,12 +1481,14 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
                   max="50"
                   value={settings.problem_count}
                   onChange={(e) => {
-                    const newValue = parseInt(e.target.value);
-                    console.log('🔍 DEBUG: Problem count input changed to:', newValue);
+                    const inputValue = e.target.value;
+                    const newValue = inputValue === '' ? 15 : parseInt(inputValue);
+                    console.log('🔍 DEBUG: Problem count input changed to:', newValue, 'from input:', inputValue);
                     
                     // Use functional state update to ensure we're working with latest state
                     setSettings(prevSettings => {
                       const newSettings = {...prevSettings, problem_count: newValue};
+                      console.log('🔍 DEBUG: Previous settings:', JSON.stringify(prevSettings, null, 2));
                       console.log('🔍 DEBUG: New settings object in functional update:', JSON.stringify(newSettings, null, 2));
                       return newSettings;
                     });
