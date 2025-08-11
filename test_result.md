@@ -550,6 +550,30 @@ backend:
         agent: "testing"
         comment: "✅ GERMAN DIFFICULTY INTEGRATION WORKING SEAMLESSLY! Comprehensive testing verified: 1) Difficulty settings don't break existing functionality - challenge submission works correctly (25.0% score, 0 stars), statistics tracking functional (3 attempts recorded), 2) Backward compatibility maintained - challenges without explicit difficulty settings use defaults and generate 20 valid problems with all required fields, 3) Complete integration with existing German challenge system - submission API, statistics API, and database operations all function correctly with difficulty-adjusted challenges. The difficulty system enhances the existing German challenge functionality without disrupting any core features."
 
+  - task: "German Settings Task Type Options Issue"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ GERMAN SETTINGS TASK TYPE MISMATCH IDENTIFIED: Systematic verification revealed a mismatch between expected German task types and actual displayed options. ✅ SETTINGS UI WORKING: German settings modal opens correctly, displays 4 task type options, settings save successfully. ❌ TASK TYPE MISMATCH: Expected 6 task types (spelling, word_types, fill_blank, grammar, articles, sentence_order) but only 4 are displayed (spelling_problems, word_type_problems, fill_blank_problems, plus adjectives checkbox). The naming convention is inconsistent and some expected options are missing. ✅ FUNCTIONALITY: Settings save and load correctly, but limited task type selection available to users. IMPACT: Users cannot access all expected German task types, limiting the educational content variety. RECOMMENDATION: Update German settings to include all 6 expected task types with consistent naming convention."
+
+  - task: "Math Settings Clock UI Display Issue"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ MATH CLOCK SETTINGS UI BUG IDENTIFIED: Clock reading checkbox enables correctly and functionality works, but clock settings section doesn't appear in UI. ✅ FUNCTIONALITY WORKING: Clock problems generate correctly with proper time patterns (8 instances found: 1:30, 12:30, 7:30, 6:15, 3:45) and clock questions (10 instances), confirming the backend logic is functional. ❌ UI ISSUE: When clock reading checkbox is enabled, the expected clock settings section (half hours, quarter hours, five-minute intervals) doesn't appear in the settings modal. ✅ WORKAROUND: Despite UI issue, clock problems are generated correctly using default settings. IMPACT: Users cannot configure detailed clock settings (half hours, quarter hours) through the UI, but basic clock functionality works. RECOMMENDATION: Fix the conditional rendering of clock settings section in Math Settings modal."
+
   - task: "MathSettingsModal State Management Bug Fix"
     implemented: true
     working: true
