@@ -1394,9 +1394,14 @@ const MathSettingsModal = ({ isOpen, onClose, onComplete }) => {
   };
 
   const updateProblemType = (type, enabled) => {
-    const newTypes = { ...settings.problem_types };
-    newTypes[type] = enabled;
-    setSettings({ ...settings, problem_types: newTypes });
+    setSettings(prevSettings => {
+      const newTypes = { ...prevSettings.problem_types };
+      newTypes[type] = enabled;
+      const newSettings = { ...prevSettings, problem_types: newTypes };
+      console.log(`🔍 DEBUG: Math problem type '${type}' changed to:`, enabled);
+      console.log('🔍 DEBUG: New Math settings with problem type update:', JSON.stringify(newSettings, null, 2));
+      return newSettings;
+    });
   };
 
   if (!isOpen || !settings || !statistics) return null;
