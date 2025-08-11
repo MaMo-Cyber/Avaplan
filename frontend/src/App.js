@@ -2365,6 +2365,11 @@ const MathChallenge = ({ onClose, onComplete }) => {
     try {
       let response;
       if (isMockMode()) {
+        // First, load current settings to ensure they are up-to-date
+        console.log('🔍 DEBUG: Loading current math settings before challenge creation...');
+        const currentSettings = await mockApi.getMathSettings();
+        console.log('🔍 DEBUG: Current math settings loaded:', JSON.stringify(currentSettings, null, 2));
+        
         // Use mock API for math challenge
         response = await mockApi.createMathChallenge(selectedGrade);
         console.log('🧮 Mock: Math challenge created with settings');
@@ -2379,6 +2384,8 @@ const MathChallenge = ({ onClose, onComplete }) => {
       if (!challengeData.problems || !Array.isArray(challengeData.problems)) {
         throw new Error('Invalid challenge format: missing problems array');
       }
+      
+      console.log('🔍 DEBUG: Challenge created with problem count:', challengeData.problems.length);
       
       setChallenge(challengeData);
       setGrade(selectedGrade);
