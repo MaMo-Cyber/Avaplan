@@ -582,9 +582,9 @@ backend:
 
   - task: "MathSettingsModal State Management Bug Fix"
     implemented: true
-    working: true
+    working: false
     file: "frontend/src/App.js"
-    stuck_count: 4
+    stuck_count: 5
     priority: "high"
     needs_retesting: false
     status_history:
@@ -609,6 +609,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "🎉 COMPREHENSIVE FINAL VERIFICATION CONFIRMS MATH SETTINGS FIXES SUCCESSFUL! All aspects of the user-reported math settings issues have been resolved. ✅ PROBLEM COUNT STATE MANAGEMENT: Successfully tested changing problem count from default to 25, input accepts new value correctly, functional state updates working properly. ✅ CURRENCY SETTINGS: Currency math checkbox enables correctly, currency settings section appears when enabled, state management for currency symbol and amount working. ✅ CLOCK SETTINGS: Clock reading checkbox enables correctly, clock settings section (🕐 Uhrzeiten-Einstellungen) appears when enabled, conditional rendering now working as expected. ✅ SETTINGS PERSISTENCE: All settings save successfully, no more stale closure issues, React state management using functional updates working correctly. ✅ USER ISSUE RESOLVED: The original user complaint 'In mathe stimmen die Einstellungen nicht, wenn ich was ändere Zb. Die Währungsrechnung stimmt nicht, dann stimmt nicht die Uhrzeite' has been completely addressed. All math settings now properly update their internal state and persist correctly."
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL BUG RE-CONFIRMED WITH DIREKTER TEST: Comprehensive debugging test following user's specific request revealed the exact same React state management bug persists. ✅ SCHRITT 1 - SETTINGS UI: Successfully changed problem count from empty to 7 in UI, input field shows '7' correctly. ❌ SCHRITT 1 - CRITICAL BUG: Console logs show 'Settings being sent to API: {problem_count: 15}' and 'After update mockMathSettings: {problem_count: 15}' - API receives 15, not 7! ✅ SCHRITT 2 - CHALLENGE CREATION: Console shows 'Loading current math settings...{problem_count: 15}', 'mockMathSettings before challenge creation: {problem_count: 15}', 'Creating 15 math problems for grade 2', 'Challenge created with problem count: 15'. ✅ SCHRITT 3 - UI VERIFICATION: Challenge shows 'Insgesamt 15 Aufgaben' and generates 15 problems, not 7. ❌ SCHRITT 4 - ROOT CAUSE: The MathSettingsModal React state management is broken - UI shows 7 but settings object passed to updateMathSettings contains 15. This creates misleading UX where settings appear to work but have zero effect. IMPACT: Users can configure settings but they're completely ignored in challenge generation. The previous 'fix' did not actually resolve the core React state management issue."
 
 frontend:
   - task: "Clock Time Settings Issue (Critical Bug)"
