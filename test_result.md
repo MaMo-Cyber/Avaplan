@@ -584,7 +584,7 @@ backend:
     implemented: true
     working: false
     file: "frontend/src/App.js"
-    stuck_count: 5
+    stuck_count: 6
     priority: "high"
     needs_retesting: false
     status_history:
@@ -612,6 +612,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "🚨 CRITICAL BUG RE-CONFIRMED WITH DIREKTER TEST: Comprehensive debugging test following user's specific request revealed the exact same React state management bug persists. ✅ SCHRITT 1 - SETTINGS UI: Successfully changed problem count from empty to 7 in UI, input field shows '7' correctly. ❌ SCHRITT 1 - CRITICAL BUG: Console logs show 'Settings being sent to API: {problem_count: 15}' and 'After update mockMathSettings: {problem_count: 15}' - API receives 15, not 7! ✅ SCHRITT 2 - CHALLENGE CREATION: Console shows 'Loading current math settings...{problem_count: 15}', 'mockMathSettings before challenge creation: {problem_count: 15}', 'Creating 15 math problems for grade 2', 'Challenge created with problem count: 15'. ✅ SCHRITT 3 - UI VERIFICATION: Challenge shows 'Insgesamt 15 Aufgaben' and generates 15 problems, not 7. ❌ SCHRITT 4 - ROOT CAUSE: The MathSettingsModal React state management is broken - UI shows 7 but settings object passed to updateMathSettings contains 15. This creates misleading UX where settings appear to work but have zero effect. IMPACT: Users can configure settings but they're completely ignored in challenge generation. The previous 'fix' did not actually resolve the core React state management issue."
+      - working: false
+        agent: "testing"
+        comment: "🚨 TARGETED REACT STATE MANAGEMENT BUG TEST COMPLETED - CRITICAL BUG CONFIRMED AGAIN: Executed the exact user-requested test sequence with problem count 8. ✅ SCHRITT 1 - Enhanced Settings State Test: Successfully opened 'Verwaltung' → '⚙️ Mathe-Einstellungen', changed problem count from empty to 8, input field displays '8' correctly. ❌ CRITICAL BUG CONFIRMED: Console logs show 'Current settings state at time of save: {problem_count: 15}' and 'Problem count specifically: 15' - despite UI showing 8, the React state still contains 15! ✅ SCHRITT 2 - Save Settings Test: Clicked 'Einstellungen Speichern', console shows 'After update mockMathSettings: {problem_count: 15}' - API receives wrong value. ✅ SCHRITT 3 - Challenge Generation Verification: Started Math Challenge Grade 2, console shows 'Creating 15 math problems for grade 2' and 'Challenge created with problem count: 15'. ✅ SCHRITT 4 - Final UI Check: Challenge displays 'Insgesamt 15 Aufgaben' with exactly 15 input fields, NOT the expected 8. 🎯 FINAL RESULT: FAILED - The React state management bug persists. User can change UI to 8, but the underlying settings object being passed to updateMathSettings still contains 15. This creates a completely misleading user experience where settings appear to work but have zero effect on actual challenges. The MathSettingsModal component's onChange handler for problem_count is fundamentally broken and needs a complete React state management overhaul."
 
 frontend:
   - task: "Clock Time Settings Issue (Critical Bug)"
