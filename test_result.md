@@ -653,6 +653,21 @@ backend:
         agent: "main"
         comment: "REACT STATE MANAGEMENT BUG FIX APPLIED: Frontend testing confirmed the exact issue - German Settings Modal problem_count field has broken React state management (shows 15 despite input change to 12). Applied same fix as working Math Settings Modal: changed to controlled input pattern with name/value destructuring and [name]: numericValue dynamic property setting. Also fixed English Settings Modal with identical pattern."
 
+  - task: "Math Challenge Currency and Clock Problem Type Filtering"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL USER ISSUE CONFIRMED: 'In Mathe funktionieren währungen und Uhrzeit noch nicht korrekt. wenn ich diese auswähle kommen immer noch andere typen.' Translation: 'In Math, currencies and time still don't work correctly. When I select these, other types still come up.' Comprehensive testing revealed the exact root cause: The generate_math_problems() function in backend/server.py only handled addition, subtraction, multiplication, and word_problems, but completely ignored currency_math and clock_reading problem types. When these types were enabled, the function returned empty lists, causing challenge generation to fail (0 problems generated). Despite having separate generate_currency_problems() and generate_clock_problems() functions, they were never called by the main problem generation logic."
+      - working: true
+        agent: "testing"
+        comment: "🎉 CURRENCY AND CLOCK PROBLEM TYPE FILTERING COMPLETELY FIXED! Applied critical bug fix to generate_math_problems() function by adding missing currency_math and clock_reading case handlers. ✅ COMPREHENSIVE TESTING RESULTS: 1) Currency Math ONLY - Successfully configured settings to ONLY currency_math enabled, generated 8 currency problems with proper German text ('Was kostet es insgesamt: 2.58€ + 6.62€?', 'Wie viel Wechselgeld bekommst du: 5.84€ - 1.97€?'), 0 other problem types. 2) Clock Reading ONLY - Successfully configured settings to ONLY clock_reading enabled, generated 6 clock problems with proper German text ('Wie viel Uhr zeigt die Uhr an?') and clock_data (hours/minutes), 0 other problem types. 3) Mixed Currency + Clock - Successfully generated 10 problems with 5 currency + 5 clock problems, 0 other types. ✅ PROBLEM TYPE FILTERING NOW WORKING: When currency_math is selected → 100% currency problems, when clock_reading is selected → 100% clock problems, no 'andere typen' (other types) appear anymore. ✅ CURRENCY SETTINGS APPLIED: Euro symbol (€) correctly used, amounts respect max_amount limits. ✅ CLOCK SETTINGS APPLIED: Time formats include proper quarter hours (4:15, 8:15, 2:45, 7:45) and full hours (11:00, 10:00) as configured. The user's critical issue has been completely resolved - currency and clock problem type filtering now works perfectly."
+
   - task: "English Settings Modal React State Management Bug Fix"
     implemented: true
     working: false
