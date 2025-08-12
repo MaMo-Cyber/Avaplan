@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix the state management issue within the MathSettingsModal.js component to ensure the problem_count input correctly updates its internal state. The user reports that changes to settings like the number of problems are not reflected in the generated challenges. The debugging process revealed that while the settings UI works perfectly (can change problem count from 15 to 25), the actual settings are not being saved correctly due to a state management issue in the MathSettingsModal component. The root cause is in the frontend component's state management - the UI shows the new value but the settings object being passed to updateMathSettings still contains the old value. This creates a misleading user experience where settings appear to work but have zero effect on actual challenges."
+user_problem_statement: "User reports critical system-wide failure: 'Ok das funktioniert garnicht. wenn ich die Aufgaben-Typen ändere wird nichts über nommen und die herausforderungen sind nur chaos. das bezieht sich auf alle 3. Auch im Englischen werden alle aufgaben permanent wiederholt.' = 'Ok that doesn't work at all. when I change task types, nothing is applied and the challenges are chaotic across all 3 languages. Also in English all tasks are being repeated permanently.' URGENT: Fix German Settings Modal hardcoded initialization bug and similar issues in English Settings Modal."
 
 backend:
   - task: "Word Problems (Textaufgaben) Functionality"
