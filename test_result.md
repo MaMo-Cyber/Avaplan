@@ -632,13 +632,13 @@ backend:
         agent: "testing"
         comment: "🎉 MOCK API PERSISTENCE DEBUGGING COMPLETED SUCCESSFULLY! Comprehensive testing following the exact user-requested debugging protocol confirmed the system is now working perfectly. ✅ SCHRITT 1 - Settings Speichern: Successfully changed problem count from 15 to 9, console logs show proper React state management: 'Input changed - name: problem_count value: 9 numeric: 9', 'Updated settings state: {problem_count: 9}', 'Current settings state at time of save: {problem_count: 9}', 'After update mockMathSettings: {problem_count: 9}'. ✅ SCHRITT 2 - Mock API Persistence: Settings persist correctly between sessions - reopening settings modal shows problem_count: 9, console logs confirm 'getMathSettings called, returning: {problem_count: 9}'. ✅ SCHRITT 3 - Challenge Creation: Challenge creation uses correct settings - console logs show 'mockMathSettings before challenge creation: {problem_count: 9}', 'Creating 9 math problems for grade 2', 'Challenge created with problem count: 9'. Challenge UI displays 'Insgesamt 9 Aufgaben' with 9 input fields. 🎯 FINAL RESULT: ALL THREE DEBUGGING STEPS SUCCESSFUL! The Mock API persistence is working correctly: 1) Settings save properly, 2) Settings persist between sessions, 3) Challenge creation reads and applies saved settings. The React state management bug has been completely resolved and the Mock API integration is functioning as expected. Users can now configure math settings and they are properly applied to challenge generation."
 
-  - task: "German Settings Modal Initialization Bug Fix"
+  - task: "German Settings Modal React State Management Bug Fix"
     implemented: true
     working: false
     file: "frontend/src/App.js"
     stuck_count: 1
-    priority: "high"
-    needs_retesting: false
+    priority: "critical"
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
@@ -649,6 +649,21 @@ backend:
       - working: false
         agent: "testing"
         comment: "🚨 USER ISSUE CONFIRMED: Despite MOCK_MODE fix, settings still not working! Comprehensive testing revealed: ✅ MOCK_MODE disabled (API calls reach backend), ✅ Settings load from API with proper ID (3d899b78-1665-49a3-82f9-94b38d88fa74), ✅ React state management tracks problem type changes correctly, ✅ Settings sent to API when saved, ❌ CRITICAL BUG: problem_count field not updating in React state (console shows problem_count: 15 despite changing input to 12), ❌ API request failures detected (net::ERR_ABORTED for /api/progress), ❌ Settings persistence test incomplete due to modal navigation issues. User's report 'nein das geht immer noch nicht' is accurate - the core issue persists. Root cause appears to be React state management bug in problem_count field specifically, similar to previous MathSettingsModal issues that were supposedly fixed."
+      - working: false
+        agent: "main"
+        comment: "REACT STATE MANAGEMENT BUG FIX APPLIED: Frontend testing confirmed the exact issue - German Settings Modal problem_count field has broken React state management (shows 15 despite input change to 12). Applied same fix as working Math Settings Modal: changed to controlled input pattern with name/value destructuring and [name]: numericValue dynamic property setting. Also fixed English Settings Modal with identical pattern."
+
+  - task: "English Settings Modal React State Management Bug Fix"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "REACT STATE MANAGEMENT BUG DISCOVERED: English Settings Modal also had broken problem_count input handler using old functional update pattern. Applied same controlled input fix as Math Settings Modal: added name attribute, value with empty fallback, proper name/value destructuring, and [name]: numericValue pattern for consistent React state updates."
 
   - task: "MOCK_MODE Configuration Issue (CRITICAL)"
     implemented: true
