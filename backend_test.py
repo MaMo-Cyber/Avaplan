@@ -1635,6 +1635,299 @@ class BackendTester:
         
         return success_count >= 6  # Expect at least 6 out of 8 tests to pass
 
+    def test_settings_apis_comprehensive(self):
+        """Comprehensive Settings APIs Testing - Focus on User Issue Resolution
+        
+        Tests all three settings APIs (Math, German, English) with focus on:
+        1. Settings persistence across API calls
+        2. Problem type configuration affects challenge generation
+        3. Problem count settings are correctly applied
+        4. All 6 German problem types are available
+        5. Settings integration with challenge generation
+        """
+        success_count = 0
+        
+        print("\n⚙️ COMPREHENSIVE SETTINGS APIs TESTING - USER ISSUE RESOLUTION")
+        print("User Issue: 'wenn ich die Aufgaben-Typen ändere wird nichts über nommen'")
+        print("Testing: Settings persistence and challenge generation integration")
+        print("=" * 80)
+        
+        # 1. MATH SETTINGS API COMPREHENSIVE TEST
+        try:
+            print("\n🧮 MATH SETTINGS API TEST")
+            
+            # Get current math settings
+            response = self.session.get(f"{BASE_URL}/math/settings")
+            if response.status_code == 200:
+                original_settings = response.json()
+                self.log_test("Math Settings - GET API", True, f"Retrieved settings: problem_count={original_settings.get('problem_count', 'N/A')}")
+                success_count += 1
+                
+                # Update math settings with specific configuration
+                new_math_settings = {
+                    "max_number": 50,
+                    "max_multiplication": 8,
+                    "problem_count": 12,  # Changed from default
+                    "star_tiers": {"90": 3, "80": 2, "70": 1},
+                    "problem_types": {
+                        "addition": True,
+                        "subtraction": False,
+                        "multiplication": True,
+                        "clock_reading": False,
+                        "currency_math": False,
+                        "word_problems": False
+                    }
+                }
+                
+                response = self.session.put(f"{BASE_URL}/math/settings", json=new_math_settings)
+                if response.status_code == 200:
+                    updated_settings = response.json()
+                    if (updated_settings.get("problem_count") == 12 and 
+                        updated_settings.get("problem_types", {}).get("addition") == True and
+                        updated_settings.get("problem_types", {}).get("subtraction") == False):
+                        self.log_test("Math Settings - PUT API", True, "Settings updated correctly")
+                        success_count += 1
+                        
+                        # Test settings integration with challenge generation
+                        response = self.session.post(f"{BASE_URL}/math/challenge/2")
+                        if response.status_code == 200:
+                            challenge = response.json()
+                            problems = challenge.get("problems", [])
+                            
+                            if len(problems) == 12:
+                                self.log_test("Math Settings - Challenge Integration", True, f"Challenge generated with correct problem count: {len(problems)}")
+                                success_count += 1
+                            else:
+                                self.log_test("Math Settings - Challenge Integration", False, f"Expected 12 problems, got {len(problems)}")
+                        else:
+                            self.log_test("Math Settings - Challenge Integration", False, f"Challenge creation failed: {response.status_code}")
+                    else:
+                        self.log_test("Math Settings - PUT API", False, f"Settings not properly updated: {updated_settings}")
+                else:
+                    self.log_test("Math Settings - PUT API", False, f"Status code: {response.status_code}")
+            else:
+                self.log_test("Math Settings - GET API", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("Math Settings API Test", False, f"Exception: {str(e)}")
+        
+        # 2. GERMAN SETTINGS API COMPREHENSIVE TEST
+        try:
+            print("\n🇩🇪 GERMAN SETTINGS API TEST")
+            
+            # Get current German settings
+            response = self.session.get(f"{BASE_URL}/german/settings")
+            if response.status_code == 200:
+                original_settings = response.json()
+                problem_types = original_settings.get("problem_types", {})
+                
+                # Verify all 6 German problem types are available
+                expected_types = ["spelling", "word_types", "fill_blank", "grammar", "articles", "sentence_order"]
+                available_types = [t for t in expected_types if t in problem_types]
+                
+                if len(available_types) == 6:
+                    self.log_test("German Settings - All 6 Problem Types Available", True, f"Found all types: {available_types}")
+                    success_count += 1
+                else:
+                    missing_types = [t for t in expected_types if t not in problem_types]
+                    self.log_test("German Settings - All 6 Problem Types Available", False, f"Missing types: {missing_types}")
+                
+                self.log_test("German Settings - GET API", True, f"Retrieved settings: problem_count={original_settings.get('problem_count', 'N/A')}")
+                success_count += 1
+                
+                # Update German settings with specific configuration
+                new_german_settings = {
+                    "problem_count": 15,  # Changed from default 20
+                    "star_tiers": {"90": 3, "80": 2, "70": 1},
+                    "problem_types": {
+                        "spelling": True,
+                        "word_types": True,
+                        "fill_blank": False,
+                        "grammar": False,
+                        "articles": False,
+                        "sentence_order": False
+                    },
+                    "difficulty_settings": {
+                        "spelling_difficulty": "hard",
+                        "word_types_include_adjectives": True,
+                        "fill_blank_context_length": "medium"
+                    }
+                }
+                
+                response = self.session.put(f"{BASE_URL}/german/settings", json=new_german_settings)
+                if response.status_code == 200:
+                    updated_settings = response.json()
+                    if (updated_settings.get("problem_count") == 15 and 
+                        updated_settings.get("problem_types", {}).get("spelling") == True and
+                        updated_settings.get("problem_types", {}).get("fill_blank") == False):
+                        self.log_test("German Settings - PUT API", True, "Settings updated correctly")
+                        success_count += 1
+                        
+                        # Test settings integration with challenge generation
+                        response = self.session.post(f"{BASE_URL}/german/challenge/2")
+                        if response.status_code == 200:
+                            challenge = response.json()
+                            problems = challenge.get("problems", [])
+                            
+                            if len(problems) == 15:
+                                # Check problem types - should only have spelling and word_types
+                                spelling_count = sum(1 for p in problems if p.get("question_type") == "spelling")
+                                word_types_count = sum(1 for p in problems if p.get("question_type") == "word_types")
+                                fill_blank_count = sum(1 for p in problems if p.get("question_type") == "fill_blank")
+                                
+                                if spelling_count > 0 and word_types_count > 0 and fill_blank_count == 0:
+                                    self.log_test("German Settings - Challenge Integration", True, f"Challenge respects problem type settings: spelling={spelling_count}, word_types={word_types_count}, fill_blank={fill_blank_count}")
+                                    success_count += 1
+                                else:
+                                    self.log_test("German Settings - Challenge Integration", False, f"Problem types not respected: spelling={spelling_count}, word_types={word_types_count}, fill_blank={fill_blank_count}")
+                            else:
+                                self.log_test("German Settings - Challenge Integration", False, f"Expected 15 problems, got {len(problems)}")
+                        else:
+                            self.log_test("German Settings - Challenge Integration", False, f"Challenge creation failed: {response.status_code}")
+                    else:
+                        self.log_test("German Settings - PUT API", False, f"Settings not properly updated: {updated_settings}")
+                else:
+                    self.log_test("German Settings - PUT API", False, f"Status code: {response.status_code}")
+            else:
+                self.log_test("German Settings - GET API", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("German Settings API Test", False, f"Exception: {str(e)}")
+        
+        # 3. ENGLISH SETTINGS API COMPREHENSIVE TEST
+        try:
+            print("\n🇬🇧 ENGLISH SETTINGS API TEST")
+            
+            # Get current English settings
+            response = self.session.get(f"{BASE_URL}/english/settings")
+            if response.status_code == 200:
+                original_settings = response.json()
+                self.log_test("English Settings - GET API", True, f"Retrieved settings: problem_count={original_settings.get('problem_count', 'N/A')}")
+                success_count += 1
+                
+                # Update English settings with specific configuration
+                new_english_settings = {
+                    "problem_count": 10,  # Changed from default 15
+                    "star_tiers": {"90": 3, "80": 2, "70": 1},
+                    "problem_types": {
+                        "vocabulary_de_en": True,
+                        "vocabulary_en_de": False,
+                        "simple_sentences": True,
+                        "basic_grammar": False,
+                        "colors_numbers": False,
+                        "animals_objects": False
+                    },
+                    "difficulty_settings": {
+                        "vocabulary_level": "basic",
+                        "include_articles": False,
+                        "sentence_complexity": "simple"
+                    }
+                }
+                
+                response = self.session.put(f"{BASE_URL}/english/settings", json=new_english_settings)
+                if response.status_code == 200:
+                    updated_settings = response.json()
+                    if (updated_settings.get("problem_count") == 10 and 
+                        updated_settings.get("problem_types", {}).get("vocabulary_de_en") == True and
+                        updated_settings.get("problem_types", {}).get("vocabulary_en_de") == False):
+                        self.log_test("English Settings - PUT API", True, "Settings updated correctly")
+                        success_count += 1
+                        
+                        # Test settings integration with challenge generation
+                        response = self.session.post(f"{BASE_URL}/english/challenge/2")
+                        if response.status_code == 200:
+                            challenge = response.json()
+                            problems = challenge.get("problems", [])
+                            
+                            if len(problems) == 10:
+                                # Check problem types - should only have vocabulary_de_en and simple_sentences
+                                vocab_de_en_count = sum(1 for p in problems if p.get("question_type") == "vocabulary_de_en")
+                                vocab_en_de_count = sum(1 for p in problems if p.get("question_type") == "vocabulary_en_de")
+                                simple_sentences_count = sum(1 for p in problems if p.get("question_type") == "simple_sentences")
+                                
+                                if vocab_de_en_count > 0 and vocab_en_de_count == 0 and simple_sentences_count > 0:
+                                    self.log_test("English Settings - Challenge Integration", True, f"Challenge respects problem type settings: vocab_de_en={vocab_de_en_count}, vocab_en_de={vocab_en_de_count}, simple_sentences={simple_sentences_count}")
+                                    success_count += 1
+                                else:
+                                    self.log_test("English Settings - Challenge Integration", False, f"Problem types not respected: vocab_de_en={vocab_de_en_count}, vocab_en_de={vocab_en_de_count}, simple_sentences={simple_sentences_count}")
+                            else:
+                                self.log_test("English Settings - Challenge Integration", False, f"Expected 10 problems, got {len(problems)}")
+                        else:
+                            self.log_test("English Settings - Challenge Integration", False, f"Challenge creation failed: {response.status_code}")
+                    else:
+                        self.log_test("English Settings - PUT API", False, f"Settings not properly updated: {updated_settings}")
+                else:
+                    self.log_test("English Settings - PUT API", False, f"Status code: {response.status_code}")
+            else:
+                self.log_test("English Settings - GET API", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_test("English Settings API Test", False, f"Exception: {str(e)}")
+        
+        # 4. CROSS-SETTINGS PERSISTENCE TEST
+        try:
+            print("\n🔄 CROSS-SETTINGS PERSISTENCE TEST")
+            
+            # Verify all three settings APIs maintain their configurations
+            math_response = self.session.get(f"{BASE_URL}/math/settings")
+            german_response = self.session.get(f"{BASE_URL}/german/settings")
+            english_response = self.session.get(f"{BASE_URL}/english/settings")
+            
+            if (math_response.status_code == 200 and 
+                german_response.status_code == 200 and 
+                english_response.status_code == 200):
+                
+                math_settings = math_response.json()
+                german_settings = german_response.json()
+                english_settings = english_response.json()
+                
+                # Check if our previous changes are still there
+                math_ok = math_settings.get("problem_count") == 12
+                german_ok = german_settings.get("problem_count") == 15
+                english_ok = english_settings.get("problem_count") == 10
+                
+                if math_ok and german_ok and english_ok:
+                    self.log_test("Cross-Settings Persistence", True, f"All settings persisted: Math={math_settings.get('problem_count')}, German={german_settings.get('problem_count')}, English={english_settings.get('problem_count')}")
+                    success_count += 1
+                else:
+                    self.log_test("Cross-Settings Persistence", False, f"Settings not persisted: Math={math_settings.get('problem_count')}, German={german_settings.get('problem_count')}, English={english_settings.get('problem_count')}")
+            else:
+                self.log_test("Cross-Settings Persistence", False, "Failed to retrieve all settings")
+        except Exception as e:
+            self.log_test("Cross-Settings Persistence Test", False, f"Exception: {str(e)}")
+        
+        # 5. ENGLISH TASK REPETITION ISSUE TEST
+        try:
+            print("\n🔁 ENGLISH TASK REPETITION ISSUE TEST")
+            
+            # Create multiple English challenges to test for repetition
+            challenges = []
+            for i in range(3):
+                response = self.session.post(f"{BASE_URL}/english/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    challenges.append(challenge)
+                else:
+                    break
+            
+            if len(challenges) >= 2:
+                # Compare questions between challenges to check for repetition
+                challenge1_questions = [p.get("question", "") for p in challenges[0].get("problems", [])]
+                challenge2_questions = [p.get("question", "") for p in challenges[1].get("problems", [])]
+                
+                # Count identical questions
+                identical_count = sum(1 for q1 in challenge1_questions if q1 in challenge2_questions)
+                repetition_rate = (identical_count / len(challenge1_questions)) * 100 if challenge1_questions else 0
+                
+                if repetition_rate < 50:  # Less than 50% repetition is acceptable
+                    self.log_test("English Task Repetition Issue", True, f"Acceptable repetition rate: {repetition_rate:.1f}%")
+                    success_count += 1
+                else:
+                    self.log_test("English Task Repetition Issue", False, f"High repetition rate: {repetition_rate:.1f}% - User reported permanent repetition")
+            else:
+                self.log_test("English Task Repetition Issue", False, "Could not create multiple challenges for comparison")
+        except Exception as e:
+            self.log_test("English Task Repetition Issue Test", False, f"Exception: {str(e)}")
+        
+        return success_count >= 8  # Expect at least 8 out of ~12 tests to pass
+
     def test_german_challenge_creation(self):
         """Test German Challenge Creation API for both Grade 2 and 3"""
         success_count = 0
