@@ -1820,6 +1820,16 @@ async def generate_math_problems(problem_type: str, grade: int, count: int, sett
             )
             problems.append(problem)
     
+    elif problem_type == "currency_math":
+        # Generate currency problems
+        currency_problems = generate_currency_problems(count, settings)
+        problems.extend(currency_problems)
+    
+    elif problem_type == "clock_reading":
+        # Generate clock problems
+        clock_problems = generate_clock_problems(count, settings)
+        problems.extend(clock_problems)
+    
     return problems
 
 def generate_german_word_problems(count: int, grade: int, settings: MathSettings) -> List[MathProblem]:
