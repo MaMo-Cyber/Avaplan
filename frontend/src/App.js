@@ -314,34 +314,8 @@ const SafeModal = ({ isOpen, onClose, starsInSafe, onWithdraw }) => {
 // English Settings Modal Component
 const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
   const [activeTab, setActiveTab] = useState('settings');
-  const [settings, setSettings] = useState({
-    problem_count: 15,
-    star_tiers: {"90": 3, "80": 2, "70": 1},
-    problem_types: {
-      vocabulary_de_en: true,
-      vocabulary_en_de: true,
-      simple_sentences: true,
-      basic_grammar: false,
-      colors_numbers: true,
-      animals_objects: true
-    },
-    difficulty_settings: {
-      vocabulary_level: "basic",
-      include_articles: false,
-      sentence_complexity: "simple"
-    }
-  });
-  const [statistics, setStatistics] = useState({
-    total_attempts: 0,
-    grade_2_attempts: 0,
-    grade_3_attempts: 0,
-    total_correct: 0,
-    total_wrong: 0,
-    average_score: 0.0,
-    best_score: 0.0,
-    total_stars_earned: 0,
-    problem_type_stats: {}
-  });
+  const [settings, setSettings] = useState(null);
+  const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Debug effect to track settings changes
