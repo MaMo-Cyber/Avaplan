@@ -1068,6 +1068,453 @@ class BackendTester:
         
         return success_count >= 6  # Expect at least 6 out of 8 tests to pass
 
+    def test_currency_and_clock_issue(self):
+        """Test Math Challenge Currency and Clock Issue Investigation
+        
+        USER ISSUE: "In Mathe funktionieren währungen und Uhrzeit noch nicht korrekt. 
+        wenn ich diese auswähle kommen immer noch andere typen. das muss nochmal geprüft werden und angepasst. 
+        bei den Uhrzeiten fehlen mir dann auch die grafiken damit die Zeit abgelesen werden kann."
+        
+        Translation: "In Math, currencies and time still don't work correctly. 
+        When I select these, other types still come up. This needs to be checked and adjusted. 
+        For the clock times, I'm also missing the graphics so the time can be read."
+        
+        SPECIFIC TESTING:
+        1. Currency Math Testing - ONLY currency problems when enabled
+        2. Clock Reading Testing - ONLY clock problems when enabled  
+        3. Mixed Currency + Clock Testing - ONLY these two types
+        4. Problem Type Filtering Bug Investigation
+        """
+        success_count = 0
+        
+        print("\n💰🕐 Testing Math Challenge Currency and Clock Issue - User Report")
+        print("User Issue: Currency and clock settings don't work - other types still appear")
+        print("Testing problem type filtering and content generation...")
+        
+        # 1. CURRENCY MATH TESTING - Configure to ONLY enable currency_math
+        try:
+            currency_only_settings = {
+                "max_number": 100,
+                "max_multiplication": 10,
+                "problem_count": 15,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": False,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": False,
+                    "currency_math": True,  # ONLY this enabled
+                    "word_problems": False
+                },
+                "currency_settings": {
+                    "currency_symbol": "€",
+                    "max_amount": 20.00,
+                    "decimal_places": 2
+                },
+                "clock_settings": {
+                    "include_half_hours": True,
+                    "include_quarter_hours": True,
+                    "include_five_minute_intervals": False
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=currency_only_settings)
+            if response.status_code == 200:
+                settings = response.json()
+                if (settings["problem_types"]["currency_math"] == True and 
+                    settings["problem_types"]["addition"] == False and
+                    settings["problem_types"]["subtraction"] == False and
+                    settings["problem_types"]["multiplication"] == False and
+                    settings["problem_types"]["clock_reading"] == False and
+                    settings["problem_types"]["word_problems"] == False):
+                    self.log_test("1. Configure Currency Math ONLY", True, 
+                                "✅ Settings configured to ONLY currency_math")
+                    success_count += 1
+                else:
+                    self.log_test("1. Configure Currency Math ONLY", False, 
+                                f"❌ Settings not properly configured: {settings['problem_types']}")
+            else:
+                self.log_test("1. Configure Currency Math ONLY", False, 
+                            f"❌ Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("1. Configure Currency Math ONLY", False, f"❌ Exception: {str(e)}")
+        
+        # Create Math Challenge and verify ALL problems are currency-related
+        try:
+            response = self.session.post(f"{BASE_URL}/math/challenge/2")
+            if response.status_code == 200:
+                challenge = response.json()
+                problems = challenge.get("problems", [])
+                
+                if len(problems) == 15:  # Should have exactly 15 problems
+                    currency_problems = 0
+                    other_problems = 0
+                    currency_indicators = ["€", "Euro", "Cent", "Geld", "kostet", "Preis", "bezahlen"]
+                    
+                    for problem in problems:
+                        question = problem.get("question", "")
+                        question_type = problem.get("question_type", "text")
+                        
+                        # Check if it's a currency problem
+                        if (question_type == "currency" or 
+                            any(indicator in question for indicator in currency_indicators)):
+                            currency_problems += 1
+                        else:
+                            other_problems += 1
+                            # Log the non-currency problem for debugging
+                            print(f"   ⚠️  Non-currency problem found: {question[:50]}...")
+                    
+                    if currency_problems == 15 and other_problems == 0:
+                        self.log_test("1. Currency Math Challenge - 100% Currency Problems", True, 
+                                    f"✅ ALL 15 problems are currency-related")
+                        success_count += 1
+                    else:
+                        self.log_test("1. Currency Math Challenge - 100% Currency Problems", False, 
+                                    f"❌ Found {currency_problems} currency problems, {other_problems} other types (should be 15 currency, 0 others)")
+                else:
+                    self.log_test("1. Currency Math Challenge - Problem Count", False, 
+                                f"❌ Expected 15 problems, got {len(problems)}")
+            else:
+                self.log_test("1. Currency Math Challenge - Creation", False, 
+                            f"❌ Challenge creation failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("1. Currency Math Challenge", False, f"❌ Exception: {str(e)}")
+        
+        # 2. CLOCK READING TESTING - Configure to ONLY enable clock_reading
+        try:
+            clock_only_settings = {
+                "max_number": 100,
+                "max_multiplication": 10,
+                "problem_count": 12,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": False,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": True,  # ONLY this enabled
+                    "currency_math": False,
+                    "word_problems": False
+                },
+                "currency_settings": {
+                    "currency_symbol": "€",
+                    "max_amount": 20.00,
+                    "decimal_places": 2
+                },
+                "clock_settings": {
+                    "include_half_hours": True,
+                    "include_quarter_hours": True,
+                    "include_five_minute_intervals": False
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=clock_only_settings)
+            if response.status_code == 200:
+                settings = response.json()
+                if (settings["problem_types"]["clock_reading"] == True and 
+                    settings["problem_types"]["addition"] == False and
+                    settings["problem_types"]["subtraction"] == False and
+                    settings["problem_types"]["multiplication"] == False and
+                    settings["problem_types"]["currency_math"] == False and
+                    settings["problem_types"]["word_problems"] == False):
+                    self.log_test("2. Configure Clock Reading ONLY", True, 
+                                "✅ Settings configured to ONLY clock_reading")
+                    success_count += 1
+                else:
+                    self.log_test("2. Configure Clock Reading ONLY", False, 
+                                f"❌ Settings not properly configured: {settings['problem_types']}")
+            else:
+                self.log_test("2. Configure Clock Reading ONLY", False, 
+                            f"❌ Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("2. Configure Clock Reading ONLY", False, f"❌ Exception: {str(e)}")
+        
+        # Create Math Challenge and verify ALL problems are clock-related
+        try:
+            response = self.session.post(f"{BASE_URL}/math/challenge/2")
+            if response.status_code == 200:
+                challenge = response.json()
+                problems = challenge.get("problems", [])
+                
+                if len(problems) == 12:  # Should have exactly 12 problems
+                    clock_problems = 0
+                    other_problems = 0
+                    clock_indicators = ["Uhr", "Zeit", "Stunde", "Minute", ":", "Uhrzeit", "zeigt"]
+                    
+                    for problem in problems:
+                        question = problem.get("question", "")
+                        question_type = problem.get("question_type", "text")
+                        clock_data = problem.get("clock_data")
+                        
+                        # Check if it's a clock problem
+                        if (question_type == "clock" or 
+                            clock_data is not None or
+                            any(indicator in question for indicator in clock_indicators)):
+                            clock_problems += 1
+                        else:
+                            other_problems += 1
+                            # Log the non-clock problem for debugging
+                            print(f"   ⚠️  Non-clock problem found: {question[:50]}...")
+                    
+                    if clock_problems == 12 and other_problems == 0:
+                        self.log_test("2. Clock Reading Challenge - 100% Clock Problems", True, 
+                                    f"✅ ALL 12 problems are clock-related")
+                        success_count += 1
+                    else:
+                        self.log_test("2. Clock Reading Challenge - 100% Clock Problems", False, 
+                                    f"❌ Found {clock_problems} clock problems, {other_problems} other types (should be 12 clock, 0 others)")
+                        
+                    # Check for proper time formats and descriptions
+                    proper_time_formats = 0
+                    for problem in problems:
+                        question = problem.get("question", "")
+                        if (":" in question or "Uhr" in question or "Zeit" in question):
+                            proper_time_formats += 1
+                    
+                    if proper_time_formats > 0:
+                        self.log_test("2. Clock Problems - Time Formats", True, 
+                                    f"✅ Found {proper_time_formats} problems with proper time formats")
+                        success_count += 1
+                    else:
+                        self.log_test("2. Clock Problems - Time Formats", False, 
+                                    "❌ No proper time formats found in clock problems")
+                else:
+                    self.log_test("2. Clock Reading Challenge - Problem Count", False, 
+                                f"❌ Expected 12 problems, got {len(problems)}")
+            else:
+                self.log_test("2. Clock Reading Challenge - Creation", False, 
+                            f"❌ Challenge creation failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("2. Clock Reading Challenge", False, f"❌ Exception: {str(e)}")
+        
+        # 3. MIXED CURRENCY + CLOCK TESTING - Enable ONLY these two types
+        try:
+            mixed_settings = {
+                "max_number": 100,
+                "max_multiplication": 10,
+                "problem_count": 10,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": False,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": True,   # ONLY these two enabled
+                    "currency_math": True,   # ONLY these two enabled
+                    "word_problems": False
+                },
+                "currency_settings": {
+                    "currency_symbol": "€",
+                    "max_amount": 15.00,
+                    "decimal_places": 2
+                },
+                "clock_settings": {
+                    "include_half_hours": True,
+                    "include_quarter_hours": True,
+                    "include_five_minute_intervals": False
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=mixed_settings)
+            if response.status_code == 200:
+                settings = response.json()
+                if (settings["problem_types"]["clock_reading"] == True and 
+                    settings["problem_types"]["currency_math"] == True and
+                    settings["problem_types"]["addition"] == False and
+                    settings["problem_types"]["subtraction"] == False and
+                    settings["problem_types"]["multiplication"] == False and
+                    settings["problem_types"]["word_problems"] == False):
+                    self.log_test("3. Configure Mixed Currency + Clock ONLY", True, 
+                                "✅ Settings configured to ONLY currency_math + clock_reading")
+                    success_count += 1
+                else:
+                    self.log_test("3. Configure Mixed Currency + Clock ONLY", False, 
+                                f"❌ Settings not properly configured: {settings['problem_types']}")
+            else:
+                self.log_test("3. Configure Mixed Currency + Clock ONLY", False, 
+                            f"❌ Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("3. Configure Mixed Currency + Clock ONLY", False, f"❌ Exception: {str(e)}")
+        
+        # Create Mixed Challenge and verify ONLY currency and clock problems
+        try:
+            response = self.session.post(f"{BASE_URL}/math/challenge/3")
+            if response.status_code == 200:
+                challenge = response.json()
+                problems = challenge.get("problems", [])
+                
+                if len(problems) == 10:  # Should have exactly 10 problems
+                    currency_problems = 0
+                    clock_problems = 0
+                    other_problems = 0
+                    
+                    currency_indicators = ["€", "Euro", "Cent", "Geld", "kostet", "Preis", "bezahlen"]
+                    clock_indicators = ["Uhr", "Zeit", "Stunde", "Minute", ":", "Uhrzeit", "zeigt"]
+                    
+                    for problem in problems:
+                        question = problem.get("question", "")
+                        question_type = problem.get("question_type", "text")
+                        clock_data = problem.get("clock_data")
+                        
+                        # Classify problem type
+                        is_currency = (question_type == "currency" or 
+                                     any(indicator in question for indicator in currency_indicators))
+                        is_clock = (question_type == "clock" or 
+                                  clock_data is not None or
+                                  any(indicator in question for indicator in clock_indicators))
+                        
+                        if is_currency:
+                            currency_problems += 1
+                        elif is_clock:
+                            clock_problems += 1
+                        else:
+                            other_problems += 1
+                            # Log the unexpected problem for debugging
+                            print(f"   ⚠️  Unexpected problem type found: {question[:50]}...")
+                    
+                    if other_problems == 0 and (currency_problems + clock_problems) == 10:
+                        self.log_test("3. Mixed Challenge - ONLY Currency + Clock", True, 
+                                    f"✅ Found {currency_problems} currency + {clock_problems} clock problems, 0 others")
+                        success_count += 1
+                    else:
+                        self.log_test("3. Mixed Challenge - ONLY Currency + Clock", False, 
+                                    f"❌ Found {currency_problems} currency, {clock_problems} clock, {other_problems} other types (should be 0 others)")
+                        
+                    # Check distribution is reasonable (both types should appear)
+                    if currency_problems > 0 and clock_problems > 0:
+                        self.log_test("3. Mixed Challenge - Both Types Present", True, 
+                                    f"✅ Both currency ({currency_problems}) and clock ({clock_problems}) problems present")
+                        success_count += 1
+                    else:
+                        self.log_test("3. Mixed Challenge - Both Types Present", False, 
+                                    f"❌ Missing problem types: currency={currency_problems}, clock={clock_problems}")
+                else:
+                    self.log_test("3. Mixed Challenge - Problem Count", False, 
+                                f"❌ Expected 10 problems, got {len(problems)}")
+            else:
+                self.log_test("3. Mixed Challenge - Creation", False, 
+                            f"❌ Challenge creation failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("3. Mixed Challenge", False, f"❌ Exception: {str(e)}")
+        
+        # 4. PROBLEM TYPE FILTERING BUG INVESTIGATION
+        try:
+            # Test if backend properly filters problem types based on settings
+            # Create a challenge with all types disabled (should use fallback)
+            all_disabled_settings = {
+                "max_number": 100,
+                "max_multiplication": 10,
+                "problem_count": 5,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": False,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": False,
+                    "currency_math": False,
+                    "word_problems": False
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=all_disabled_settings)
+            if response.status_code == 200:
+                response = self.session.post(f"{BASE_URL}/math/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    problems = challenge.get("problems", [])
+                    
+                    if len(problems) > 0:
+                        self.log_test("4. Problem Type Filtering - Fallback Mechanism", True, 
+                                    f"✅ Generated {len(problems)} fallback problems when all types disabled")
+                        success_count += 1
+                    else:
+                        self.log_test("4. Problem Type Filtering - Fallback Mechanism", False, 
+                                    "❌ No fallback problems generated when all types disabled")
+                else:
+                    self.log_test("4. Problem Type Filtering - Fallback Mechanism", False, 
+                                f"❌ Challenge creation failed: {response.status_code}")
+            else:
+                self.log_test("4. Problem Type Filtering - Settings Update", False, 
+                            f"❌ Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("4. Problem Type Filtering Bug Investigation", False, f"❌ Exception: {str(e)}")
+        
+        # 5. CURRENCY SETTINGS VALIDATION
+        try:
+            # Test different currency settings
+            currency_test_settings = {
+                "max_number": 100,
+                "max_multiplication": 10,
+                "problem_count": 8,
+                "star_tiers": {"90": 3, "80": 2, "70": 1},
+                "problem_types": {
+                    "addition": False,
+                    "subtraction": False,
+                    "multiplication": False,
+                    "clock_reading": False,
+                    "currency_math": True,
+                    "word_problems": False
+                },
+                "currency_settings": {
+                    "currency_symbol": "€",
+                    "max_amount": 10.00,
+                    "decimal_places": 2
+                }
+            }
+            
+            response = self.session.put(f"{BASE_URL}/math/settings", json=currency_test_settings)
+            if response.status_code == 200:
+                response = self.session.post(f"{BASE_URL}/math/challenge/2")
+                if response.status_code == 200:
+                    challenge = response.json()
+                    problems = challenge.get("problems", [])
+                    
+                    # Check if currency settings are applied
+                    euro_symbol_found = False
+                    valid_amounts = True
+                    
+                    for problem in problems:
+                        question = problem.get("question", "")
+                        if "€" in question:
+                            euro_symbol_found = True
+                        
+                        # Check for amounts > 10.00 (should not exist with max_amount=10.00)
+                        import re
+                        amounts = re.findall(r'(\d+[,.]?\d*)\s*€', question)
+                        for amount_str in amounts:
+                            try:
+                                amount = float(amount_str.replace(',', '.'))
+                                if amount > 10.00:
+                                    valid_amounts = False
+                                    break
+                            except:
+                                pass
+                    
+                    if euro_symbol_found:
+                        self.log_test("5. Currency Settings - Symbol Application", True, 
+                                    "✅ Euro symbol (€) found in currency problems")
+                        success_count += 1
+                    else:
+                        self.log_test("5. Currency Settings - Symbol Application", False, 
+                                    "❌ Euro symbol (€) not found in currency problems")
+                    
+                    if valid_amounts:
+                        self.log_test("5. Currency Settings - Amount Limits", True, 
+                                    "✅ All amounts within configured limit (≤10.00€)")
+                        success_count += 1
+                    else:
+                        self.log_test("5. Currency Settings - Amount Limits", False, 
+                                    "❌ Some amounts exceed configured limit (>10.00€)")
+                else:
+                    self.log_test("5. Currency Settings Validation", False, 
+                                f"❌ Challenge creation failed: {response.status_code}")
+            else:
+                self.log_test("5. Currency Settings Validation", False, 
+                            f"❌ Settings update failed: {response.status_code}")
+        except Exception as e:
+            self.log_test("5. Currency Settings Validation", False, f"❌ Exception: {str(e)}")
+        
+        return success_count >= 8  # Expect at least 8 out of ~12 tests to pass
+
+    def test_sternen_system_fixes(self):
         """Test Sternen-System-Fixes (Stars System Fixes) - German Review Request
         
         Tests the new star system with the following specific scenarios:
