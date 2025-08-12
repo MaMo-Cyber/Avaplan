@@ -7,7 +7,7 @@ Tests the requested scenarios while accounting for the identified critical bug
 import requests
 import json
 
-BASE_URL = "https://7bcca722-bd3a-4927-8afe-4fd31ad54c91.preview.emergentagent.com/api"
+BASE_URL = "https://star-quest-app.preview.emergentagent.com/api"
 
 def log_test(test_name, success, details=""):
     status = "✅ PASS" if success else "❌ FAIL"
