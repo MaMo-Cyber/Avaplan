@@ -632,9 +632,9 @@ backend:
 
   - task: "German Settings Modal Initialization Bug Fix"
     implemented: true
-    working: true
+    working: false
     file: "frontend/src/App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -644,6 +644,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "🎉 GERMAN SETTINGS API BACKEND VERIFICATION SUCCESSFUL! Comprehensive testing confirmed the backend APIs are working perfectly: ✅ GET /api/german/settings returns all 6 expected problem types (spelling, word_types, fill_blank, grammar, articles, sentence_order) with correct structure, ✅ PUT /api/german/settings successfully updates configuration and persists changes, ✅ Settings integration with challenge generation working correctly - updated problem_count from 20→15 and problem type filtering (spelling=8, word_types=7, fill_blank=0) applied correctly, ✅ Cross-settings persistence confirmed - German settings maintain their values independently. The backend foundation is solid, so the frontend modal initialization fixes should resolve the user's 'nichts über nommen' (nothing applied) issue."
+      - working: false
+        agent: "testing"
+        comment: "🚨 USER ISSUE CONFIRMED: Despite MOCK_MODE fix, settings still not working! Comprehensive testing revealed: ✅ MOCK_MODE disabled (API calls reach backend), ✅ Settings load from API with proper ID (3d899b78-1665-49a3-82f9-94b38d88fa74), ✅ React state management tracks problem type changes correctly, ✅ Settings sent to API when saved, ❌ CRITICAL BUG: problem_count field not updating in React state (console shows problem_count: 15 despite changing input to 12), ❌ API request failures detected (net::ERR_ABORTED for /api/progress), ❌ Settings persistence test incomplete due to modal navigation issues. User's report 'nein das geht immer noch nicht' is accurate - the core issue persists. Root cause appears to be React state management bug in problem_count field specifically, similar to previous MathSettingsModal issues that were supposedly fixed."
 
   - task: "MOCK_MODE Configuration Issue (CRITICAL)"
     implemented: true
