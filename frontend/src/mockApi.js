@@ -43,7 +43,7 @@ const generateClockProblem = (clockSettings) => {
 };
 
 // Mock Backend für Testing
-const MOCK_MODE = true; // Set to true for testing without backend
+const MOCK_MODE = false; // Set to true for testing without backend
 
 let mockTasks = [];
 
