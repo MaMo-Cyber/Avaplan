@@ -507,16 +507,21 @@ const EnglishSettingsModal = ({ isOpen, onClose, onComplete }) => {
                   type="number"
                   min="10"
                   max="30"
-                  value={settings.problem_count}
+                  name="problem_count"
+                  value={settings.problem_count || ''}
                   onChange={(e) => {
-                    const newValue = parseInt(e.target.value);
-                    console.log('🔍 DEBUG: English problem count input changed to:', newValue);
+                    const { name, value } = e.target;
+                    const numericValue = value === '' ? 15 : parseInt(value);
+                    console.log('🔍 DEBUG: English input changed - name:', name, 'value:', value, 'numeric:', numericValue);
                     
-                    // Use functional state update to ensure we're working with latest state
                     setSettings(prevSettings => {
-                      const newSettings = {...prevSettings, problem_count: newValue};
-                      console.log('🔍 DEBUG: New English settings object in functional update:', JSON.stringify(newSettings, null, 2));
-                      return newSettings;
+                      const updatedSettings = {
+                        ...prevSettings,
+                        [name]: numericValue
+                      };
+                      console.log('🔍 DEBUG: English previous settings state:', JSON.stringify(prevSettings, null, 2));
+                      console.log('🔍 DEBUG: English updated settings state:', JSON.stringify(updatedSettings, null, 2));
+                      return updatedSettings;
                     });
                   }}
                   className="w-20 p-2 border border-green-300 rounded focus:outline-none focus:border-green-500"
