@@ -982,8 +982,15 @@ const GermanSettingsModal = ({ isOpen, onClose, onComplete }) => {
           </button>
         </div>
 
+        {/* Loading State */}
+        {(loading || !settings) && (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-blue-600">Laden...</div>
+          </div>
+        )}
+
         {/* Settings Tab */}
-        {activeTab === 'settings' && (
+        {activeTab === 'settings' && settings && !loading && (
           <div className="space-y-6">
             {/* Problem Count */}
             <div>
