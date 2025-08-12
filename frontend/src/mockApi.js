@@ -504,7 +504,10 @@ export const mockApi = {
   },
 
   // Settings Functions
-  getMathSettings: () => Promise.resolve(mockMathSettings),
+  getMathSettings: () => {
+    console.log('🔍 DEBUG: getMathSettings called, returning:', JSON.stringify(mockMathSettings, null, 2));
+    return Promise.resolve(mockMathSettings);
+  },
   updateMathSettings: (settings) => {
     console.log('🔍 DEBUG: Input settings object:', JSON.stringify(settings, null, 2));
     console.log('🔍 DEBUG: Before update mockMathSettings:', JSON.stringify(mockMathSettings, null, 2));
