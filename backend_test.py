@@ -4377,6 +4377,11 @@ class BackendTester:
         print(f"🔗 Testing against: {BASE_URL}")
         print("=" * 60)
         
+        # PRIORITY: Settings APIs Comprehensive Testing (User Issue Focus)
+        priority_tests = [
+            ("🔥 SETTINGS APIs COMPREHENSIVE (USER ISSUE)", self.test_settings_apis_comprehensive),
+        ]
+        
         test_functions = [
             ("Star Moving Functionality (User Error Report)", self.test_star_moving_functionality),
             ("API Health Check", self.test_api_health),
@@ -4416,10 +4421,13 @@ class BackendTester:
             ("German Difficulty Integration", self.test_german_difficulty_integration),
         ]
         
-        passed_tests = 0
-        total_tests = len(test_functions)
+        # Combine priority tests with regular tests
+        all_tests = priority_tests + test_functions
         
-        for test_name, test_func in test_functions:
+        passed_tests = 0
+        total_tests = len(all_tests)
+        
+        for test_name, test_func in all_tests:
             print(f"\n📋 Running {test_name} Tests...")
             try:
                 if test_func():
