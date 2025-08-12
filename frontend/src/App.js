@@ -827,6 +827,7 @@ const GermanSettingsModal = ({ isOpen, onClose, onComplete }) => {
   }, [isOpen]);
 
   const loadSettings = async () => {
+    setLoading(true);
     try {
       if (isMockMode()) {
         const response = await mockApi.getGermanSettings();
@@ -838,13 +839,47 @@ const GermanSettingsModal = ({ isOpen, onClose, onComplete }) => {
       }
     } catch (error) {
       console.error('Fehler beim Laden der Deutsch-Einstellungen:', error);
+      // Set default settings if loading fails
+      setSettings({
+        problem_count: 20,
+        star_tiers: {"90": 3, "80": 2, "70": 1},
+        problem_types: {
+          spelling: true,
+          word_types: true,
+          fill_blank: true,
+          grammar: false,
+          articles: false,
+          sentence_order: false
+        },
+        difficulty_settings: {
+          spelling_difficulty: "medium",
+          word_types_include_adjectives: true,
+          fill_blank_context_length: "short"
+        }
+      });
     }
+    setLoading(false);
   };
 
   const loadStatistics = async () => {
     try {
-      const response = await axios.get(`${API}/german/statistics`);
-      setStatistics(response.data);
+      if (isMockMode()) {
+        // Mock statistics - can add later
+        setStatistics({
+          total_attempts: 0,
+          grade_2_attempts: 0,
+          grade_3_attempts: 0,
+          total_correct: 0,
+          total_wrong: 0,
+          average_score: 0.0,
+          best_score: 0.0,
+          total_stars_earned: 0,
+          problem_type_stats: {}
+        });
+      } else {
+        const response = await axios.get(`${API}/german/statistics`);
+        setStatistics(response.data);
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Deutsch-Statistiken:', error);
     }
