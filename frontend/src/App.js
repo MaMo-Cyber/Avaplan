@@ -3017,7 +3017,7 @@ function App() {
         console.log(`⭐ Demo Mode: Withdrew ${amount} stars from safe`);
       } else {
         // Use real API
-        await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
+        await axios.post(`${API}/progress/withdraw-from-safe`, { stars: amount });
       }
       
       loadData();
