@@ -2890,14 +2890,26 @@ function App() {
   };
 
   const addTaskStarsToAvailable = async () => {
-    console.log('🔧 addTaskStarsToAvailable called! progress.total_stars:', progress.total_stars);
+    console.log('🔧 addTaskStarsToAvailable called! Debug info:');
+    console.log('🔧 progress.total_stars:', progress.total_stars);
+    console.log('🔧 progress.total_stars_earned:', progress.total_stars_earned);
+    console.log('🔧 progress.total_stars_used:', progress.total_stars_used);
+    console.log('🔧 progress.available_stars:', progress.available_stars);
+    console.log('🔧 progress.stars_in_safe:', progress.stars_in_safe);
     
-    if (progress.total_stars === 0) {
-      alert('Keine Aufgaben-Sterne verfügbar!');
+    // Calculate actual available task stars
+    const totalEarned = progress.total_stars_earned || 0;
+    const totalUsed = progress.total_stars_used || 0;
+    const availableTaskStars = totalEarned - totalUsed;
+    
+    console.log('🔧 Calculated available task stars:', availableTaskStars);
+    
+    if (availableTaskStars === 0) {
+      alert(`Keine Aufgaben-Sterne verfügbar!\n\nStatus:\n• Verdiente Sterne: ${totalEarned}\n• Benutzte Sterne: ${totalUsed}\n• Verfügbare Task-Sterne: ${availableTaskStars}\n• Belohnungs-Sterne: ${progress.available_stars || 0}\n• Im Tresor: ${progress.stars_in_safe || 0}`);
       return;
     }
 
-    const maxAvailable = progress.total_stars;
+    const maxAvailable = availableTaskStars;
     const starsToAdd = prompt(`Wie viele Aufgaben-Sterne zu verfügbaren Sternen hinzufügen? (Verfügbar: ${maxAvailable})`);
     
     console.log('🔧 User input:', starsToAdd);
