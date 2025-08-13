@@ -1,0 +1,8 @@
+🔗 Connecting to MongoDB: mongodb://localhost:27017...
+📂 Using database: test_database
+✅ MongoDB client created successfully!
+INFO:     Started server process [5564]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:56506 - "GET /api/ HTTP/1.1" 200 OK
