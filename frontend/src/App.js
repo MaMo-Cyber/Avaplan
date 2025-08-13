@@ -2928,7 +2928,7 @@ function App() {
       } else {
         // Move stars from total_stars to available_stars by adding to safe first, then withdrawing
         await axios.post(`${API}/progress/add-to-safe`, { stars: amount });
-        await axios.post(`${API}/progress/withdraw-from-safe?stars=${amount}`);
+        await axios.post(`${API}/progress/withdraw-from-safe`, { stars: amount });
         loadData();
       }
       
