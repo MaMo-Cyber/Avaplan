@@ -2976,11 +2976,11 @@ function App() {
       } else {
         // Use real API
         if (taskStarsAmount > 0) {
-          await axios.post(`${API}/progress/add-to-safe?stars=${taskStarsAmount}`);
+          await axios.post(`${API}/progress/add-to-safe`, { stars: taskStarsAmount });
         }
 
         if (rewardStarsAmount > 0) {
-          await axios.post(`${API}/progress/move-reward-to-safe?stars=${rewardStarsAmount}`);
+          await axios.post(`${API}/progress/move-reward-to-safe`, { stars: rewardStarsAmount });
         }
       }
 
