@@ -3458,6 +3458,26 @@ function App() {
           />
         )}
 
+        {/* Star Transfer Modal */}
+        {showStarTransfer && (
+          <StarTransferModal
+            isOpen={showStarTransfer}
+            onClose={() => setShowStarTransfer(false)}
+            progress={progress}
+            onTransfer={handleStarTransfer}
+          />
+        )}
+
+        {/* Safe Modal */}
+        {showSafe && (
+          <SafeModal
+            isOpen={showSafe}
+            onClose={() => setShowSafe(false)}
+            starsInSafe={progress.stars_in_safe}
+            onWithdraw={withdrawFromSafe}
+          />
+        )}
+
         {showAdminSettings && (
           <AdminSettingsModal
             isOpen={showAdminSettings}
